@@ -46,7 +46,7 @@ export default function BudgetVarianceChart() {
         <p className="font-semibold mb-1">{label}</p>
         <p>계획: {formatKRW(plan)}</p>
         <p>실적: {formatKRW(actual)}</p>
-        <p style={{ color: variance >= 0 ? "#059669" : "#DC2626" }}>
+        <p style={{ color: variance >= 0 ? "#16C784" : "#FF4747" }}>
           차이: {variance >= 0 ? "+" : ""}{formatKRW(variance)}
         </p>
       </div>
@@ -80,7 +80,7 @@ export default function BudgetVarianceChart() {
           <Legend iconType="square" iconSize={10} wrapperStyle={{ fontSize: 11 }} />
           <Bar yAxisId="left" dataKey="plan" name="계획" fill={BUDGET_COLORS.plan} radius={[3, 3, 0, 0]} opacity={0.8} />
           <Bar yAxisId="left" dataKey="actual" name="실적" fill={BUDGET_COLORS.actual} radius={[3, 3, 0, 0]} />
-          <Line yAxisId="right" dataKey="variance_pct" name="달성률(%)" stroke="#059669" strokeWidth={2} dot={false} type="monotone" />
+          <Line yAxisId="right" dataKey="variance_pct" name="달성률(%)" stroke="#16C784" strokeWidth={2} dot={false} type="monotone" />
         </ComposedChart>
       </ResponsiveContainer>
     </div>

@@ -26,8 +26,8 @@
   --color-border: #DFE3E6;
   --color-text-primary: #000000;
   --color-text-secondary: #A1A8B3;
-  --color-positive: #059669;
-  --color-negative: #DC2626;
+  --color-positive: #16C784;
+  --color-negative: #FF4747;
   --font-sans: "PretendardVariable", "Pretendard", system-ui, sans-serif;
   --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px 0 rgba(0,0,0,0.03);
   --shadow-card-hover: 0 4px 12px 0 rgba(0,0,0,0.10);

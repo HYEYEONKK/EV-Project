@@ -1,6 +1,9 @@
 "use client";
 import { create } from "zustand";
 
+export type AnalysisMode = "전년누적" | "전년동월" | "전월비교";
+export type BSBase = "연초" | "월초";
+
 interface FilterState {
   // Global date filter
   dateFrom: string;
@@ -11,8 +14,21 @@ interface FilterState {
   activeProductCategory: string | null;
   activeVendor: string | null;
   activeRegion: string | null;
+  // Summary page filters
+  summaryBaseYM: string;
+  summaryMode: AnalysisMode;
+  summaryBsBase: BSBase;
+  // Scenario page filters
+  scenarioDateFrom: string;
+  scenarioDateTo: string;
+  scenarioMinAmount: number | null;
+  scenarioMaxAmount: number | null;
+  scenarioAllToggle: boolean;
   // Actions
   setDateRange: (from: string, to: string) => void;
+  setScenarioDateRange: (from: string, to: string) => void;
+  setScenarioAmounts: (min: number | null, max: number | null) => void;
+  setScenarioAllToggle: (v: boolean) => void;
   setCrossFilter: (
     key:
       | "activeMonth"
@@ -22,6 +38,9 @@ interface FilterState {
       | "activeRegion",
     value: string | null
   ) => void;
+  setSummaryBaseYM: (v: string) => void;
+  setSummaryMode: (v: AnalysisMode) => void;
+  setSummaryBsBase: (v: BSBase) => void;
   resetCrossFilters: () => void;
   resetAll: () => void;
 }
@@ -34,13 +53,27 @@ export const useFilterStore = create<FilterState>((set) => ({
   activeProductCategory: null,
   activeVendor: null,
   activeRegion: null,
+  summaryBaseYM: "2026-03",
+  summaryMode: "전월비교",
+  summaryBsBase: "연초",
+  scenarioDateFrom: "2024-01-01",
+  scenarioDateTo: "2025-09-30",
+  scenarioMinAmount: null,
+  scenarioMaxAmount: null,
+  scenarioAllToggle: false,
 
   setDateRange: (from, to) => set({ dateFrom: from, dateTo: to }),
+  setScenarioDateRange: (from, to) => set({ scenarioDateFrom: from, scenarioDateTo: to }),
+  setScenarioAmounts: (min, max) => set({ scenarioMinAmount: min, scenarioMaxAmount: max }),
+  setScenarioAllToggle: (v) => set({ scenarioAllToggle: v }),
   setCrossFilter: (key, value) =>
     set((state) => ({
       ...state,
-      [key]: state[key] === value ? null : value, // toggle
+      [key]: state[key] === value ? null : value,
     })),
+  setSummaryBaseYM: (v) => set({ summaryBaseYM: v }),
+  setSummaryMode: (v) => set({ summaryMode: v }),
+  setSummaryBsBase: (v) => set({ summaryBsBase: v }),
   resetCrossFilters: () =>
     set({
       activeMonth: null,
@@ -58,5 +91,8 @@ export const useFilterStore = create<FilterState>((set) => ({
       activeProductCategory: null,
       activeVendor: null,
       activeRegion: null,
+      summaryBaseYM: "2026-03",
+      summaryMode: "전월비교",
+      summaryBsBase: "연초",
     }),
 }));
