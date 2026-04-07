@@ -14,3 +14,5 @@ class BusinessPlan(Base):
         Index("idx_plan_date", "date"),
         Index("idx_plan_item", "item"),
     )
+
+#수정test
