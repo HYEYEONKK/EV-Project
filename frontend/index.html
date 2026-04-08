@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Worldwide Easy View</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="pwc-logo">
+          <img src="../Frame/PwC-logo 1.png" alt="PwC" class="logo-img" onerror="this.style.display='none'" />
+        </div>
+        <span class="header-title">Worldwide Easy View</span>
+      </div>
+      <div class="header-right">
+        <div
+          class="user-avatar"
+          id="userAvatar"
+          onclick="window.location.href='login.html'"
+          title="로그인"
+        >
+          <span class="avatar-initials" id="avatarInitials"></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <div class="hero">
+        <h1 class="hero-title">Worldwide Easy View</h1>
+        <p class="hero-subtitle">
+          Worldwide Easy View는 대상법인의 전표데이터를 이용하여 다양한
+          경영정보와 예외사항을<br />웹과 모바일로 확인하는 정기구독
+          서비스입니다.
+        </p>
+        <button class="btn-start" id="startBtn">시작하기</button>
+      </div>
+    </main>
+
+    <script>
+      document.getElementById('startBtn').addEventListener('click', function() {
+        window.location.href = 'input.html';
+      });
+      document.getElementById('userAvatar').addEventListener('click', function() {
+        window.location.href = 'login.html';
+      });
+    </script>
+  </body>
+</html>

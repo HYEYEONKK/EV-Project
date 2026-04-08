@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Output — Worldwide Easy View</title>
+  <link rel="stylesheet" href="css/input.css" />
+  <link rel="stylesheet" href="css/output.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- 로그인 체크 -->
+<script>
+  if (!sessionStorage.getItem('user')) {
+    window.location.replace('login.html');
+  }
+</script>
+
+<header class="header">
+  <div class="header-left">
+    <div class="pwc-logo">
+      <img src="../Frame/PwC-logo 1.png" alt="PwC" class="logo-img" onerror="this.style.display='none'" />
+    </div>
+    <span class="header-title">Worldwide Easy View</span>
+  </div>
+  <div class="header-right">
+    <div class="avatar-wrap">
+      <div class="user-avatar" id="avatarBtn">
+        <span class="avatar-initials"></span>
+      </div>
+      <div class="avatar-dropdown" id="avatarDropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-user-name" id="dropdownName"></div>
+          <div class="dropdown-user-email" id="dropdownEmail"></div>
+        </div>
+        <div class="dropdown-menu">
+          <button class="dropdown-item" onclick="alert('내 정보 기능은 준비 중입니다.')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            내 정보
+          </button>
+          <button class="dropdown-item" onclick="alert('설정 기능은 준비 중입니다.')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            설정
+          </button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item logout" onclick="sessionStorage.removeItem('user'); window.location.href='login.html';">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            로그아웃
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <a href="index.html" class="nav-item" data-tooltip="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+          <polyline points="9 21 9 12 15 12 15 21"/>
+        </svg>
+      </a>
+      <a href="input.html" class="nav-item" data-tooltip="Input">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="8" y1="13" x2="16" y2="13"/>
+          <line x1="8" y1="17" x2="16" y2="17"/>
+          <line x1="8" y1="9" x2="10" y2="9"/>
+        </svg>
+      </a>
+      <a href="output.html" class="nav-item active" data-tooltip="Output">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+          <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+          <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+        </svg>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="content output-content" id="mainContent">
+
+    <!-- ========== 가공하기 진입: 보고서 뷰 ========== -->
+    <div id="reportView" class="view hidden">
+
+      <!-- 헤더 + 기간 선택 -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Output</h1>
+          <p class="report-meta" id="reportMeta">로딩 중...</p>
+        </div>
+        <div class="period-selector">
+          <select id="selYear" class="period-select">
+            <option value="2024">2024년</option>
+            <option value="2025" selected>2025년</option>
+          </select>
+          <select id="selMonth" class="period-select">
+            <option value="1">1월</option><option value="2">2월</option>
+            <option value="3">3월</option><option value="4">4월</option>
+            <option value="5">5월</option><option value="6">6월</option>
+            <option value="7">7월</option><option value="8">8월</option>
+            <option value="9" selected>9월</option><option value="10">10월</option>
+            <option value="11">11월</option><option value="12">12월</option>
+          </select>
+          <button class="btn-refresh" id="btnRefresh">조회</button>
+        </div>
+      </div>
+
+      <!-- 탭 바 -->
+      <div class="report-tabs">
+        <button class="rtab active" data-tab="summary">Summary</button>
+        <button class="rtab" data-tab="pl-trend">P&amp;L 추이</button>
+        <button class="rtab" data-tab="pl-detail">P&amp;L 상세</button>
+        <button class="rtab" data-tab="bs-summary">B/S 요약</button>
+        <button class="rtab" data-tab="bs-detail">B/S 상세</button>
+        <button class="rtab" data-tab="journal">분개장</button>
+        <button class="rtab" data-tab="exceptions">예외사항</button>
+      </div>
+
+      <!-- ── Summary ── -->
+      <div class="rtab-panel active" id="tab-summary">
+        <div class="kpi-grid" id="kpiGrid">
+          <!-- JS로 렌더링 -->
+        </div>
+        <div class="summary-row">
+          <div class="summary-block">
+            <h3 class="block-title">매출 상위 거래처 (TOP 5)</h3>
+            <table class="mini-table">
+              <thead><tr><th>거래처</th><th>금액</th></tr></thead>
+              <tbody id="topSalesBody"></tbody>
+            </table>
+          </div>
+          <div class="summary-block">
+            <h3 class="block-title">매입 상위 거래처 (TOP 5)</h3>
+            <table class="mini-table">
+              <thead><tr><th>거래처</th><th>금액</th></tr></thead>
+              <tbody id="topPurchaseBody"></tbody>
+            </table>
+          </div>
+          <div class="summary-block">
+            <h3 class="block-title">재무비율</h3>
+            <table class="mini-table">
+              <thead><tr><th>지표</th><th>비율</th></tr></thead>
+              <tbody id="ratioBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="summary-block full-width">
+          <h3 class="block-title">P&amp;L 요약</h3>
+          <table class="data-table">
+            <thead><tr><th>항목</th><th>당기실적</th><th>전기실적</th><th>증감액</th><th>증감률</th></tr></thead>
+            <tbody id="plSummaryBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── P&L 추이 ── -->
+      <div class="rtab-panel" id="tab-pl-trend">
+        <p class="panel-desc" id="plTrendDesc">월별 손익 추이</p>
+        <div class="chart-grid">
+          <div class="chart-box"><h3 class="chart-title">매출액</h3><canvas id="chartRevenue"></canvas></div>
+          <div class="chart-box"><h3 class="chart-title">매출원가</h3><canvas id="chartCost"></canvas></div>
+          <div class="chart-box"><h3 class="chart-title">매출총이익</h3><canvas id="chartGross"></canvas></div>
+          <div class="chart-box"><h3 class="chart-title">영업이익</h3><canvas id="chartOp"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ── P&L 상세 ── -->
+      <div class="rtab-panel" id="tab-pl-detail">
+        <p class="panel-desc" id="plDetailDesc">P&amp;L 상세</p>
+        <table class="data-table">
+          <thead><tr><th>항목</th><th>당기실적 (원)</th><th>전기실적 (원)</th><th>증감액 (원)</th><th>증감률</th></tr></thead>
+          <tbody id="plDetailBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ── B/S 요약 ── -->
+      <div class="rtab-panel" id="tab-bs-summary">
+        <p class="panel-desc" id="bsDesc">재무상태표</p>
+        <div class="kpi-grid three" id="bsKpiGrid"></div>
+        <div class="chart-grid two">
+          <div class="chart-box"><h3 class="chart-title">자산 추이</h3><canvas id="chartAssets"></canvas></div>
+          <div class="chart-box"><h3 class="chart-title">부채 / 자본 추이</h3><canvas id="chartLiab"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ── B/S 상세 ── -->
+      <div class="rtab-panel" id="tab-bs-detail">
+        <p class="panel-desc" id="bsDetailDesc">재무상태표 상세</p>
+        <table class="data-table">
+          <thead><tr><th>항목</th><th>당기 (원)</th><th>전기 (원)</th><th>증감액 (원)</th></tr></thead>
+          <tbody id="bsDetailBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ── 분개장 ── -->
+      <div class="rtab-panel" id="tab-journal">
+        <p class="panel-desc" id="journalDesc">분개장</p>
+        <div class="chart-box single"><h3 class="chart-title">월별 전표 건수</h3><canvas id="chartJournal"></canvas></div>
+        <table class="data-table">
+          <thead><tr><th>일자</th><th>전표번호</th><th>계정과목</th><th>거래처</th><th>금액</th><th>차대</th></tr></thead>
+          <tbody id="journalBody"></tbody>
+        </table>
+      </div>
+
+      <!-- ── 예외사항 ── -->
+      <div class="rtab-panel" id="tab-exceptions">
+        <div class="exc-tabs">
+          <button class="etab active" data-etab="exc1">예외 1</button>
+          <button class="etab" data-etab="exc2">예외 2</button>
+          <button class="etab" data-etab="exc3">예외 3</button>
+          <button class="etab" data-etab="exc4">예외 4</button>
+          <button class="etab" data-etab="exc5">예외 5</button>
+          <button class="etab" data-etab="exc6">예외 6</button>
+        </div>
+        <div class="etab-panel active" id="etab-exc1">
+          <p class="exc-desc"><strong>예외 1. 단일 거래 금액이 큰 거래</strong> — 금액 상위 0.5% 초과 거래</p>
+          <table class="data-table"><thead><tr><th>일자</th><th>전표번호</th><th>계정과목</th><th>거래처</th><th>금액</th><th>차대</th></tr></thead>
+          <tbody id="exc1Body"></tbody></table>
+        </div>
+        <div class="etab-panel" id="etab-exc2">
+          <p class="exc-desc"><strong>예외 2. 특이일(주말)에 등록된 전표</strong> — 주말 등록 전표 (금액 1만원 이상)</p>
+          <table class="data-table"><thead><tr><th>일자</th><th>전표번호</th><th>계정과목</th><th>거래처</th><th>금액</th><th>차대</th></tr></thead>
+          <tbody id="exc2Body"></tbody></table>
+        </div>
+        <div class="etab-panel" id="etab-exc3">
+          <p class="exc-desc"><strong>예외 3. 동일 금액 반복 거래</strong> — 동일 거래처·금액이 3회 이상 반복된 전표</p>
+          <table class="data-table"><thead><tr><th>거래처</th><th>금액</th><th>반복횟수</th><th>최근전표</th><th>최근일자</th></tr></thead>
+          <tbody id="exc3Body"></tbody></table>
+        </div>
+        <div class="etab-panel" id="etab-exc4">
+          <p class="exc-desc"><strong>예외 4. 미결 가수금·가지급금</strong> — 가수금·가지급금 계정 잔액 전표</p>
+          <table class="data-table"><thead><tr><th>일자</th><th>전표번호</th><th>계정과목</th><th>거래처</th><th>금액</th><th>차대</th></tr></thead>
+          <tbody id="exc4Body"></tbody></table>
+        </div>
+        <div class="etab-panel" id="etab-exc5">
+          <p class="exc-desc"><strong>예외 5. 장기 미결 전표</strong> — 180일 이상 경과한 BS 전표</p>
+          <table class="data-table"><thead><tr><th>일자</th><th>전표번호</th><th>계정과목</th><th>거래처</th><th>금액</th><th>차대</th><th>경과일수</th></tr></thead>
+          <tbody id="exc5Body"></tbody></table>
+        </div>
+        <div class="etab-panel" id="etab-exc6">
+          <p class="exc-desc"><strong>예외 6. Seldom Used — 거의 사용되지 않는 계정과목</strong> (전표 5건 이하)</p>
+          <table class="data-table"><thead><tr><th>계정과목</th><th>전표건수</th><th>최근일자</th><th>최근전표</th><th>금액합계</th></tr></thead>
+          <tbody id="exc6Body"></tbody></table>
+        </div>
+      </div>
+
+    </div><!-- /reportView -->
+
+    <!-- ========== 사이드바 진입: 목록 뷰 ========== -->
+    <div id="listView" class="view hidden">
+      <div class="page-header">
+        <h1 class="page-title">Output</h1>
+      </div>
+      <section class="report-section">
+        <h2 class="section-title">최근에 조회한 보고서</h2>
+        <div class="report-row">
+          <div class="report-card" onclick="location.href='output.html?from=process'">
+            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></div>
+            <div class="card-info"><span class="card-company">ABC</span><span class="card-period">2025년 9월</span><span class="card-date">2025-10-05</span></div>
+          </div>
+          <div class="report-card" onclick="location.href='output.html?from=process&year=2025&month=6'">
+            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></div>
+            <div class="card-info"><span class="card-company">ABC</span><span class="card-period">2025년 6월</span><span class="card-date">2025-07-10</span></div>
+          </div>
+          <div class="report-card" onclick="location.href='output.html?from=process&year=2024&month=12'">
+            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></div>
+            <div class="card-info"><span class="card-company">ABC</span><span class="card-period">2024년 12월</span><span class="card-date">2025-01-15</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="report-section">
+        <h2 class="section-title">내가 생성한 보고서</h2>
+        <div class="report-grid">
+          <div class="report-card" onclick="location.href='output.html?from=process'">
+            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></div>
+            <div class="card-info"><span class="card-company">ABC</span><span class="card-period">2025년 9월</span><span class="card-date">2025-10-05</span></div>
+          </div>
+          <div class="report-card" onclick="location.href='output.html?from=process&year=2025&month=6'">
+            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></div>
+            <div class="card-info"><span class="card-company">ABC</span><span class="card-period">2025년 6월</span><span class="card-date">2025-07-10</span></div>
+          </div>
+          <div class="report-card" onclick="location.href='output.html?from=process&year=2024&month=12'">
+            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></div>
+            <div class="card-info"><span class="card-company">ABC</span><span class="card-period">2024년 12월</span><span class="card-date">2025-01-15</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="report-section">
+        <h2 class="section-title">접근 권한이 있는 보고서</h2>
+        <div class="report-grid">
+          <div class="report-card" onclick="location.href='output.html?from=process'">
+            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></div>
+            <div class="card-info"><span class="card-company">ABC</span><span class="card-period">2025년 9월</span><span class="card-date">2025-10-05</span></div>
+          </div>
+          <div class="report-card" onclick="location.href='output.html?from=process&year=2024&month=12'">
+            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></div>
+            <div class="card-info"><span class="card-company">ABC</span><span class="card-period">2024년 12월</span><span class="card-date">2025-01-15</span></div>
+          </div>
+        </div>
+      </section>
+    </div><!-- /listView -->
+
+  </main>
+</div>
+
+<script src="js/output.js"></script>
+</body>
+</html>

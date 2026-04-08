@@ -1,0 +1,292 @@
+/* ===== Content override for report page ===== */
+.content {
+  padding: 32px 40px;
+}
+
+/* ===== View Toggle ===== */
+.view { width: 100%; display: flex; flex-direction: column; gap: 24px; }
+.hidden { display: none !important; }
+
+/* ===== Report Meta ===== */
+.report-meta {
+  font-size: 13px;
+  color: #888888;
+  margin-top: 4px;
+}
+
+/* ===== Report Tab Bar ===== */
+.report-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid #e5e5e5;
+  flex-wrap: wrap;
+}
+
+.rtab {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #888888;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.rtab:hover { color: #FF9F00; }
+.rtab.active { color: #FF9F00; border-bottom-color: #FF9F00; font-weight: 700; }
+
+/* ===== Tab Panels ===== */
+.rtab-panel { display: none; flex-direction: column; gap: 24px; padding-top: 8px; }
+.rtab-panel.active { display: flex; }
+
+.panel-desc { font-size: 13px; color: #777; }
+
+/* ===== KPI Cards ===== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.kpi-grid.three { grid-template-columns: repeat(3, 1fr); }
+
+.kpi-card {
+  background: #ffffff;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kpi-label { font-size: 13px; color: #777; }
+.kpi-value { font-size: 26px; font-weight: 700; color: #1a1a1a; }
+.kpi-compare { display: flex; align-items: center; gap: 8px; }
+.kpi-prev { font-size: 12px; color: #aaa; }
+.kpi-change { font-size: 13px; font-weight: 600; }
+.kpi-change.up { color: #2e7d32; }
+.kpi-change.down { color: #c62828; }
+
+/* ===== Summary Blocks ===== */
+.summary-row {
+  display: flex;
+  gap: 16px;
+}
+
+.summary-block {
+  flex: 1;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.summary-block.full-width { flex: none; width: 100%; }
+
+.block-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+/* ===== Tables ===== */
+.mini-table, .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.mini-table th, .data-table th {
+  background: #FFF5E6;
+  color: #555;
+  font-weight: 600;
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #e8e8e8;
+  white-space: nowrap;
+}
+
+.mini-table td, .data-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+}
+
+.mini-table tr:last-child td, .data-table tr:last-child td { border-bottom: none; }
+.mini-table tr:hover td, .data-table tr:hover td { background: #fffaf2; }
+
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.up { color: #2e7d32; font-weight: 600; }
+td.indent { padding-left: 24px; color: #555; }
+td.indent2 { padding-left: 40px; color: #555; }
+
+tr.highlight td { background: #FFF5E6; font-weight: 600; }
+tr.row-section td { background: #f5f5f5; font-weight: 700; color: #333; font-size: 12px; padding: 6px 10px; }
+tr.row-sub td { font-weight: 600; }
+
+/* ===== Charts ===== */
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.chart-grid.two { grid-template-columns: repeat(2, 1fr); }
+
+.chart-box {
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+
+.chart-box.single { width: 100%; }
+
+.chart-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+/* ===== Exception Sub Tabs ===== */
+.exc-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1.5px solid #e5e5e5;
+}
+
+.etab {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #888;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.etab:hover { color: #FF9F00; }
+.etab.active { color: #FF9F00; border-bottom-color: #FF9F00; font-weight: 700; }
+
+.etab-panel { display: none; flex-direction: column; gap: 12px; padding-top: 12px; }
+.etab-panel.active { display: flex; }
+
+.exc-desc {
+  font-size: 13px;
+  color: #555;
+  background: #FFF5E6;
+  border-radius: 6px;
+  padding: 10px 14px;
+  line-height: 1.5;
+}
+
+/* ===== List View (card sections) ===== */
+.report-section { display: flex; flex-direction: column; gap: 14px; }
+.section-title { font-size: 17px; font-weight: 600; color: #1a1a1a; }
+
+.report-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.report-row::-webkit-scrollbar { height: 4px; }
+.report-row::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 2px; }
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.report-card {
+  flex-shrink: 0;
+  width: 180px;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 20px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #ffffff;
+}
+.report-grid .report-card { width: auto; }
+.report-card:hover { border-color: #FF9F00; box-shadow: 0 2px 12px rgba(255,159,0,.12); }
+
+.card-icon {
+  width: 40px; height: 40px;
+  background: #FFF5E6;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #FF9F00;
+}
+.card-icon svg { width: 20px; height: 20px; }
+.card-info { display: flex; flex-direction: column; gap: 4px; }
+.card-company { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+.card-period { font-size: 13px; color: #555; }
+.card-date { font-size: 12px; color: #aaa; }
+
+/* ===== Period Selector ===== */
+.period-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.period-select {
+  padding: 8px 28px 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.period-select:focus { border-color: #FF9F00; }
+
+.btn-refresh {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background-color: #FF9F00;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-refresh:hover { background-color: #e08c00; }
+
+/* ===== Loss / negative number color ===== */
+td.down, .kpi-change.down { color: #c62828; }
+.kpi-change.loss { color: #c62828; }
+
+/* ===== Loading state ===== */
+.loading-row td { color: #aaa; text-align: center; }
+
+/* ===== Large number format note ===== */
+.unit-note { font-size: 11px; color: #aaa; margin-left: 4px; }
