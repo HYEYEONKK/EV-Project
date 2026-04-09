@@ -29,6 +29,32 @@ const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:5000' 
   });
 })();
 
+// ===== 데이터 형식 모달 =====
+(function () {
+  const btn     = document.getElementById('dataFormatBtn');
+  const modal   = document.getElementById('dataFormatModal');
+  const closeBtn = document.getElementById('modalClose');
+  if (!btn || !modal) return;
+
+  btn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  });
+
+  function closeModal() {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+})();
+
 // ===== 기준월 / 결산월 옵션 생성 =====
 function populateMonths(selectId) {
   const select = document.getElementById(selectId);

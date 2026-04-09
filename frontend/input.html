@@ -86,7 +86,13 @@
     <main class="content">
       <div class="page-header">
         <h1 class="page-title">Input Data</h1>
-        <button class="btn-process" id="processBtn">가공하기</button>
+        <div class="page-header-btns">
+          <button class="btn-data-format" id="dataFormatBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            데이터 형식 확인하기
+          </button>
+          <button class="btn-process" id="processBtn">가공하기</button>
+        </div>
       </div>
       <p class="page-desc">아래 정보를 입력한 후 각 파일을 업로드하시면 경영 정보 보고서를 생성합니다.</p>
 
@@ -158,6 +164,271 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- 데이터 형식 모달 -->
+  <div id="dataFormatModal" class="modal-overlay" style="display:none">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">데이터 형식 확인하기</h2>
+          <p class="modal-desc">사용 중인 ERP를 선택하여 데이터 요청서를 다운받으세요.</p>
+        </div>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- 일반 -->
+        <div class="modal-group">
+          <div class="modal-group-title">일반</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">일반 (General)</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/General_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/General_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 한국 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇰🇷 한국</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">SAP</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/SAP_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/SAP_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">SAP HANA</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/SAP_HANA_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/SAP_HANA_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">SAP B1</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/SAP_B1_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/SAP_B1_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">더존</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/Duzon_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">영림원</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/Youngrimwon_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">UNIERP</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/UNIERP_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 미국 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇺🇸 미국</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">QuickBooks</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/QuickBooks_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/QuickBooks_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 중국 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇨🇳 중국</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">金蝶 Kingdee</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/Kingdee_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/Kingdee_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">浪潮 Inspur</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/Inspur_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/Inspur_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">用友 Yongyou</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/Yongyou_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/Yongyou_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 일본 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇯🇵 일본</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">Oracle</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/Oracle_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/Oracle_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">弥生会計 Yayoi</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/Yayoi_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/Yayoi_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 동남아 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🌏 동남아</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">BRAVO</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/Bravo_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/Bravo_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">FAO</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/FAO_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/FAO_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">MISA</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/MISA_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/MISA_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 인도 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇮🇳 인도</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">Tally</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/Tally_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/Tally_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 말레이시아 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇲🇾 말레이시아</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">OBM Enterprise</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/OBM_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/OBM_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 러시아 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇷🇺 러시아</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">1C</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/1C_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/1C_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 영국 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇬🇧 영국</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">SAGE</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/SAGE_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/SAGE_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 네덜란드 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇳🇱 네덜란드</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">MS Dynamics 365</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/MSDynamics_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/MSDynamics_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 독일 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🇩🇪 독일</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">DATEV</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/DATEV_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/DATEV_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 중동 -->
+        <div class="modal-group">
+          <div class="modal-group-title">🌍 중동</div>
+          <div class="modal-erp-list">
+            <div class="modal-erp-item">
+              <span class="modal-erp-name">QAD</span>
+              <div class="modal-dl-btns">
+                <a href="downloads/QAD_KO.pdf" download class="dl-btn ko">↓ 한국어</a>
+                <a href="downloads/QAD_ENG.pdf" download class="dl-btn en">↓ English</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <!-- 로딩 오버레이 -->
