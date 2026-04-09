@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Worldwide Easy View — PwC</title>
+  <title>Worldwide Easy View — PwC 삼일회계법인</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -18,25 +18,27 @@
     </div>
     <div class="header-right">
       <nav class="header-nav">
-        <a href="#features" class="nav-link">기능 소개</a>
+        <a href="#values" class="nav-link">서비스 소개</a>
         <a href="#how" class="nav-link">사용 방법</a>
         <a href="#video" class="nav-link">소개 영상</a>
+        <a href="#contact" class="nav-link">문의하기</a>
       </nav>
-      <button class="btn-login-header" onclick="window.location.href='login.html'">로그인</button>
+      <button class="btn-login-header" id="headerActionBtn" onclick="window.location.href='login.html'">로그인</button>
     </div>
   </header>
 
   <!-- Hero -->
   <section class="hero">
     <div class="hero-inner">
-      <p class="hero-eyebrow">PwC Digital Solutions</p>
-      <h1 class="hero-title">회사 자료를<br>분석 보고서로</h1>
+      <p class="hero-eyebrow">PwC 삼일회계법인</p>
+      <h1 class="hero-title">해외법인<br>재무데이터를<br>쉽게</h1>
       <p class="hero-desc">
-        분개장과 시산표 파일만 올리면, 손익계산서·재무상태표·예외사항 분석까지<br>
-        자동으로 생성되는 경영정보 보고서 서비스입니다.
+        삼일회계법인이 개발한 Worldwide Easy View는<br>
+        대상 법인의 전표 데이터를 이용하여 다양한 경영정보와<br>
+        예외사항을 웹으로 확인하는 정기구독 서비스입니다.
       </p>
       <div class="hero-btns">
-        <button class="btn-primary" onclick="window.location.href='login.html'">무료로 시작하기</button>
+        <button class="btn-primary" onclick="window.location.href='login.html'">지금 시작하기</button>
         <a href="#video" class="btn-ghost">소개 영상 보기 ▶</a>
       </div>
     </div>
@@ -47,31 +49,39 @@
           <span class="preview-url">wwev.onrender.com/output</span>
         </div>
         <div class="preview-body">
+          <div class="preview-company">
+            <div class="company-badge">ABC Group</div>
+            <div class="company-sub">가나다 주식회사 · Monthly Summary</div>
+          </div>
           <div class="preview-kpi-row">
-            <div class="preview-kpi"><div class="kpi-label">매출액</div><div class="kpi-value orange">₩ 12.4억</div></div>
-            <div class="preview-kpi"><div class="kpi-label">영업이익</div><div class="kpi-value">₩ 2.1억</div></div>
-            <div class="preview-kpi"><div class="kpi-label">순이익</div><div class="kpi-value">₩ 1.8억</div></div>
+            <div class="preview-kpi highlight">
+              <div class="kpi-label">당월 매출액</div>
+              <div class="kpi-value orange">₩ 14,143M</div>
+              <div class="kpi-delta">▲ 12.7%</div>
+            </div>
+            <div class="preview-kpi">
+              <div class="kpi-label">당월 영업이익률</div>
+              <div class="kpi-value">(+) 18.3%</div>
+            </div>
+            <div class="preview-kpi">
+              <div class="kpi-label">당월 순이익률</div>
+              <div class="kpi-value">(+) 24.7%</div>
+            </div>
           </div>
           <div class="preview-chart-row">
-            <div class="preview-chart">
-              <div class="chart-title">월별 손익 트렌드</div>
+            <div class="preview-chart wide">
+              <div class="chart-title">월별 매출 추이</div>
               <div class="chart-bars">
-                <div class="bar" style="height:45%"></div>
+                <div class="bar" style="height:40%"></div>
+                <div class="bar" style="height:55%"></div>
+                <div class="bar" style="height:48%"></div>
+                <div class="bar" style="height:70%"></div>
                 <div class="bar" style="height:60%"></div>
-                <div class="bar" style="height:50%"></div>
-                <div class="bar" style="height:75%"></div>
                 <div class="bar" style="height:65%"></div>
-                <div class="bar" style="height:80%"></div>
-                <div class="bar active" style="height:90%"></div>
-              </div>
-            </div>
-            <div class="preview-chart">
-              <div class="chart-title">재무상태표</div>
-              <div class="preview-bs">
-                <div class="bs-row"><span>유동자산</span><span class="orange">65%</span></div>
-                <div class="bs-row"><span>비유동자산</span><span>35%</span></div>
-                <div class="bs-row"><span>유동부채</span><span class="red-text">42%</span></div>
-                <div class="bs-row"><span>자본</span><span>58%</span></div>
+                <div class="bar" style="height:72%"></div>
+                <div class="bar" style="height:68%"></div>
+                <div class="bar" style="height:75%"></div>
+                <div class="bar active" style="height:88%"></div>
               </div>
             </div>
           </div>
@@ -80,53 +90,39 @@
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="section" id="features">
+  <!-- Value Propositions -->
+  <section class="section" id="values">
     <div class="section-inner">
-      <p class="section-eyebrow">주요 기능</p>
-      <h2 class="section-title">필요한 분석을 한 번에</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon orange-bg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+      <p class="section-eyebrow">왜 Worldwide Easy View인가요?</p>
+      <h2 class="section-title">4가지 핵심 가치</h2>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           </div>
-          <h3>손익계산서 (P&L)</h3>
-          <p>월별·연간 손익을 자동 집계하고, 트렌드 차트로 한눈에 확인합니다.</p>
+          <h3>신뢰성</h3>
+          <p>전표 원천 데이터를 직접 이용하여 경영진에게 표준화된 재무정보를 확인할 수 있습니다.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon orange-bg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          </div>
-          <h3>재무상태표 (B/S)</h3>
-          <p>자산·부채·자본 구조를 시각화하여 재무 건전성을 빠르게 파악합니다.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon orange-bg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          </div>
-          <h3>예외사항 분석</h3>
-          <p>비정상 전표, 이상 패턴을 자동으로 감지하여 리스크를 사전에 포착합니다.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon orange-bg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <h3>거래처 분석</h3>
-          <p>주요 거래처별 거래 규모와 비중을 파악해 관계사 집중도를 모니터링합니다.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon orange-bg">
+        <div class="value-card">
+          <div class="value-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           </div>
-          <h3>월별 트렌드</h3>
-          <p>전월 대비 증감과 연간 누적 추이를 차트로 제공하여 경영 패턴을 분석합니다.</p>
+          <h3>효율성</h3>
+          <p>해외법인 자료의 언어·통화·회계기준의 장벽을 해석하여 쉽게 관리할 수 있습니다.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon orange-bg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="value-card">
+          <div class="value-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
           </div>
-          <h3>간편 파일 업로드</h3>
-          <p>분개장(JE)과 시산표(TB) Excel 파일을 드래그&드롭으로 올리면 즉시 분석됩니다.</p>
+          <h3>간편성</h3>
+          <p>어디서나 노트북이나 태블릿으로 경영정보를 바로 확인할 수 있습니다.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <h3>경제성</h3>
+          <p>합리적인 금액으로 별도의 ERP 또는 BIS/BI 시스템 없이도 효율적으로 확인이 가능합니다.</p>
         </div>
       </div>
     </div>
@@ -140,47 +136,72 @@
       <div class="steps">
         <div class="step">
           <div class="step-num">01</div>
-          <h3>파일 업로드</h3>
-          <p>분개장과 시산표 Excel 파일을 업로드하고 기준월과 회사명을 선택합니다.</p>
+          <h3>데이터 요청 및 업로드</h3>
+          <p>분개장(JE)과 시산표(TB) 파일을 업로드하고 기준월과 회사명을 선택합니다. SAP, Oracle, 더존 등 20개 이상 ERP 지원.</p>
         </div>
         <div class="step-arrow">→</div>
         <div class="step">
           <div class="step-num">02</div>
           <h3>자동 분석</h3>
-          <p>시스템이 데이터를 자동으로 처리하여 손익, 재무상태, 예외사항을 분석합니다.</p>
+          <p>시스템이 데이터를 자동으로 처리하여 손익, 재무상태표, 예외사항, 거래처 분석을 수행합니다.</p>
         </div>
         <div class="step-arrow">→</div>
         <div class="step">
           <div class="step-num">03</div>
           <h3>보고서 확인</h3>
-          <p>대시보드에서 시각화된 경영 정보를 확인하고 팀원과 링크로 공유합니다.</p>
+          <p>웹 또는 모바일에서 시각화된 경영정보 보고서를 확인하고 팀원과 바로 공유합니다.</p>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- ERP Support -->
+  <section class="section" id="erp">
+    <div class="section-inner">
+      <p class="section-eyebrow">지원 시스템</p>
+      <h2 class="section-title">다양한 ERP와 연동됩니다</h2>
+      <div class="erp-grid">
+        <span class="erp-tag">SAP</span>
+        <span class="erp-tag">SAP HANA</span>
+        <span class="erp-tag">SAP B1</span>
+        <span class="erp-tag">Oracle</span>
+        <span class="erp-tag">MS Dynamics 365</span>
+        <span class="erp-tag">QuickBooks</span>
+        <span class="erp-tag">더존</span>
+        <span class="erp-tag">영림원</span>
+        <span class="erp-tag">UNIERP</span>
+        <span class="erp-tag">Tally</span>
+        <span class="erp-tag">SAGE</span>
+        <span class="erp-tag">MISA</span>
+        <span class="erp-tag">DATEV</span>
+        <span class="erp-tag">金蝶 Kingdee</span>
+        <span class="erp-tag">浪潮 Inspur</span>
+        <span class="erp-tag">用友 Yongyou</span>
+        <span class="erp-tag">弥生会計 Yayoi</span>
+        <span class="erp-tag">FAO</span>
+        <span class="erp-tag">BRAVO</span>
+        <span class="erp-tag">1C</span>
+        <span class="erp-tag">QAD</span>
+        <span class="erp-tag">OBM Enterprise</span>
+        <span class="erp-tag">+ 더보기</span>
+      </div>
+    </div>
+  </section>
+
   <!-- Video -->
-  <section class="section" id="video">
+  <section class="section section-gray" id="video">
     <div class="section-inner">
       <p class="section-eyebrow">소개 영상</p>
       <h2 class="section-title">Worldwide Easy View 살펴보기</h2>
+      <p class="section-desc">서비스가 궁금하다면? 3분 34초 영상으로 확인해보세요.</p>
       <div class="video-wrap">
-        <!-- YouTube 링크를 아래 src의 VIDEO_ID 부분에 교체하세요 -->
-        <!-- 예: https://www.youtube.com/watch?v=abcd1234 → VIDEO_ID = abcd1234 -->
-        <div class="video-placeholder">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
-          <p>소개 영상을 준비 중입니다</p>
-          <span>YouTube 링크가 생기면 여기에 자동으로 표시됩니다</span>
-        </div>
-        <!-- 유튜브 링크가 생기면 위 video-placeholder를 삭제하고 아래 주석을 해제하세요
         <iframe
-          src="https://www.youtube.com/embed/VIDEO_ID"
-          title="Worldwide Easy View 소개"
+          src="https://www.youtube.com/embed/t8I87XRpLsU"
+          title="Worldwide Easy View 소개 영상"
           frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen>
         </iframe>
-        -->
       </div>
     </div>
   </section>
@@ -194,6 +215,43 @@
     </div>
   </section>
 
+  <!-- Contact -->
+  <section class="section" id="contact">
+    <div class="section-inner">
+      <p class="section-eyebrow">문의하기</p>
+      <h2 class="section-title">더 궁금한 점이 있으신가요?</h2>
+      <div class="contact-grid">
+        <a href="mailto:kr_easyview@pwc.com" class="contact-card">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div>
+            <div class="contact-label">Service Team</div>
+            <div class="contact-value">kr_easyview@pwc.com</div>
+          </div>
+        </a>
+        <a href="https://forms.gle/PpEhGX7V1mdCzLRk9" target="_blank" class="contact-card">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div>
+            <div class="contact-label">설명회 신청</div>
+            <div class="contact-value">신청 폼 바로가기 →</div>
+          </div>
+        </a>
+        <a href="https://forms.office.com/r/4hXi5yKYyD" target="_blank" class="contact-card">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div>
+            <div class="contact-label">피드백</div>
+            <div class="contact-value">의견 보내기 →</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-inner">
@@ -201,22 +259,19 @@
         <img src="../Frame/PwC-logo 1.png" alt="PwC" class="footer-logo" onerror="this.style.display='none'" />
         <span>Worldwide Easy View</span>
       </div>
-      <p class="footer-copy">© 2026 PwC. All rights reserved.</p>
+      <p class="footer-copy">© 2026 PwC 삼일회계법인. All rights reserved.</p>
     </div>
   </footer>
 
   <script>
-    // 로그인 상태면 아바타 버튼으로 전환
+    // 로그인 상태면 버튼을 "앱으로 이동"으로 변경
     const user = sessionStorage.getItem('user');
-    if (user) {
-      const btn = document.querySelector('.btn-login-header');
-      if (btn) {
-        const initials = user.split('@')[0].slice(0, 2).toUpperCase();
-        btn.textContent = '';
-        btn.className = 'user-avatar-header';
-        btn.innerHTML = `<span>${initials}</span>`;
-        btn.onclick = () => { window.location.href = 'input.html'; };
-      }
+    const btn = document.getElementById('headerActionBtn');
+    if (user && btn) {
+      const initials = user.split('@')[0].slice(0, 2).toUpperCase();
+      btn.textContent = initials;
+      btn.className = 'user-avatar-header';
+      btn.onclick = () => { window.location.href = 'input.html'; };
     }
 
     // 부드러운 스크롤

@@ -568,6 +568,176 @@ body {
   color: #666666;
 }
 
+/* ===== Dashboard Preview extras ===== */
+.preview-company {
+  margin-bottom: 12px;
+}
+.company-badge {
+  display: inline-block;
+  background: #D04A02;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 4px;
+}
+.company-sub {
+  font-size: 10px;
+  color: #999;
+}
+.kpi-delta {
+  font-size: 10px;
+  color: #D04A02;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.preview-kpi.highlight {
+  background: #fff8f5;
+  border-color: #ffd5b8;
+}
+.preview-chart.wide {
+  flex: 2;
+}
+
+/* ===== Section description ===== */
+.section-desc {
+  font-size: 16px;
+  color: #666;
+  margin-top: -36px;
+  margin-bottom: 48px;
+}
+
+/* ===== Value Propositions ===== */
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.value-card {
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 14px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.value-card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  transform: translateY(-3px);
+}
+
+.value-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #fff0e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  color: #D04A02;
+}
+
+.value-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.value-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+.value-card p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.7;
+}
+
+/* ===== ERP Grid ===== */
+.erp-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.erp-tag {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #444444;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.erp-tag:hover {
+  background: #fff0e8;
+  border-color: #D04A02;
+  color: #D04A02;
+}
+
+/* ===== Contact ===== */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.contact-card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+
+.contact-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #fff0e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #D04A02;
+  flex-shrink: 0;
+}
+
+.contact-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.contact-label {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.contact-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
   .hero {
@@ -577,13 +747,14 @@ body {
   }
   .hero-title { font-size: 44px; }
   .hero-visual { max-width: 100%; }
-  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .values-grid { grid-template-columns: repeat(2, 1fr); }
+  .contact-grid { grid-template-columns: 1fr; }
   .header { padding: 0 24px; }
   .header-nav { display: none; }
 }
 
 @media (max-width: 600px) {
-  .features-grid { grid-template-columns: 1fr; }
+  .values-grid { grid-template-columns: 1fr; }
   .steps { flex-direction: column; }
   .step-arrow { transform: rotate(90deg); margin: 0 auto; }
   .hero-title { font-size: 36px; }
