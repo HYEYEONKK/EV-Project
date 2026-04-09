@@ -27,10 +27,11 @@ app.add_middleware(
 )
 
 # ── Static files ──────────────────────────────────────────────────────────────
-app.mount("/css",   StaticFiles(directory=str(FRONTEND_DIR / "css")), name="css")
-app.mount("/js",    StaticFiles(directory=str(FRONTEND_DIR / "js")),  name="js")
-app.mount("/frame", StaticFiles(directory=str(FRAME_DIR)),             name="frame")
-app.mount("/Frame", StaticFiles(directory=str(FRAME_DIR)),             name="Frame")
+app.mount("/css",       StaticFiles(directory=str(FRONTEND_DIR / "css")),       name="css")
+app.mount("/js",        StaticFiles(directory=str(FRONTEND_DIR / "js")),        name="js")
+app.mount("/downloads", StaticFiles(directory=str(FRONTEND_DIR / "downloads")), name="downloads")
+app.mount("/frame",     StaticFiles(directory=str(FRAME_DIR)),                  name="frame")
+app.mount("/Frame",     StaticFiles(directory=str(FRAME_DIR)),                  name="Frame")
 
 # ── API Routers ───────────────────────────────────────────────────────────────
 app.include_router(bi.router,     prefix="/api/bi", tags=["BI Analysis"])
