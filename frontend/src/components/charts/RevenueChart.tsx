@@ -11,7 +11,7 @@ import { CHART_MARGIN, AXIS_STYLE, GRID_STROKE } from "@/lib/utils/chartColors";
 import { SkeletonChart } from "@/components/ui/LoadingSpinner";
 
 const ORANGE = "#FD5108";
-const NAVY = "#295477";
+const NAVY = "#6B7280";
 const AMBER = "#EB8C00";
 
 export default function RevenueChart() {

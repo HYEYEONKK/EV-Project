@@ -45,10 +45,7 @@ export default function KpiCard({
       className="bg-white rounded-lg p-6 border transition-shadow hover:shadow-card-hover"
       style={{
         boxShadow: "var(--shadow-card)",
-        borderColor: accent ? "#FD5108" : "#DFE3E6",
-        borderWidth: 1,
-        borderTopWidth: accent ? 3 : 1,
-        borderTopColor: accent ? "#FD5108" : "#DFE3E6",
+        borderColor: "#DFE3E6",
       }}
     >
       <p className="text-sm font-medium" style={{ color: "#A1A8B3" }}>{label}</p>
@@ -58,15 +55,15 @@ export default function KpiCard({
       {delta !== null && delta !== undefined && (
         <div className="flex items-center gap-1 mt-2">
           {isPositive ? (
-            <TrendingUp size={13} style={{ color: "#059669" }} />
+            <TrendingUp size={13} style={{ color: "#16C784" }} />
           ) : isNegative ? (
-            <TrendingDown size={13} style={{ color: "#DC2626" }} />
+            <TrendingDown size={13} style={{ color: "#FF4747" }} />
           ) : (
             <Minus size={13} style={{ color: "#9CA3AF" }} />
           )}
           <span
             className="text-xs font-medium"
-            style={{ color: isPositive ? "#059669" : isNegative ? "#DC2626" : "#9CA3AF" }}
+            style={{ color: isPositive ? "#16C784" : isNegative ? "#FF4747" : "#9CA3AF" }}
           >
             {isPositive ? "+" : ""}
             {delta.toFixed(1)}%

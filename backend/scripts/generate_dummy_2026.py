@@ -64,6 +64,14 @@ monthly_bs = conn.execute("""
 avg_bs_amt = monthly_bs[0]
 avg_bs_cnt = int(monthly_bs[1] / 9)   # per month
 
+# JE department (거래처) and description (적요) samples
+je_departments = [r[0] for r in conn.execute(
+    "SELECT DISTINCT department FROM journal_entries WHERE department IS NOT NULL AND department != '' LIMIT 200"
+).fetchall()]
+je_descriptions = [r[0] for r in conn.execute(
+    "SELECT DISTINCT description FROM journal_entries WHERE description IS NOT NULL AND description != '' LIMIT 300"
+).fetchall()]
+
 # Sales ledger samples
 sales_vendors    = [r[0] for r in conn.execute("SELECT DISTINCT vendor FROM sales_ledger").fetchall()]
 sales_products   = conn.execute("""
@@ -136,9 +144,11 @@ for idx, (y, m) in enumerate(TARGET_MONTHS):
             amt = abs(rng.gauss(avg_pl_debit * g, avg_pl_debit * 0.3))
         amt = max(10000, round(amt / 1000) * 1000)
         je_num = f"{y}{m:02d}01-{max_id:04d}"
+        dept = rng.choice(je_departments) if je_departments else None
+        desc = rng.choice(je_descriptions) if je_descriptions else None
         new_je_rows.append((
             max_id, d.strftime("%Y-%m-%d"), je_num, dc, amt,
-            None, None, acc_code, cls1, cls2, cls3, cls4, cc, div, branch, "PL"
+            dept, desc, acc_code, cls1, cls2, cls3, cls4, cc, div, branch, "PL"
         ))
         max_id += 1
 
@@ -152,10 +162,12 @@ for idx, (y, m) in enumerate(TARGET_MONTHS):
         amt = max(10000, round(amt / 1000) * 1000)
         # Mirror entry (debit + credit pair)
         je_num = f"{y}{m:02d}02-{max_id:04d}"
+        dept = rng.choice(je_departments) if je_departments else None
+        desc = rng.choice(je_descriptions) if je_descriptions else None
         for entry_dc in [dc, "C" if dc == "D" else "D"]:
             new_je_rows.append((
                 max_id, d.strftime("%Y-%m-%d"), je_num, entry_dc, amt,
-                None, None, acc_code, cls1, cls2, cls3, cls4, cc, div, branch, "BS"
+                dept, desc, acc_code, cls1, cls2, cls3, cls4, cc, div, branch, "BS"
             ))
             max_id += 1
 

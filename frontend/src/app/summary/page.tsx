@@ -1,25 +1,22 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { useFilterStore } from "@/lib/store/filterStore";
+import type { AnalysisMode, BSBase } from "@/lib/store/filterStore";
 import { api } from "@/lib/api/client";
 import { formatKRW } from "@/lib/utils/formatters";
 import Link from "next/link";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useMemo } from "react";
+import { Copy, ArrowLeftRight, CalendarX, Banknote, Zap, UserMinus, CalendarOff } from "lucide-react";
 
-/* ══════════════════════════════════════════
-   Types
-══════════════════════════════════════════ */
-type AnalysisMode = "전년누적" | "전년동월" | "전월비교";
-type BSBase = "연초" | "월초";
+const SCENARIO_ICONS: Record<string, React.ElementType> = {
+  Copy, ArrowLeftRight, CalendarX, Banknote, Zap, UserMinus, CalendarOff,
+};
 
 /* ══════════════════════════════════════════
    Date range helpers
 ══════════════════════════════════════════ */
 function lastDay(y: number, m: number) {
   return new Date(y, m, 0).getDate();
-}
-function ym(y: number, m: number) {
-  return `${y}-${String(m).padStart(2, "0")}`;
 }
 function deriveDateRanges(
   baseYM: string,
@@ -72,16 +69,6 @@ function deriveBSDateRanges(
   };
 }
 
-/* ══════════════════════════════════════════
-   Available months dropdown
-══════════════════════════════════════════ */
-const MONTHS: string[] = [];
-for (let y = 2024; y <= 2026; y++) {
-  for (let mo = 1; mo <= 12; mo++) {
-    if (y === 2026 && mo > 3) break;
-    MONTHS.push(ym(y, mo));
-  }
-}
 
 /* ══════════════════════════════════════════
    Sparkline
@@ -119,7 +106,7 @@ function MoverCard({
   positive: boolean;
 }) {
   const maxAbs = Math.max(...items.map((i) => Math.abs(i.change)), 1);
-  const accentColor = positive ? "#059669" : "#DC2626";
+  const accentColor = positive ? "#16C784" : "#FF4747";
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
       <div
@@ -133,7 +120,7 @@ function MoverCard({
           className="px-4 pt-3 pb-2.5"
           style={{ borderBottom: "1px solid #EEEFF1" }}
         >
-          <p className="text-xs font-semibold leading-snug" style={{ color: "#000" }}>{title}</p>
+          <p className="text-base font-semibold leading-snug" style={{ color: "#000" }}>{title}</p>
         </div>
         {/* 데이터 영역 */}
         <div className="px-4 py-3">
@@ -145,7 +132,7 @@ function MoverCard({
               return (
                 <div key={i} className="flex items-center gap-2 py-1.5" style={{ minWidth: 0 }}>
                   <span
-                    className="text-xs"
+                    className="text-sm"
                     style={{ color: "#374151", flex: "1 1 0", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                     title={item.name}
                   >
@@ -154,8 +141,8 @@ function MoverCard({
                   <div className="flex items-center gap-1.5" style={{ flexShrink: 0 }}>
                     <div style={{ width: barW, height: 5, backgroundColor: colors[i], borderRadius: 3, flexShrink: 0 }} />
                     <span
-                      className="text-xs font-semibold"
-                      style={{ color: accentColor, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}
+                      className="text-sm"
+                      style={{ color: accentColor, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", fontWeight: 600 }}
                     >
                       {positive ? "+" : "−"}{formatKRW(Math.abs(item.change))}
                     </span>
@@ -192,108 +179,66 @@ function ScenarioCard({ label, count, href, color }: { label: string; count: num
   );
 }
 
+
 /* ══════════════════════════════════════════
-   Custom year-month dropdown
+   Scenario Section (API 연동)
 ══════════════════════════════════════════ */
-function YMDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+const SCENARIO_ITEMS = [
+  { id: 1, label: "동일금액 중복",        icon: "Copy"          },
+  { id: 2, label: "현금지급 後 부채인식", icon: "ArrowLeftRight" },
+  { id: 3, label: "주말 현금지급",        icon: "CalendarX"     },
+  { id: 4, label: "고액 현금 전표",       icon: "Banknote"      },
+  { id: 5, label: "비용+현금 동시 지급",  icon: "Zap"           },
+  { id: 6, label: "저빈도 거래처",        icon: "UserMinus"     },
+  { id: 7, label: "주말 기표 전표",       icon: "CalendarOff"   },
+];
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const label = (() => {
-    const [y, mo] = value.split("-");
-    return `${y}년 ${String(Number(mo)).padStart(2, "0")}월`;
-  })();
-
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 text-xs font-semibold rounded-md px-3 py-1.5 transition-colors"
-        style={{
-          border: "1px solid #DFE3E6",
-          backgroundColor: open ? "#F5F7F8" : "#fff",
-          color: "#000",
-          outline: "none",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {label}
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A1A8B3" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
-          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s", flexShrink: 0 }}>
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      {open && (
-        <div
-          style={{
-            position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 200,
-            backgroundColor: "#fff", border: "1px solid #DFE3E6", borderRadius: 8,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.10)", minWidth: 130,
-            maxHeight: 260, overflowY: "auto",
-          }}
-        >
-          {MONTHS.map((m) => {
-            const [y, mo] = m.split("-");
-            const lbl = `${y}년 ${String(Number(mo)).padStart(2, "0")}월`;
-            const active = m === value;
-            return (
-              <button
-                key={m}
-                onClick={() => { onChange(m); setOpen(false); }}
-                className="w-full text-left px-4 py-2 text-xs transition-colors"
-                style={{
-                  backgroundColor: active ? "#FFF5ED" : "transparent",
-                  color: active ? "#FD5108" : "#374151",
-                  fontWeight: active ? 600 : 400,
-                  outline: "none",
-                }}
-                onMouseEnter={(e) => { if (!active) (e.currentTarget as HTMLElement).style.backgroundColor = "#F5F7F8"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = active ? "#FFF5ED" : "transparent"; }}
-              >
-                {lbl}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
+function ScenarioSection({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+  const queries = SCENARIO_ITEMS.map((s) =>
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useQuery({
+      queryKey: ["scenario-summary-summary", s.id, dateFrom, dateTo],
+      queryFn: () => api.scenarios.summary(s.id, { date_from: dateFrom, date_to: dateTo }),
+    })
   );
-}
 
-/* ══════════════════════════════════════════
-   Toggle button group
-══════════════════════════════════════════ */
-function ToggleGroup<T extends string>({
-  options, value, onChange,
-}: { options: T[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div className="flex" style={{ border: "1px solid #DFE3E6", borderRadius: 6, overflow: "hidden" }}>
-      {options.map((opt) => {
-        const active = opt === value;
-        return (
-          <button
-            key={opt}
-            onClick={() => onChange(opt)}
-            className="px-3 py-1.5 text-xs font-medium transition-colors"
-            style={{
-              backgroundColor: active ? "#000" : "#fff",
-              color: active ? "#fff" : "#A1A8B3",
-              borderRight: "1px solid #DFE3E6",
-              outline: "none",
-            }}
-          >
-            {opt}
-          </button>
-        );
-      })}
+    <div>
+      <div className="flex items-baseline gap-2 mb-3 px-1">
+        <h4 className="text-base font-semibold" style={{ color: "#000" }}>시나리오 전표 수</h4>
+        <span className="text-sm" style={{ color: "#A1A8B3" }}>클릭하면 해당 시나리오 분석 페이지로 이동합니다</span>
+      </div>
+      <div className="grid grid-cols-7 gap-3">
+        {SCENARIO_ITEMS.map((s, i) => {
+          const data = (queries[i].data as any[]) ?? [];
+          const count = data.reduce((sum, d) => sum + (d.count || 0), 0);
+          const loading = queries[i].isLoading;
+          const IconComp = SCENARIO_ICONS[s.icon];
+          return (
+            <Link key={s.id} href={`/scenario/${s.id}`} style={{ textDecoration: "none" }}>
+              <div
+                className="bg-white rounded-lg border p-4 text-center transition-shadow"
+                style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer" }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
+              >
+                {/* 아이콘 */}
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                  {IconComp && <IconComp size={18} color="#FD5108" strokeWidth={1.8} />}
+                </div>
+                {/* 레이블 */}
+                <p className="text-sm font-semibold leading-snug" style={{ color: "#000", marginBottom: 10 }}>{s.label}</p>
+                {/* 값 — 손익지표 수치와 동일: 30px/700/#FD5108 */}
+                <p style={{ fontSize: 30, fontWeight: 700, color: "#FD5108", letterSpacing: "-0.5px", lineHeight: 1 }}>
+                  {loading ? "—" : count.toLocaleString("ko-KR")}
+                </p>
+                {/* 건 */}
+                <p style={{ fontSize: 13, fontWeight: 500, color: "#A1A8B3", marginTop: 5 }}>건</p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -318,14 +263,9 @@ function computeChanges(currItems: any[], prevItems: any[], key = "account") {
    Main Page
 ══════════════════════════════════════════ */
 export default function SummaryPage() {
-  const { dateTo } = useFilterStore();
-  const defaultYM = dateTo.slice(0, 7) || "2026-03";
+  const { summaryBaseYM: baseYM, summaryMode: mode, summaryBsBase: bsBase, dateFrom: globalFrom, dateTo: globalTo } = useFilterStore();
 
-  const [baseYM, setBaseYM]       = useState<string>(defaultYM);
-  const [mode,    setMode]         = useState<AnalysisMode>("전월비교");
-  const [bsBase,  setBsBase]       = useState<BSBase>("연초");
-
-  const plRanges = useMemo(() => deriveDateRanges(baseYM, mode),   [baseYM, mode]);
+  const plRanges = useMemo(() => deriveDateRanges(baseYM, mode),     [baseYM, mode]);
   const bsRanges = useMemo(() => deriveBSDateRanges(baseYM, bsBase), [baseYM, bsBase]);
 
   /* ── API calls ── */
@@ -373,34 +313,6 @@ export default function SummaryPage() {
   return (
     <div className="space-y-4">
 
-      {/* ══ Filter bar ══ */}
-      <div
-        className="bg-white rounded-lg border flex items-center gap-6 px-5 py-3"
-        style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}
-      >
-        {/* 기준연월 */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs font-medium" style={{ color: "#A1A8B3", whiteSpace: "nowrap" }}>기준 연월</span>
-          <YMDropdown value={baseYM} onChange={setBaseYM} />
-        </div>
-
-        <div className="w-px self-stretch" style={{ backgroundColor: "#EEEFF1" }} />
-
-        {/* 분석대상 */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs font-medium" style={{ color: "#A1A8B3", whiteSpace: "nowrap" }}>분석대상</span>
-          <ToggleGroup<AnalysisMode> options={["전년누적", "전년동월", "전월비교"]} value={mode} onChange={setMode} />
-        </div>
-
-        <div className="flex-1" />
-
-        {/* 비교대상 (재무상태) */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs font-medium" style={{ color: "#A1A8B3", whiteSpace: "nowrap" }}>비교대상 (재무상태)</span>
-          <ToggleGroup<BSBase> options={["연초", "월초"]} value={bsBase} onChange={setBsBase} />
-        </div>
-      </div>
-
       {/* ══ KPI Cards ══ */}
       <div className="grid grid-cols-4 gap-4">
         {[
@@ -417,8 +329,8 @@ export default function SummaryPage() {
               onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
             >
               <div className="px-5 pt-4 pb-1">
-                <p className="text-xs font-medium" style={{ color }}>{label}</p>
-                <p className="text-xl font-bold mt-0.5" style={{ color: "#000", fontVariantNumeric: "tabular-nums" }}>
+                <p className="text-sm font-medium" style={{ color }}>{label}</p>
+                <p className="text-3xl font-bold mt-0.5" style={{ color: "#000", fontVariantNumeric: "tabular-nums", letterSpacing: "-0.5px" }}>
                   {formatKRW(value)}
                 </p>
               </div>
@@ -454,8 +366,8 @@ export default function SummaryPage() {
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
           >
-            <h4 className="text-sm font-semibold mb-4" style={{ color: "#000" }}>
-              손익지표 <span className="text-xs font-normal ml-1" style={{ color: "#A1A8B3" }}>→</span>
+            <h4 className="text-base font-semibold mb-4" style={{ color: "#000" }}>
+              손익지표 <span className="text-sm font-normal ml-1" style={{ color: "#A1A8B3" }}>→</span>
             </h4>
             <div className="grid grid-cols-3 gap-4">
               {[
@@ -463,11 +375,11 @@ export default function SummaryPage() {
                 { label: "영업이익률",   value: opMargin, good: opMargin >= 5  },
                 { label: "당기순이익률", value: npMargin, good: npMargin >= 5  },
               ].map(({ label, value, good }) => {
-                const color = value === 0 ? "#A1A8B3" : good ? "#059669" : "#DC2626";
+                const color = value === 0 ? "#A1A8B3" : good ? "#16C784" : "#FF4747";
                 return (
                   <div key={label}>
-                    <p className="text-xs mb-1" style={{ color: "#A1A8B3" }}>{label}</p>
-                    <p className="text-2xl font-bold" style={{ color, fontVariantNumeric: "tabular-nums" }}>
+                    <p className="text-sm mb-1" style={{ color: "#A1A8B3" }}>{label}</p>
+                    <p className="text-3xl font-bold" style={{ color, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.5px" }}>
                       {value.toFixed(1)}%
                     </p>
                     <div className="mt-1.5 h-1 rounded-full overflow-hidden" style={{ backgroundColor: "#EEEFF1" }}>
@@ -488,8 +400,8 @@ export default function SummaryPage() {
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
           >
-            <h4 className="text-sm font-semibold mb-4" style={{ color: "#000" }}>
-              유동성지표 <span className="text-xs font-normal ml-1" style={{ color: "#A1A8B3" }}>→</span>
+            <h4 className="text-base font-semibold mb-4" style={{ color: "#000" }}>
+              유동성지표 <span className="text-sm font-normal ml-1" style={{ color: "#A1A8B3" }}>→</span>
             </h4>
             <div className="grid grid-cols-2 gap-4">
               {/* 부채비율: 낮을수록 좋음 (100% 미만=초록, 이상=빨강) */}
@@ -497,11 +409,11 @@ export default function SummaryPage() {
                 { label: "부채비율", value: debtRatio, good: debtRatio < 100, barMax: 200 },
                 { label: "유동비율", value: curRatio,  good: curRatio  > 100, barMax: 800 },
               ].map(({ label, value, good, barMax }) => {
-                const color = value === 0 ? "#374151" : good ? "#059669" : "#DC2626";
+                const color = value === 0 ? "#374151" : good ? "#16C784" : "#FF4747";
                 return (
                   <div key={label}>
-                    <p className="text-xs mb-1" style={{ color: "#A1A8B3" }}>{label}</p>
-                    <p className="text-2xl font-bold" style={{ color, fontVariantNumeric: "tabular-nums" }}>
+                    <p className="text-sm mb-1" style={{ color: "#A1A8B3" }}>{label}</p>
+                    <p className="text-3xl font-bold" style={{ color, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.5px" }}>
                       {value.toFixed(1)}%
                     </p>
                     <div className="mt-1.5 h-1 rounded-full overflow-hidden" style={{ backgroundColor: "#EEEFF1" }}>
@@ -526,10 +438,10 @@ export default function SummaryPage() {
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
           >
             <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
-              <h4 className="text-sm font-semibold" style={{ color: "#000" }}>손익항목</h4>
-              <span className="text-xs" style={{ color: "#A1A8B3" }}>→ PL 계정분석</span>
+              <h4 className="text-base font-semibold" style={{ color: "#000" }}>손익항목</h4>
+              <span className="text-sm" style={{ color: "#A1A8B3" }}>→ PL 계정분석</span>
             </div>
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
                 <tr style={{ backgroundColor: "#F5F7F8" }}>
                   <th className="text-left px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>공시용계정</th>
@@ -563,10 +475,10 @@ export default function SummaryPage() {
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
           >
             <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
-              <h4 className="text-sm font-semibold" style={{ color: "#000" }}>재무항목</h4>
-              <span className="text-xs" style={{ color: "#A1A8B3" }}>→ BS 계정분석</span>
+              <h4 className="text-base font-semibold" style={{ color: "#000" }}>재무항목</h4>
+              <span className="text-sm" style={{ color: "#A1A8B3" }}>→ BS 계정분석</span>
             </div>
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
                 <tr style={{ backgroundColor: "#F5F7F8" }}>
                   <th className="text-left px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>재무항목</th>
@@ -595,34 +507,7 @@ export default function SummaryPage() {
       </div>
 
       {/* ══ Scenario 전표 수 ══ */}
-      <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
-        <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
-          <h4 className="text-sm font-semibold" style={{ color: "#000" }}>시나리오 전표 수</h4>
-          <p className="text-xs mt-0.5" style={{ color: "#A1A8B3" }}>클릭하면 해당 시나리오 분석 페이지로 이동합니다</p>
-        </div>
-        <div className="grid grid-cols-4 gap-px" style={{ backgroundColor: "#EEEFF1" }}>
-          {[
-            { label: "동일금액 중복",       href: "/scenario/1", color: "#FD5108" },
-            { label: "현금지급 後 부채인식", href: "/scenario/3", color: "#FE7C39" },
-            { label: "주말현금지급",         href: "/scenario/2", color: "#FFAA72" },
-            { label: "현금지급 및 비용인식", href: "/scenario/4", color: "#A1A8B3" },
-          ].map(({ label, href, color }) => (
-            <Link key={label} href={href} style={{ textDecoration: "none" }}>
-              <div
-                className="bg-white p-5 text-center transition-colors"
-                style={{ cursor: "pointer" }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "#FFF5ED")}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "#fff")}
-              >
-                <p className="text-xs font-medium mb-3" style={{ color: "#A1A8B3" }}>{label}</p>
-                <p className="text-2xl font-bold" style={{ color }}>—</p>
-                <p className="text-xs mt-1" style={{ color: "#A1A8B3" }}>건</p>
-                <p className="text-xs mt-2 px-2 py-0.5 rounded-full inline-block" style={{ backgroundColor: "#EEEFF1", color: "#A1A8B3" }}>API 연동 예정</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
+      <ScenarioSection dateFrom={globalFrom} dateTo={globalTo} />
 
     </div>
   );

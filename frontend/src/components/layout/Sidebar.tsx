@@ -19,6 +19,7 @@ const NAV = [
   { href: "/sales", label: "매출 분석", icon: "/icons/barchart.svg" },
   { href: "/budget", label: "예실 비교", icon: "/icons/compare.svg" },
   { href: "/accounts", label: "계정 추이", icon: "/icons/linechart.svg" },
+  { href: "/market", label: "금리/환율", icon: "/icons/market.svg" },
 ];
 
 // CSS filter to render black PwC SVGs as white on dark sidebar

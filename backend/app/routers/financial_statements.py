@@ -44,3 +44,91 @@ def cash_flow(
     date_to: Optional[str] = Query(None),
 ):
     return svc.get_cash_flow(_params(date_from, date_to))
+
+
+# ─── PL 추이분석 ──────────────────────────────────────────────
+
+@router.get("/pl/monthly-by-account")
+def pl_monthly_by_account(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_pl_monthly_by_account(_params(date_from, date_to))
+
+
+@router.get("/pl/vendor-delta")
+def pl_vendor_delta(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    account: str = Query(..., description="계정과목 (classification1)"),
+):
+    return svc.get_pl_vendor_delta(_params(date_from, date_to), account)
+
+
+@router.get("/pl/entries")
+def pl_entries(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    account: str = Query(..., description="계정과목 (classification1)"),
+    period: str = Query("current", description="current | prior"),
+    limit: int = Query(9999),
+):
+    return svc.get_pl_entries(_params(date_from, date_to), account, period, limit)
+
+
+@router.get("/pl/kpi-monthly")
+def pl_kpi_monthly(
+    date_from: Optional[str] = Query(None),
+    date_to:   Optional[str] = Query(None),
+):
+    return svc.get_pl_kpi_monthly(_params(date_from, date_to))
+
+
+@router.get("/pl/waterfall-monthly")
+def pl_waterfall_monthly(
+    date_from: Optional[str] = Query(None),
+    date_to:   Optional[str] = Query(None),
+):
+    return svc.get_pl_waterfall_monthly(_params(date_from, date_to))
+
+
+# ─── BS 추이분석 ──────────────────────────────────────────────
+
+@router.get("/bs/monthly")
+def bs_monthly(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_bs_monthly(_params(date_from, date_to))
+
+
+@router.get("/bs/account-delta")
+def bs_account_delta(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_bs_account_delta(_params(date_from, date_to))
+
+
+@router.get("/bs/kpi")
+def bs_kpi(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_bs_kpi(_params(date_from, date_to))
+
+
+@router.get("/bs/ratios-monthly")
+def bs_ratios_monthly(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_bs_ratios_monthly(_params(date_from, date_to))
+
+
+@router.get("/bs/activity-monthly")
+def bs_activity_monthly(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_bs_activity_monthly(_params(date_from, date_to))

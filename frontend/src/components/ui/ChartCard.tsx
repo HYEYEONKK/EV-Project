@@ -14,7 +14,7 @@ export default function ChartCard({ title, subtitle, children, className = "", a
     >
       <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "#EEEFF1" }}>
         <div>
-          <h3 className="text-sm font-semibold" style={{ color: "#000000" }}>{title}</h3>
+          <h3 className="text-base font-semibold" style={{ color: "#000000" }}>{title}</h3>
           {subtitle && <p className="text-xs mt-0.5" style={{ color: "#A1A8B3" }}>{subtitle}</p>}
         </div>
         {action && <div>{action}</div>}

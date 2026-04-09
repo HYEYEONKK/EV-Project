@@ -1,0 +1,39 @@
+"use client";
+import { useQuery } from "@tanstack/react-query";
+import { useFilterStore } from "@/lib/store/filterStore";
+import { api } from "@/lib/api/client";
+import KpiCard from "@/components/ui/KpiCard";
+import ChartCard from "@/components/ui/ChartCard";
+import RevenueChart from "@/components/charts/RevenueChart";
+import BudgetVarianceChart from "@/components/charts/BudgetVarianceChart";
+
+export default function PlSummaryPage() {
+  const { dateFrom, dateTo } = useFilterStore();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["income-statement", dateFrom, dateTo],
+    queryFn: () => api.financialStatements.incomeStatement({ date_from: dateFrom, date_to: dateTo }),
+  });
+  const pl = data as any;
+
+  return (
+    <div className="space-y-5">
+      {/* KPIs: 매출액 / 영업이익 / 당기순이익 */}
+      <div className="grid grid-cols-3 gap-4">
+        <KpiCard label="매출액"    value={pl?.revenue?.total    ?? 0} loading={isLoading} />
+        <KpiCard label="영업이익"  value={pl?.operating_income  ?? 0} delta={pl?.operating_margin_pct} deltaLabel="OP Margin" loading={isLoading} />
+        <KpiCard label="당기순이익" value={pl?.net_income        ?? 0} delta={pl?.net_margin_pct}       deltaLabel="NP Margin" loading={isLoading} />
+      </div>
+
+      {/* 월별 매출·비용 추이 */}
+      <ChartCard title="월별 손익 추이" subtitle="막대를 클릭하면 해당 월로 필터링됩니다">
+        <RevenueChart />
+      </ChartCard>
+
+      {/* 예실 비교 */}
+      <ChartCard title="예실 비교 — 월별 추이" subtitle="항목 버튼을 클릭해 전환하세요 · 막대: 계획/실적, 선: 달성률(%)">
+        <BudgetVarianceChart />
+      </ChartCard>
+    </div>
+  );
+}

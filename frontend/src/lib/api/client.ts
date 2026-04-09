@@ -37,6 +37,10 @@ export const api = {
       apiFetch<MonthlyPL[]>("/financial-statements/income-statement/monthly", p),
     cashFlow: (p?: Record<string, unknown>) =>
       apiFetch("/financial-statements/cash-flow", p),
+    plKpiMonthly: (p?: Record<string, unknown>) =>
+      apiFetch("/financial-statements/pl/kpi-monthly", p),
+    plWaterfallMonthly: (p?: Record<string, unknown>) =>
+      apiFetch("/financial-statements/pl/waterfall-monthly", p),
   },
   journalEntries: {
     monthlyTrend: (p?: Record<string, unknown>) =>
@@ -46,6 +50,25 @@ export const api = {
       apiFetch("/journal-entries/account-trend", p),
     accounts: (p?: Record<string, unknown>) =>
       apiFetch("/journal-entries/accounts", p),
+    // 전표분석 전용
+    kpiSummary: (p?: Record<string, unknown>) =>
+      apiFetch<JeKpiSummary>("/journal-entries/kpi-summary", p),
+    dailyTrend: (p?: Record<string, unknown>) =>
+      apiFetch<JeDailyTrend[]>("/journal-entries/daily-trend", p),
+    byAccount: (p?: Record<string, unknown>) =>
+      apiFetch<JeByGroup[]>("/journal-entries/by-account", p),
+    byVendor: (p?: Record<string, unknown>) =>
+      apiFetch<JeByGroup[]>("/journal-entries/by-vendor", p),
+    list: (p?: Record<string, unknown>) =>
+      apiFetch<JeEntry[]>("/journal-entries/list", p),
+    search: (p?: Record<string, unknown>) =>
+      apiFetch<JeSearchEntry[]>("/journal-entries/search", p),
+    counterAccounts: (p?: Record<string, unknown>) =>
+      apiFetch<JeCounterAccount[]>("/journal-entries/counter-accounts", p),
+    counterEntries: (p?: Record<string, unknown>) =>
+      apiFetch<JeEntry[]>("/journal-entries/counter-entries", p),
+    voucherDimensions: (p?: Record<string, unknown>) =>
+      apiFetch<JeVoucherDimensions>("/journal-entries/voucher-dimensions", p),
   },
   sales: {
     summary: (p?: Record<string, unknown>) =>
@@ -64,7 +87,68 @@ export const api = {
     varianceMonthly: (year?: number) =>
       apiFetch("/budget/variance/monthly", year ? { year } : undefined),
   },
+  plTrend: {
+    monthlyByAccount: (p?: Record<string, unknown>) =>
+      apiFetch<PlMonthlyAccount[]>("/financial-statements/pl/monthly-by-account", p),
+    vendorDelta: (p?: Record<string, unknown>) =>
+      apiFetch<PlVendorDelta[]>("/financial-statements/pl/vendor-delta", p),
+    entries: (p?: Record<string, unknown>) =>
+      apiFetch<PlEntry[]>("/financial-statements/pl/entries", p),
+  },
+  bsTrend: {
+    monthly: (p?: Record<string, unknown>) =>
+      apiFetch<BsMonthly[]>("/financial-statements/bs/monthly", p),
+    accountDelta: (p?: Record<string, unknown>) =>
+      apiFetch<BsAccountDelta[]>("/financial-statements/bs/account-delta", p),
+  },
+  bsSummary: {
+    kpi: (p?: Record<string, unknown>) =>
+      apiFetch<any>("/financial-statements/bs/kpi", p),
+    ratiosMonthly: (p?: Record<string, unknown>) =>
+      apiFetch<any[]>("/financial-statements/bs/ratios-monthly", p),
+    activityMonthly: (p?: Record<string, unknown>) =>
+      apiFetch<any>("/financial-statements/bs/activity-monthly", p),
+  },
+  scenarios: {
+    summary: (scenarioId: number, p?: Record<string, unknown>) =>
+      apiFetch<ScenarioMonthly[]>(`/scenarios/${scenarioId}/summary`, p),
+    entries: (scenarioId: number, p?: Record<string, unknown>) =>
+      apiFetch<ScenarioEntry[]>(`/scenarios/${scenarioId}/entries`, p),
+  },
 };
+
+// ─── Chat API (POST) ───────────────────────────────────
+
+export interface ChatRequest {
+  question: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+export interface ChatResponse {
+  answer: string;
+  query_type: string;
+  context_summary: string;
+}
+
+// ─── Market Data ──────────────────────────────────────────
+export const marketApi = {
+  interestRates: (startYear?: string) =>
+    apiFetch<any>("/market-data/interest-rates", startYear ? { start_year: startYear } : undefined),
+  exchangeRate: (year?: string, currency?: string) =>
+    apiFetch<any>("/market-data/exchange-rate", { year, currency }),
+};
+
+export async function chatAsk(req: ChatRequest): Promise<ChatResponse> {
+  const res = await fetch(`${API_BASE}/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`Chat API ${res.status}`);
+  return res.json();
+}
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -120,9 +204,127 @@ export interface Dimensions {
   date_range: { min_date: string; max_date: string };
 }
 
+export interface JeKpiSummary {
+  je_count: number;
+  debit_total: number;
+  credit_total: number;
+}
+
+export interface JeDailyTrend {
+  date: string;
+  debit_total: number;
+  credit_total: number;
+  count: number;
+}
+
+export interface JeByGroup {
+  account?: string;
+  vendor?: string;
+  credit_total: number;
+  debit_total: number;
+  count: number;
+}
+
+export interface JeEntry {
+  date: string;
+  je_number: string;
+  account: string;
+  vendor: string;
+  vendor_translated: string;
+  memo: string;
+  memo_translated: string;
+  debit: number;
+  credit: number;
+}
+
+export interface JeSearchEntry {
+  date: string;
+  je_number: string;
+  account: string;
+  vendor: string;
+  memo: string;
+  debit: number;
+  credit: number;
+}
+
+export interface JeCounterAccount {
+  account: string;
+  debit_total: number;
+  credit_total: number;
+  count: number;
+}
+
+export interface JeVoucherDimensions {
+  accounts: string[];
+  vendors: string[];
+}
+
 export interface SalesDimensions {
   vendors: string[];
   product_categories: string[];
   regions: string[];
   districts: string[];
+}
+
+// ─── PL Trend Types ────────────────────────────────────────
+
+export interface PlMonthlyAccount {
+  account: string;
+  branch: string;
+  current_total: number;
+  prior_total: number;
+  change_pct: number;
+  monthly: { month: string; current: number; prior: number }[];
+}
+
+export interface PlVendorDelta {
+  vendor: string;
+  current: number;
+  prior: number;
+  delta: number;
+}
+
+export interface PlEntry {
+  date: string;
+  je_number: string;
+  vendor: string;
+  memo: string;
+  debit: number;
+  credit: number;
+}
+
+// ─── BS Trend Types ────────────────────────────────────────
+
+export interface BsMonthly {
+  month: string;
+  branch: string;
+  division: string;
+  balance: number;
+}
+
+export interface BsAccountDelta {
+  account: string;
+  branch: string;
+  division: string;
+  opening: number;
+  closing: number;
+  delta: number;
+}
+
+// ─── Scenario Types ────────────────────────────────────────
+
+export interface ScenarioMonthly {
+  month: string;
+  count: number;
+  amount: number;
+}
+
+export interface ScenarioEntry {
+  date: string;
+  je_number: string;
+  account: string;
+  vendor: string;
+  memo: string;
+  debit: number;
+  credit: number;
 }

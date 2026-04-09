@@ -30,8 +30,8 @@ export function getChartColor(index: number, total: number): string {
 export const BUDGET_COLORS = {
   plan: "#A1A8B3",
   actual: "#FD5108",
-  positive_variance: "#059669",
-  negative_variance: "#DC2626",
+  positive_variance: "#16C784",
+  negative_variance: "#FF4747",
 };
 
 export const CHART_MARGIN = { top: 8, right: 16, bottom: 8, left: 16 };

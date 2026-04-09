@@ -1,0 +1,20 @@
+"use client";
+import ChartCard from "@/components/ui/ChartCard";
+import AccountTrendChart from "@/components/charts/AccountTrendChart";
+import RevenueChart from "@/components/charts/RevenueChart";
+
+export default function PlTrendPage() {
+  return (
+    <div className="space-y-5">
+      {/* 계정별 손익 Trend */}
+      <ChartCard title="계정별 손익 Trend" subtitle="계정을 선택하여 당기/전기 손익 추이를 확인하세요">
+        <AccountTrendChart />
+      </ChartCard>
+
+      {/* 월별 매출·비용 추이 */}
+      <ChartCard title="월별 손익 추이" subtitle="당기/전기 매출·비용 월별 추이">
+        <RevenueChart />
+      </ChartCard>
+    </div>
+  );
+}
