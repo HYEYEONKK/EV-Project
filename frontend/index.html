@@ -1,52 +1,233 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Worldwide Easy View</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <!-- Header -->
-    <header class="header">
-      <div class="header-left">
-        <div class="pwc-logo">
-          <img src="../Frame/PwC-logo 1.png" alt="PwC" class="logo-img" onerror="this.style.display='none'" />
-        </div>
-        <span class="header-title">Worldwide Easy View</span>
-      </div>
-      <div class="header-right">
-        <div
-          class="user-avatar"
-          id="userAvatar"
-          onclick="window.location.href='login.html'"
-          title="로그인"
-        >
-          <span class="avatar-initials" id="avatarInitials"></span>
-        </div>
-      </div>
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Worldwide Easy View — PwC</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
 
-    <!-- Main Content -->
-    <main class="main">
-      <div class="hero">
-        <h1 class="hero-title">Worldwide Easy View</h1>
-        <p class="hero-subtitle">
-          Worldwide Easy View는 대상법인의 전표데이터를 이용하여 다양한
-          경영정보와 예외사항을<br />웹과 모바일로 확인하는 정기구독
-          서비스입니다.
-        </p>
-        <button class="btn-start" id="startBtn">시작하기</button>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="pwc-logo">
+        <img src="../Frame/PwC-logo 1.png" alt="PwC" class="logo-img" onerror="this.style.display='none'" />
       </div>
-    </main>
+      <span class="header-title">Worldwide Easy View</span>
+    </div>
+    <div class="header-right">
+      <nav class="header-nav">
+        <a href="#features" class="nav-link">기능 소개</a>
+        <a href="#how" class="nav-link">사용 방법</a>
+        <a href="#video" class="nav-link">소개 영상</a>
+      </nav>
+      <button class="btn-login-header" onclick="window.location.href='login.html'">로그인</button>
+    </div>
+  </header>
 
-    <script>
-      document.getElementById('startBtn').addEventListener('click', function() {
-        window.location.href = 'input.html';
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="hero-eyebrow">PwC Digital Solutions</p>
+      <h1 class="hero-title">회사 자료를<br>분석 보고서로</h1>
+      <p class="hero-desc">
+        분개장과 시산표 파일만 올리면, 손익계산서·재무상태표·예외사항 분석까지<br>
+        자동으로 생성되는 경영정보 보고서 서비스입니다.
+      </p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="window.location.href='login.html'">무료로 시작하기</button>
+        <a href="#video" class="btn-ghost">소개 영상 보기 ▶</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="dashboard-preview">
+        <div class="preview-bar">
+          <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+          <span class="preview-url">wwev.onrender.com/output</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-kpi-row">
+            <div class="preview-kpi"><div class="kpi-label">매출액</div><div class="kpi-value orange">₩ 12.4억</div></div>
+            <div class="preview-kpi"><div class="kpi-label">영업이익</div><div class="kpi-value">₩ 2.1억</div></div>
+            <div class="preview-kpi"><div class="kpi-label">순이익</div><div class="kpi-value">₩ 1.8억</div></div>
+          </div>
+          <div class="preview-chart-row">
+            <div class="preview-chart">
+              <div class="chart-title">월별 손익 트렌드</div>
+              <div class="chart-bars">
+                <div class="bar" style="height:45%"></div>
+                <div class="bar" style="height:60%"></div>
+                <div class="bar" style="height:50%"></div>
+                <div class="bar" style="height:75%"></div>
+                <div class="bar" style="height:65%"></div>
+                <div class="bar" style="height:80%"></div>
+                <div class="bar active" style="height:90%"></div>
+              </div>
+            </div>
+            <div class="preview-chart">
+              <div class="chart-title">재무상태표</div>
+              <div class="preview-bs">
+                <div class="bs-row"><span>유동자산</span><span class="orange">65%</span></div>
+                <div class="bs-row"><span>비유동자산</span><span>35%</span></div>
+                <div class="bs-row"><span>유동부채</span><span class="red-text">42%</span></div>
+                <div class="bs-row"><span>자본</span><span>58%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="section-inner">
+      <p class="section-eyebrow">주요 기능</p>
+      <h2 class="section-title">필요한 분석을 한 번에</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon orange-bg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+          </div>
+          <h3>손익계산서 (P&L)</h3>
+          <p>월별·연간 손익을 자동 집계하고, 트렌드 차트로 한눈에 확인합니다.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange-bg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <h3>재무상태표 (B/S)</h3>
+          <p>자산·부채·자본 구조를 시각화하여 재무 건전성을 빠르게 파악합니다.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange-bg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h3>예외사항 분석</h3>
+          <p>비정상 전표, 이상 패턴을 자동으로 감지하여 리스크를 사전에 포착합니다.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange-bg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>거래처 분석</h3>
+          <p>주요 거래처별 거래 규모와 비중을 파악해 관계사 집중도를 모니터링합니다.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange-bg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>월별 트렌드</h3>
+          <p>전월 대비 증감과 연간 누적 추이를 차트로 제공하여 경영 패턴을 분석합니다.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange-bg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3>간편 파일 업로드</h3>
+          <p>분개장(JE)과 시산표(TB) Excel 파일을 드래그&드롭으로 올리면 즉시 분석됩니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section section-gray" id="how">
+    <div class="section-inner">
+      <p class="section-eyebrow">사용 방법</p>
+      <h2 class="section-title">3단계로 끝나는 경영 분석</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>파일 업로드</h3>
+          <p>분개장과 시산표 Excel 파일을 업로드하고 기준월과 회사명을 선택합니다.</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>자동 분석</h3>
+          <p>시스템이 데이터를 자동으로 처리하여 손익, 재무상태, 예외사항을 분석합니다.</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>보고서 확인</h3>
+          <p>대시보드에서 시각화된 경영 정보를 확인하고 팀원과 링크로 공유합니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Video -->
+  <section class="section" id="video">
+    <div class="section-inner">
+      <p class="section-eyebrow">소개 영상</p>
+      <h2 class="section-title">Worldwide Easy View 살펴보기</h2>
+      <div class="video-wrap">
+        <!-- YouTube 링크를 아래 src의 VIDEO_ID 부분에 교체하세요 -->
+        <!-- 예: https://www.youtube.com/watch?v=abcd1234 → VIDEO_ID = abcd1234 -->
+        <div class="video-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          <p>소개 영상을 준비 중입니다</p>
+          <span>YouTube 링크가 생기면 여기에 자동으로 표시됩니다</span>
+        </div>
+        <!-- 유튜브 링크가 생기면 위 video-placeholder를 삭제하고 아래 주석을 해제하세요
+        <iframe
+          src="https://www.youtube.com/embed/VIDEO_ID"
+          title="Worldwide Easy View 소개"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+        -->
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section-cta">
+    <div class="section-inner cta-inner">
+      <h2>지금 바로 시작해보세요</h2>
+      <p>Excel 파일만 있으면 누구나 전문적인 경영 분석 보고서를 만들 수 있습니다.</p>
+      <button class="btn-primary large" onclick="window.location.href='login.html'">무료로 시작하기</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <img src="../Frame/PwC-logo 1.png" alt="PwC" class="footer-logo" onerror="this.style.display='none'" />
+        <span>Worldwide Easy View</span>
+      </div>
+      <p class="footer-copy">© 2026 PwC. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // 로그인 상태면 아바타 버튼으로 전환
+    const user = sessionStorage.getItem('user');
+    if (user) {
+      const btn = document.querySelector('.btn-login-header');
+      if (btn) {
+        const initials = user.split('@')[0].slice(0, 2).toUpperCase();
+        btn.textContent = '';
+        btn.className = 'user-avatar-header';
+        btn.innerHTML = `<span>${initials}</span>`;
+        btn.onclick = () => { window.location.href = 'input.html'; };
+      }
+    }
+
+    // 부드러운 스크롤
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
       });
-      document.getElementById('userAvatar').addEventListener('click', function() {
-        window.location.href = 'login.html';
-      });
-    </script>
-  </body>
+    });
+  </script>
+
+</body>
 </html>
