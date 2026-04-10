@@ -37,3 +37,13 @@ export const BUDGET_COLORS = {
 export const CHART_MARGIN = { top: 8, right: 16, bottom: 8, left: 16 };
 export const AXIS_STYLE = { fontSize: 11, fill: "#A1A8B3" };
 export const GRID_STROKE = "#EEEFF1";
+
+// 공통 툴팁 contentStyle — 모든 Recharts Tooltip에 적용
+export const TOOLTIP_STYLE: React.CSSProperties = {
+  border: "1px solid #DFE3E6",
+  borderRadius: 8,
+  fontSize: 13,
+  padding: "6px 12px",
+  boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+  lineHeight: 1.5,
+};

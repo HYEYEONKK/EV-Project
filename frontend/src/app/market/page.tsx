@@ -7,7 +7,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, Legend,
 } from "recharts";
-import { AXIS_STYLE, GRID_STROKE } from "@/lib/utils/chartColors";
+import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors";
 
 // ─── 공통 스타일 상수 ────────────────────────────────────
 const FS = 14;
@@ -333,7 +333,7 @@ function ExchangeRateSection() {
                     />
                     <Tooltip
                       formatter={(v: number) => fmtFx(v)}
-                      contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 12, boxShadow: "0 4px 16px #0000001A" }}
+                      contentStyle={TOOLTIP_STYLE}
                     />
                     <Legend wrapperStyle={{ fontSize: 13, paddingLeft: 56, paddingTop: 4 }} />
                     <Area type="monotone" dataKey="전기환율" stroke="#A1A8B3" strokeWidth={1.5}

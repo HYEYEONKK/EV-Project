@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer style={{ backgroundColor: "#ffffff", borderTop: "1px solid #e8e8e8" }}>
+    <footer style={{ backgroundColor: "#ffffff", borderTop: "1px solid #e8e8e8", position: "relative", zIndex: 2 }}>
       <div
         className="flex items-center gap-6 px-6"
         style={{ height: 64, maxWidth: 1600, margin: "0 auto" }}

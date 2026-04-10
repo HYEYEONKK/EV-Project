@@ -21,6 +21,8 @@ interface Props {
   maxHeight?: number;
   loading?: boolean;
   emptyText?: string;
+  /** true면 내장 CSV 다운로드 버튼 숨김 (외부에서 별도 버튼 제공 시) */
+  hideCsvButton?: boolean;
 }
 
 /* ─── Sort icon ─── */
@@ -53,6 +55,7 @@ export default function SortableTable({
   maxHeight = 400,
   loading = false,
   emptyText = "데이터가 없습니다.",
+  hideCsvButton = false,
 }: Props) {
   const [sortColIdx, setSortColIdx] = useState<number | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -93,7 +96,7 @@ export default function SortableTable({
   return (
     <div>
       {/* Download button */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+      {!hideCsvButton && <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
         <button
           onClick={handleDownload}
           style={{
@@ -127,11 +130,11 @@ export default function SortableTable({
           </svg>
           CSV 다운로드
         </button>
-      </div>
+      </div>}
 
       {/* Table */}
       <div style={{ overflowY: "auto", overflowX: "auto", maxHeight }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
           <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
             <tr style={{ backgroundColor: "#F5F7F8" }}>
               {columns.map((col, idx) => (
@@ -142,7 +145,7 @@ export default function SortableTable({
                     textAlign: col.align ?? (idx === 0 ? "left" : "right"),
                     padding: "10px 20px",
                     fontWeight: 600,
-                    fontSize: 13,
+                    fontSize: 14,
                     color: sortColIdx === idx ? "#FD5108" : "#A1A8B3",
                     whiteSpace: "nowrap",
                     cursor: "pointer",
@@ -200,7 +203,7 @@ export default function SortableTable({
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {cell ?? "—"}
+                      {typeof cell === "number" ? cell.toLocaleString("ko-KR") : (cell ?? "—")}
                     </td>
                   ))}
                 </tr>

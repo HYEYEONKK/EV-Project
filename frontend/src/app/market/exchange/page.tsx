@@ -2,22 +2,14 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { marketApi } from "@/lib/api/client";
-import CustomSelect from "@/components/ui/CustomSelect";
+import { useFilterStore } from "@/lib/store/filterStore";
 import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, Legend,
 } from "recharts";
-import { AXIS_STYLE, GRID_STROKE } from "@/lib/utils/chartColors";
+import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors";
 import SortableTable from "@/components/ui/SortableTable";
-
-const FS = 14;
-const LS = "-0.3px";
-const FILTER_BAR: React.CSSProperties = {
-  display: "flex", alignItems: "center", gap: 12,
-  backgroundColor: "#F5F7F8", border: "1px solid #DFE3E6",
-  borderRadius: 8, padding: "10px 16px",
-};
-const DIVIDER = <div style={{ width: 1, height: 16, backgroundColor: "#DFE3E6", flexShrink: 0 }} />;
+import { downloadCsv } from "@/lib/utils/csvExport";
 
 const fmtFx = (v: number | null | undefined) =>
   v != null ? v.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
@@ -114,10 +106,7 @@ const FX_COLORS: Record<string, string> = {
 };
 
 export default function ExchangeRatePage() {
-  const thisYear = new Date().getFullYear();
-  const FX_YEARS = Array.from({ length: 5 }, (_, i) => String(thisYear - i));
-  const [year, setYear] = useState(String(thisYear - 1));
-  const [currency, setCurrency] = useState("USD");
+  const { marketExchangeYear: year, marketExchangeCurrency: currency } = useFilterStore();
   const [todayRate, setTodayRate] = useState<number | null>(null);
 
   useEffect(() => {
@@ -162,38 +151,7 @@ export default function ExchangeRatePage() {
 
   return (
     <div className="space-y-4">
-      {/* Filter Bar */}
-      <div style={FILTER_BAR}>
-        <span style={{ fontSize: FS, color: "#A1A8B3", letterSpacing: LS, whiteSpace: "nowrap" }}>연도</span>
-        <CustomSelect value={year} onChange={v => setYear(String(v))}
-          options={FX_YEARS.map(y => ({ value: y, label: `${y}년` }))} />
-        {DIVIDER}
-        <span style={{ fontSize: FS, color: "#A1A8B3", letterSpacing: LS, whiteSpace: "nowrap" }}>통화</span>
-        <CustomSelect value={currency} onChange={v => setCurrency(String(v))} options={CURRENCIES} />
-      </div>
-
-      {/* 오늘 환율 (실시간) — USD only */}
-      {currency === "USD" && (
-        <div style={{
-          background: "#FFF5ED",
-          border: "1px solid #FFAA72",
-          borderRadius: 10,
-          padding: "12px 20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-            <span style={{ fontSize: 13, color: "#A1A8B3", fontWeight: 500, whiteSpace: "nowrap" }}>
-              오늘 환율 (USD/KRW)
-            </span>
-            <span style={{ fontSize: 28, fontWeight: 700, color: "#FD5108", letterSpacing: "-0.5px" }}>
-              {todayRate != null ? fmtFx(todayRate) : "조회 중..."}
-            </span>
-          </div>
-          <span style={{ fontSize: 12, color: "#A1A8B3" }}>실시간 외부 데이터 기준</span>
-        </div>
-      )}
+      {/* 오늘 환율 배너 — 임시 숨김 */}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-4 gap-4">
@@ -211,7 +169,7 @@ export default function ExchangeRatePage() {
         style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
         <div className="grid" style={{ gridTemplateColumns: "2fr 1fr" }}>
           <div style={{ borderRight: "1px solid #EEEFF1" }}>
-            <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
+            <div className="px-5 border-b flex items-center" style={{ borderColor: "#EEEFF1", height: 48 }}>
               <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E" }}>월별 환율 추이</span>
             </div>
             {isLoading ? (
@@ -235,7 +193,7 @@ export default function ExchangeRatePage() {
                     <YAxis tickFormatter={v => v?.toLocaleString()} tick={AXIS_STYLE}
                       tickLine={false} axisLine={false} width={56} domain={["auto", "auto"]} />
                     <Tooltip formatter={(v: number) => fmtFx(v)}
-                      contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 12 }} />
+                      contentStyle={TOOLTIP_STYLE} />
                     <Legend wrapperStyle={{ fontSize: 13, paddingLeft: 56, paddingTop: 4 }} />
                     <Area type="monotone" dataKey="전기환율" stroke="#A1A8B3" strokeWidth={1.5}
                       strokeDasharray="4 3" fill="url(#fxGradPri)" dot={false} />
@@ -246,14 +204,27 @@ export default function ExchangeRatePage() {
               </div>
             )}
           </div>
-          <div style={{ padding: "8px 0" }}>
-            <SortableTable
-              columns={FX_COLS}
-              rows={tableRows}
-              filename={`환율_${currency}_${year}`}
-              maxHeight={340}
-              loading={isLoading}
-            />
+          <div>
+            <div className="px-5 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1", height: 48 }}>
+              <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E" }}>월별 환율</span>
+              <button onClick={() => downloadCsv(["월", "당기환율", "전기환율"], tableRows, `환율_${currency}_${year}`)}
+                style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:500, color:"#A1A8B3", background:"none", border:"1px solid #DFE3E6", borderRadius:7, padding:"4px 10px", cursor:"pointer" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color="#FD5108"; (e.currentTarget as HTMLElement).style.borderColor="#FD5108"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color="#A1A8B3"; (e.currentTarget as HTMLElement).style.borderColor="#DFE3E6"; }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                CSV
+              </button>
+            </div>
+            <div>
+              <SortableTable
+                columns={FX_COLS}
+                rows={tableRows}
+                filename={`환율_${currency}_${year}`}
+                maxHeight={300}
+                loading={isLoading}
+                hideCsvButton
+              />
+            </div>
           </div>
         </div>
       </div>

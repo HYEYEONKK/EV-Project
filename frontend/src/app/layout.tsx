@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Providers } from "@/lib/providers";
-import TopNav from "@/components/layout/TopNav";
+import ConditionalTopNav from "@/components/layout/ConditionalTopNav";
 import ConditionalFooter from "@/components/layout/ConditionalFooter";
+import ConditionalMain from "@/components/layout/ConditionalMain";
 import ChatWidget from "@/components/ui/ChatWidget";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 
@@ -30,13 +31,10 @@ export default function RootLayout({
       <body className="h-full">
         <Providers>
           {/* TopNav is fixed: 56px nav + 44px subtab = 100px total */}
-          <TopNav />
-          <main
-            className="min-h-screen p-6"
-            style={{ paddingTop: "calc(100px + 24px)", backgroundColor: "#F5F7F8" }}
-          >
+          <ConditionalTopNav />
+          <ConditionalMain>
             {children}
-          </main>
+          </ConditionalMain>
           <ConditionalFooter />
           <ScrollToTop />
           <ChatWidget />

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { api } from "@/lib/api/client";
 import SortableTable from "@/components/ui/SortableTable";
+import { downloadCsv } from "@/lib/utils/csvExport";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { formatKRW, formatPctAbs } from "@/lib/utils/formatters";
 
@@ -51,9 +52,18 @@ export default function PlItemsPage() {
 
       {/* 손익계산서 전체 항목 테이블 */}
       <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
-        <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
-          <h3 className="text-base font-semibold" style={{ color: "#000" }}>손익계산서</h3>
-          <p className="text-xs mt-0.5" style={{ color: "#A1A8B3" }}>{dateFrom} ~ {dateTo}</p>
+        <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
+          <div>
+            <h3 className="text-base font-semibold" style={{ color: "#000" }}>손익계산서</h3>
+            <p className="text-xs mt-0.5" style={{ color: "#A1A8B3" }}>{dateFrom} ~ {dateTo}</p>
+          </div>
+          <button onClick={() => downloadCsv(["항목","금액 (KRW)"], rows.map((r) => [r.label, r.amount]), "손익항목")}
+            style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:500, color:"#A1A8B3", background:"none", border:"1px solid #DFE3E6", borderRadius:7, padding:"4px 10px", cursor:"pointer" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color="#FD5108"; (e.currentTarget as HTMLElement).style.borderColor="#FD5108"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color="#A1A8B3"; (e.currentTarget as HTMLElement).style.borderColor="#DFE3E6"; }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            CSV
+          </button>
         </div>
         <div className="px-3 py-2">
           <SortableTable
@@ -64,6 +74,7 @@ export default function PlItemsPage() {
             rows={rows.map((r) => [r.label, r.amount])}
             filename="손익항목"
             maxHeight={600}
+            hideCsvButton
           />
         </div>
       </div>

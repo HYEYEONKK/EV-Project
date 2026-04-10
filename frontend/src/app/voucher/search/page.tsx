@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { api } from "@/lib/api/client";
 import { formatKRW } from "@/lib/utils/formatters";
+import { downloadCsv } from "@/lib/utils/csvExport";
 import { Search } from "lucide-react";
 import CustomSelect from "@/components/ui/CustomSelect";
 import SortableTable from "@/components/ui/SortableTable";
@@ -169,15 +170,26 @@ export default function VoucherSearchPage() {
         {/* 전표검색 결과 */}
         <div className="col-span-8 bg-white rounded-lg border overflow-hidden"
           style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
-          <div className="px-5 py-3 border-b flex items-center gap-3"
+          <div className="px-5 py-3 border-b flex items-center justify-between"
             style={{ borderColor: "#EEEFF1" }}>
-            <h4 className="text-base font-semibold" style={{ color: "#000" }}>전표검색</h4>
-            {submitted && (
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ backgroundColor: "#F5F7F8", color: "#374151" }}>
-                {(searchResults as any[]).length}건
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              <h4 className="text-base font-semibold" style={{ color: "#000" }}>전표검색</h4>
+              {submitted && (
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ backgroundColor: "#F5F7F8", color: "#374151" }}>
+                  {(searchResults as any[]).length}건
+                </span>
+              )}
+            </div>
+            <button onClick={() => downloadCsv(["일자","전표번호","계정과목","거래처","적요","차변","대변"],
+              (searchResults as any[]).map((e) => [e.date, e.je_number, e.account, e.vendor, e.memo||"-", e.debit||"-", e.credit||"-"]),
+              "전표검색결과")}
+              style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:500, color:"#A1A8B3", background:"none", border:"1px solid #DFE3E6", borderRadius:7, padding:"4px 10px", cursor:"pointer" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color="#FD5108"; (e.currentTarget as HTMLElement).style.borderColor="#FD5108"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color="#A1A8B3"; (e.currentTarget as HTMLElement).style.borderColor="#DFE3E6"; }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              CSV
+            </button>
           </div>
           <div className="px-3 py-2">
             <SortableTable
@@ -203,6 +215,7 @@ export default function VoucherSearchPage() {
               maxHeight={400}
               loading={searching}
               emptyText={!submitted ? "필터를 설정하고 검색 버튼을 클릭하세요" : "검색 결과가 없습니다"}
+              hideCsvButton
             />
           </div>
         </div>
@@ -284,17 +297,28 @@ export default function VoucherSearchPage() {
       {/* 상대계정 전표 내역 */}
       <div className="bg-white rounded-lg border overflow-hidden"
         style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
-        <div className="px-5 py-3 border-b flex items-center gap-3"
+        <div className="px-5 py-3 border-b flex items-center justify-between"
           style={{ borderColor: "#EEEFF1" }}>
-          <h4 className="text-base font-semibold" style={{ color: "#000" }}>상대계정 전표 내역</h4>
-          {selectedCounter ? (
-            <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-              style={{ backgroundColor: "#FFE8D4", color: "#FD5108" }}>
-              {selectedCounter}
-            </span>
-          ) : (
-            <span className="text-xs" style={{ color: "#A1A8B3" }}>상대계정을 선택하면 조합 전표가 표시됩니다</span>
-          )}
+          <div className="flex items-center gap-2">
+            <h4 className="text-base font-semibold" style={{ color: "#000" }}>상대계정 전표 내역</h4>
+            {selectedCounter ? (
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                style={{ backgroundColor: "#FFE8D4", color: "#FD5108" }}>
+                {selectedCounter}
+              </span>
+            ) : (
+              <span className="text-xs" style={{ color: "#A1A8B3" }}>상대계정을 선택하면 조합 전표가 표시됩니다</span>
+            )}
+          </div>
+          <button onClick={() => downloadCsv(["일자","전표번호","계정과목","거래처","거래처 번역","적요","적요 번역","차변","대변"],
+            (counterEntries as any[]).map((e) => [e.date,e.je_number,e.account,e.vendor,e.vendor_translated||"-",e.memo||"-",e.memo_translated||"-",e.debit||"-",e.credit||"-"]),
+            "상대계정전표내역")}
+            style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:500, color:"#A1A8B3", background:"none", border:"1px solid #DFE3E6", borderRadius:7, padding:"4px 10px", cursor:"pointer" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color="#FD5108"; (e.currentTarget as HTMLElement).style.borderColor="#FD5108"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color="#A1A8B3"; (e.currentTarget as HTMLElement).style.borderColor="#DFE3E6"; }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            CSV
+          </button>
         </div>
         <div className="px-3 py-2">
           <SortableTable
@@ -320,10 +344,11 @@ export default function VoucherSearchPage() {
               e.debit > 0 ? e.debit : "-",
               e.credit > 0 ? e.credit : "-",
             ])}
-            filename="전표검색결과"
+            filename="상대계정전표내역"
             maxHeight={400}
             loading={loadingDetail}
             emptyText={!selectedCounter ? "상대계정을 선택하면 조합 전표가 표시됩니다" : "데이터가 없습니다"}
+            hideCsvButton
           />
         </div>
       </div>

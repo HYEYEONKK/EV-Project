@@ -4,11 +4,13 @@ import { usePathname } from "next/navigation";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Home, BarChart2, Database, FileText, Layers, TrendingUp, type LucideIcon } from "lucide-react";
+import { Home, BarChart2, Database, FileText, Layers, TrendingUp, LogOut, type LucideIcon } from "lucide-react";
+import { useAuthStore } from "@/lib/store/authStore";
 
 const SummaryFilterBar  = dynamic(() => import("@/components/ui/SummaryFilterBar"),  { ssr: false });
 const DateRangeFilterBar = dynamic(() => import("@/components/ui/DateRangeFilterBar"), { ssr: false });
 const ScenarioFilterBar  = dynamic(() => import("@/components/ui/ScenarioFilterBar"),  { ssr: false });
+const MarketFilterBar    = dynamic(() => import("@/components/ui/MarketFilterBar"),    { ssr: false });
 
 /* ─── Nav config ─── */
 type NavLeaf = { href: string; label: string };
@@ -24,7 +26,7 @@ const NAV: NavSection[] = [
       { href: "/pnl/account",  label: "PL 계정분석" },
       { href: "/pnl/sales",    label: "매출분석" },
       { href: "/pnl/items",    label: "손익항목" },
-      { href: "/period",       label: "기간 비교 분석" },
+      { href: "/period",       label: "기간별 분석" },
     ],
   },
   {
@@ -85,6 +87,12 @@ export default function TopNav() {
     activeMonth, activeCostCategory, activeProductCategory, activeVendor, activeRegion,
     setCrossFilter, resetCrossFilters,
   } = useFilterStore();
+  const { user, logout } = useAuthStore();
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/login";
+  };
 
   const [openId, setOpenId] = useState<string | null>(null);
   const [dropdownLeft, setDropdownLeft] = useState(0);
@@ -230,7 +238,7 @@ export default function TopNav() {
                   transition: "padding 0.2s",
                 }}
               >
-                <Icon size={compact ? 18 : 15} strokeWidth={1.75} style={{ flexShrink: 0 }} />
+                <Icon size={compact ? 22 : 16} strokeWidth={1.75} style={{ flexShrink: 0 }} />
                 {!compact && <span className="nav-label">{section.label}</span>}
                 {!compact && hasChildren && (
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
@@ -246,7 +254,7 @@ export default function TopNav() {
           })}
         </div>
 
-        {/* Right: cross-filter chips */}
+        {/* Right: cross-filter chips + user info */}
         <div className="flex items-center gap-2 px-4 shrink-0">
           {activeFilters.map((f) => (
             <span
@@ -264,6 +272,52 @@ export default function TopNav() {
             <button onClick={resetCrossFilters} className="text-xs hover:underline" style={{ color: "#A1A8B3" }}>
               전체 해제
             </button>
+          )}
+
+          {/* 구분선 */}
+          {user && (
+            <>
+              <div style={{ width: 1, height: 18, backgroundColor: "#EEEFF1", marginLeft: 4 }} />
+              {/* 사용자 아바타 + 이름 */}
+              <div className="flex items-center gap-2">
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%",
+                  backgroundColor: "#FFF5ED", border: "1px solid #FFAA72",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 12, fontWeight: 700, color: "#FD5108",
+                  flexShrink: 0,
+                }}>
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                {!compact && (
+                  <span style={{ fontSize: 13, fontWeight: 500, color: "#374151", whiteSpace: "nowrap" }}>
+                    {user.name}
+                  </span>
+                )}
+              </div>
+              {/* 로그아웃 버튼 */}
+              <button
+                onClick={handleLogout}
+                title="로그아웃"
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "#A1A8B3", fontSize: 13, padding: "4px 6px", borderRadius: 6,
+                  transition: "color 0.15s, background-color 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.color = "#FF4747";
+                  (e.currentTarget as HTMLElement).style.backgroundColor = "#FFF5F5";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.color = "#A1A8B3";
+                  (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                }}
+              >
+                <LogOut size={15} strokeWidth={2} />
+                {!compact && <span>로그아웃</span>}
+              </button>
+            </>
           )}
         </div>
       </nav>
@@ -319,7 +373,7 @@ export default function TopNav() {
       {/* ══════════ Sub-tab bar (44px) ══════════ */}
       <div
         className="fixed left-0 right-0 z-40 bg-white flex items-center"
-        style={{ top: 56, height: pathname === "/home" ? 0 : 44, overflow: "hidden", borderBottom: pathname === "/home" ? "none" : "1px solid #EEEFF1" }}
+        style={{ top: 56, height: pathname === "/home" ? 0 : 44, borderBottom: pathname === "/home" ? "none" : "1px solid #EEEFF1" }}
       >
         {activeSection?.children ? (
           <>
@@ -374,12 +428,13 @@ export default function TopNav() {
         {(activeSection?.children || pathname === "/summary") && (
           <div className="flex items-center h-full pr-6 pl-4 shrink-0">
             {pathname === "/summary" && <SummaryFilterBar />}
-            {(pathname.startsWith("/pnl") || pathname.startsWith("/bs") || pathname.startsWith("/voucher") || pathname === "/period") && (
+            {(pathname.startsWith("/pnl") || pathname.startsWith("/bs") || pathname.startsWith("/voucher")) && (
               <DateRangeFilterBar />
             )}
             {pathname.startsWith("/scenario") && (
               <ScenarioFilterBar n={pathname.split("/").pop() ?? "1"} />
             )}
+            {pathname.startsWith("/market") && <MarketFilterBar />}
           </div>
         )}
       </div>

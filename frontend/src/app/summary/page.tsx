@@ -73,7 +73,7 @@ function deriveBSDateRanges(
 /* ══════════════════════════════════════════
    Sparkline
 ══════════════════════════════════════════ */
-function Spark({ color, up }: { color: string; up?: boolean }) {
+function Spark({ color, up, delay = 0 }: { color: string; up?: boolean; delay?: number }) {
   const pts = up
     ? "M0,45 20,42 40,44 60,38 80,32 100,25 120,20 140,15 160,10 180,7 200,4"
     : "M0,10 20,12 40,11 60,14 80,13 100,14 120,13 140,14 160,13 180,14 200,13";
@@ -86,8 +86,20 @@ function Spark({ color, up }: { color: string; up?: boolean }) {
           <stop offset="100%" stopColor={color} stopOpacity="0.02" />
         </linearGradient>
       </defs>
-      <path d={pts + " 200,60 0,60Z"} fill={`url(#${id})`} />
-      <path d={pts} fill="none" stroke={color} strokeWidth="1.5" />
+      <path
+        d={pts + " 200,60 0,60Z"}
+        fill={`url(#${id})`}
+        style={{ animation: `sparkFill 0.6s ease ${delay + 0.15}s both`, opacity: 0 }}
+      />
+      <path
+        d={pts}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeDasharray={800}
+        strokeDashoffset={800}
+        style={{ animation: `sparkDraw 0.8s ease ${delay}s both` }}
+      />
     </svg>
   );
 }
@@ -110,10 +122,10 @@ function MoverCard({
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
       <div
-        className="bg-white rounded-lg border h-full transition-shadow overflow-hidden"
-        style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer" }}
-        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
-        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
+        className="bg-white rounded-lg border h-full overflow-hidden"
+        style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer", transition: "box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease" }}
+        onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 8px 28px rgba(253,81,8,0.11), 0 2px 8px rgba(0,0,0,0.06)"; el.style.transform = "translateY(-3px)"; el.style.borderColor = "rgba(253,81,8,0.25)"; }}
+        onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "var(--shadow-card)"; el.style.transform = "translateY(0)"; el.style.borderColor = "#DFE3E6"; }}
       >
         {/* 제목 영역 */}
         <div
@@ -217,10 +229,10 @@ function ScenarioSection({ dateFrom, dateTo }: { dateFrom: string; dateTo: strin
           return (
             <Link key={s.id} href={`/scenario/${s.id}`} style={{ textDecoration: "none" }}>
               <div
-                className="bg-white rounded-lg border p-4 text-center transition-shadow"
-                style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer" }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
+                className="bg-white rounded-lg border p-4 text-center"
+                style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer", transition: "box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease" }}
+                onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 8px 28px rgba(253,81,8,0.11), 0 2px 8px rgba(0,0,0,0.06)"; el.style.transform = "translateY(-3px)"; el.style.borderColor = "rgba(253,81,8,0.25)"; }}
+                onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "var(--shadow-card)"; el.style.transform = "translateY(0)"; el.style.borderColor = "#DFE3E6"; }}
               >
                 {/* 아이콘 */}
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
@@ -246,7 +258,7 @@ function ScenarioSection({ dateFrom, dateTo }: { dateFrom: string; dateTo: strin
 /* ══════════════════════════════════════════
    Compute per-item changes
 ══════════════════════════════════════════ */
-type PLData = { revenue?: { items: any[] }; sga?: { items: any[] }; cogs?: { total: number }; gross_profit?: number; operating_income?: number; operating_margin_pct?: number; net_income?: number; net_margin_pct?: number; gross_margin_pct?: number };
+type PLData = { revenue?: { items: any[]; total: number }; sga?: { items: any[]; total: number }; cogs?: { total: number }; other?: { items: any[]; total: number }; gross_profit?: number; operating_income?: number; operating_margin_pct?: number; net_income?: number; net_margin_pct?: number; gross_margin_pct?: number };
 type BSData = { assets?: { total: number; current: { subtotal: number; items: any[] }; noncurrent: { subtotal: number; items: any[] } }; liabilities?: { total: number; current: { subtotal: number; items: any[] }; noncurrent: { subtotal: number } }; equity?: { total: number } };
 
 function computeChanges(currItems: any[], prevItems: any[], key = "account") {
@@ -279,8 +291,15 @@ export default function SummaryPage() {
   const pPL = prevPL as PLData | undefined;
   const pBS = prevBS as BSData | undefined;
 
+  /* ── Helpers ── */
+  function pct(curr: number, prev: number): string {
+    if (!prev) return "—";
+    const p = ((curr - prev) / Math.abs(prev)) * 100;
+    return (p >= 0 ? "+" : "") + p.toFixed(1) + "%";
+  }
+
   /* ── KPI values ── */
-  const revenue    = pl?.revenue?.items?.reduce((s: number, i: any) => s + i.amount, 0) ?? 0;
+  const revenue    = pl?.revenue?.total ?? 0;
   const opIncome   = pl?.operating_income   ?? 0;
   const opMargin   = pl?.operating_margin_pct ?? 0;
   const gpMargin   = pl?.gross_margin_pct   ?? 0;
@@ -293,6 +312,25 @@ export default function SummaryPage() {
   const curLiab      = bs?.liabilities?.current?.subtotal ?? 0;
   const debtRatio    = totalEquity ? (totalLiab / totalEquity * 100) : 0;
   const curRatio     = curLiab     ? (curAssets  / curLiab    * 100) : 0;
+
+  /* ── Derived totals for table ── */
+  const cogsTotal   = pl?.cogs?.total  ?? 0;
+  const sgaTotal    = pl?.sga?.total   ?? 0;
+  const otherTotal  = pl?.other?.total ?? 0;
+
+  const pRevenue    = pPL?.revenue?.total  ?? 0;
+  const pCogsTotal  = pPL?.cogs?.total    ?? 0;
+  const pSgaTotal   = pPL?.sga?.total     ?? 0;
+  const pOtherTotal = pPL?.other?.total   ?? 0;
+  const pNetIncome  = pPL?.net_income     ?? 0;
+
+  const pTotalAssets  = pBS?.assets?.total             ?? 0;
+  const pCurAssets    = pBS?.assets?.current?.subtotal  ?? 0;
+  const pNonCurAssets = pBS?.assets?.noncurrent?.subtotal ?? 0;
+  const pTotalLiab    = pBS?.liabilities?.total        ?? 0;
+  const pCurLiab      = pBS?.liabilities?.current?.subtotal ?? 0;
+  const pNonCurLiab   = pBS?.liabilities?.noncurrent?.subtotal ?? 0;
+  const pTotalEquity  = pBS?.equity?.total             ?? 0;
 
   /* ── Change computations ── */
   const revenueChanges = useMemo(() => computeChanges(pl?.revenue?.items ?? [], pPL?.revenue?.items ?? []), [pl, pPL]);
@@ -312,6 +350,19 @@ export default function SummaryPage() {
 
   return (
     <div className="space-y-4">
+      <style>{`
+        @keyframes summaryFadeUp {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes sparkDraw {
+          to { stroke-dashoffset: 0; }
+        }
+        @keyframes sparkFill {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+      `}</style>
 
       {/* ══ KPI Cards ══ */}
       <div className="grid grid-cols-4 gap-4">
@@ -320,13 +371,13 @@ export default function SummaryPage() {
           { label: "영업이익", value: opIncome,   color: "#FE7C39", up: true,  href: "/pnl/summary" },
           { label: "자산",    value: totalAssets, color: "#FFAA72", up: true,  href: "/bs/summary"  },
           { label: "부채",    value: totalLiab,   color: "#A1A8B3", up: false, href: "/bs/summary"  },
-        ].map(({ label, value, color, up, href }) => (
-          <Link key={label} href={href} style={{ textDecoration: "none" }}>
+        ].map(({ label, value, color, up, href }, i) => (
+          <Link key={label} href={href} style={{ textDecoration: "none", animation: `summaryFadeUp 0.45s ease ${i * 70}ms both` }}>
             <div
-              className="bg-white rounded-lg border overflow-hidden transition-shadow"
-              style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer" }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
+              className="bg-white rounded-lg border overflow-hidden"
+              style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer", transition: "box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease" }}
+              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 8px 28px rgba(253,81,8,0.11), 0 2px 8px rgba(0,0,0,0.06)"; el.style.transform = "translateY(-3px)"; el.style.borderColor = "rgba(253,81,8,0.25)"; }}
+              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "var(--shadow-card)"; el.style.transform = "translateY(0)"; el.style.borderColor = "#DFE3E6"; }}
             >
               <div className="px-5 pt-4 pb-1">
                 <p className="text-sm font-medium" style={{ color }}>{label}</p>
@@ -334,7 +385,7 @@ export default function SummaryPage() {
                   {formatKRW(value)}
                 </p>
               </div>
-              <Spark color={color} up={up} />
+              <Spark color={color} up={up} delay={i * 0.07 + 0.1} />
             </div>
           </Link>
         ))}
@@ -361,10 +412,10 @@ export default function SummaryPage() {
         {/* 손익지표 */}
         <Link href="/pnl/summary" style={{ textDecoration: "none" }}>
           <div
-            className="bg-white rounded-lg border p-5 transition-shadow"
-            style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer" }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
+            className="bg-white rounded-lg border p-5"
+            style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer", transition: "box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease" }}
+            onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 8px 28px rgba(253,81,8,0.11), 0 2px 8px rgba(0,0,0,0.06)"; el.style.transform = "translateY(-3px)"; el.style.borderColor = "rgba(253,81,8,0.25)"; }}
+            onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "var(--shadow-card)"; el.style.transform = "translateY(0)"; el.style.borderColor = "#DFE3E6"; }}
           >
             <h4 className="text-base font-semibold mb-4" style={{ color: "#000" }}>
               손익지표 <span className="text-sm font-normal ml-1" style={{ color: "#A1A8B3" }}>→</span>
@@ -395,10 +446,10 @@ export default function SummaryPage() {
         {/* 유동성지표 */}
         <Link href="/bs/summary" style={{ textDecoration: "none" }}>
           <div
-            className="bg-white rounded-lg border p-5 transition-shadow"
-            style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer" }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
+            className="bg-white rounded-lg border p-5"
+            style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer", transition: "box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease" }}
+            onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 8px 28px rgba(253,81,8,0.11), 0 2px 8px rgba(0,0,0,0.06)"; el.style.transform = "translateY(-3px)"; el.style.borderColor = "rgba(253,81,8,0.25)"; }}
+            onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "var(--shadow-card)"; el.style.transform = "translateY(0)"; el.style.borderColor = "#DFE3E6"; }}
           >
             <h4 className="text-base font-semibold mb-4" style={{ color: "#000" }}>
               유동성지표 <span className="text-sm font-normal ml-1" style={{ color: "#A1A8B3" }}>→</span>
@@ -432,10 +483,10 @@ export default function SummaryPage() {
         {/* 손익항목 */}
         <Link href="/pnl/account" style={{ textDecoration: "none", display: "flex", flexDirection: "column" }}>
           <div
-            className="bg-white rounded-lg border overflow-hidden transition-shadow flex-1"
-            style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer" }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
+            className="bg-white rounded-lg border overflow-hidden flex-1"
+            style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer", transition: "box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease" }}
+            onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 8px 28px rgba(253,81,8,0.11), 0 2px 8px rgba(0,0,0,0.06)"; el.style.transform = "translateY(-3px)"; el.style.borderColor = "rgba(253,81,8,0.25)"; }}
+            onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "var(--shadow-card)"; el.style.transform = "translateY(0)"; el.style.borderColor = "#DFE3E6"; }}
           >
             <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
               <h4 className="text-base font-semibold" style={{ color: "#000" }}>손익항목</h4>
@@ -446,21 +497,28 @@ export default function SummaryPage() {
                 <tr style={{ backgroundColor: "#F5F7F8" }}>
                   <th className="text-left px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>공시용계정</th>
                   <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>당기</th>
+                  <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>전기</th>
+                  <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>증감률</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { label: "매출액",        val: revenue,                          bold: true  },
-                  { label: "매출원가",       val: pl?.cogs?.total                ?? 0, bold: false },
-                  { label: "판매비와관리비",  val: pl?.sga?.items?.reduce((s: number, i: any) => s + i.amount, 0) ?? 0, bold: false },
-                  { label: "기타손익",       val: 0,                                bold: false },
-                  { label: "당기순이익",     val: netIncome,                        bold: true  },
-                ].map((r, i) => (
-                  <tr key={i} className="border-t" style={{ borderColor: "#EEEFF1", backgroundColor: r.bold ? "#FFF5ED" : undefined }}>
-                    <td className="px-5 py-2" style={{ fontWeight: r.bold ? 700 : 400, color: r.bold ? "#FD5108" : "#000" }}>{r.label}</td>
-                    <td className="text-right px-5 py-2" style={{ fontWeight: r.bold ? 700 : 400, fontVariantNumeric: "tabular-nums" }}>{formatKRW(r.val)}</td>
-                  </tr>
-                ))}
+                  { label: "매출액",        curr: revenue,     prev: pRevenue,    bold: false },
+                  { label: "매출원가",       curr: cogsTotal,   prev: pCogsTotal,  bold: false },
+                  { label: "판매비와관리비",  curr: sgaTotal,    prev: pSgaTotal,   bold: false },
+                  { label: "기타손익",       curr: otherTotal,  prev: pOtherTotal, bold: false },
+                  { label: "당기손익",       curr: netIncome,   prev: pNetIncome,  bold: true  },
+                ].map((r, i) => {
+                  const deltaColor = !r.prev ? "#A1A8B3" : r.curr >= r.prev ? "#16C784" : "#FF4747";
+                  return (
+                    <tr key={i} className="border-t" style={{ borderColor: "#EEEFF1", backgroundColor: r.bold ? "#FFF5ED" : undefined }}>
+                      <td className="px-5 py-2" style={{ fontWeight: r.bold ? 700 : 400, color: r.bold ? "#FD5108" : "#000" }}>{r.label}</td>
+                      <td className="text-right px-5 py-2" style={{ fontWeight: r.bold ? 700 : 400, fontVariantNumeric: "tabular-nums" }}>{formatKRW(r.curr)}</td>
+                      <td className="text-right px-5 py-2" style={{ fontVariantNumeric: "tabular-nums", color: "#A1A8B3" }}>{formatKRW(r.prev)}</td>
+                      <td className="text-right px-5 py-2" style={{ fontWeight: 500, fontVariantNumeric: "tabular-nums", color: deltaColor }}>{pct(r.curr, r.prev)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -469,10 +527,10 @@ export default function SummaryPage() {
         {/* 재무항목 */}
         <Link href="/bs/account" style={{ textDecoration: "none", display: "flex", flexDirection: "column" }}>
           <div
-            className="bg-white rounded-lg border overflow-hidden transition-shadow flex-1"
-            style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer" }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card-hover)")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.boxShadow = "var(--shadow-card)")}
+            className="bg-white rounded-lg border overflow-hidden flex-1"
+            style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", cursor: "pointer", transition: "box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease" }}
+            onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "0 8px 28px rgba(253,81,8,0.11), 0 2px 8px rgba(0,0,0,0.06)"; el.style.transform = "translateY(-3px)"; el.style.borderColor = "rgba(253,81,8,0.25)"; }}
+            onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.boxShadow = "var(--shadow-card)"; el.style.transform = "translateY(0)"; el.style.borderColor = "#DFE3E6"; }}
           >
             <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
               <h4 className="text-base font-semibold" style={{ color: "#000" }}>재무항목</h4>
@@ -481,25 +539,32 @@ export default function SummaryPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ backgroundColor: "#F5F7F8" }}>
-                  <th className="text-left px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>재무항목</th>
+                  <th className="text-left px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}></th>
                   <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>기말</th>
+                  <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>기초</th>
+                  <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>증감률</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  { label: "자산",   val: totalAssets,                              bold: true,  indent: false },
-                  { label: "유동",   val: curAssets,                                bold: false, indent: true  },
-                  { label: "비유동", val: bs?.assets?.noncurrent?.subtotal       ?? 0, bold: false, indent: true  },
-                  { label: "부채",   val: totalLiab,                                bold: true,  indent: false },
-                  { label: "유동",   val: curLiab,                                  bold: false, indent: true  },
-                  { label: "비유동", val: bs?.liabilities?.noncurrent?.subtotal  ?? 0, bold: false, indent: true  },
-                  { label: "자본",   val: totalEquity,                              bold: true,  indent: false },
-                ].map((r, i) => (
-                  <tr key={i} className="border-t" style={{ borderColor: "#EEEFF1", backgroundColor: r.bold ? "#FFF5ED" : undefined }}>
-                    <td className="px-5 py-2" style={{ fontWeight: r.bold ? 700 : 400, paddingLeft: r.indent ? 28 : 20, color: r.bold ? "#FD5108" : "#000" }}>{r.label}</td>
-                    <td className="text-right px-5 py-2" style={{ fontWeight: r.bold ? 700 : 400, fontVariantNumeric: "tabular-nums" }}>{formatKRW(r.val)}</td>
-                  </tr>
-                ))}
+                  { label: "자산",   curr: totalAssets,                                    prev: pTotalAssets,  bold: true,  indent: false },
+                  { label: "유동",   curr: curAssets,                                       prev: pCurAssets,    bold: false, indent: true  },
+                  { label: "비유동", curr: bs?.assets?.noncurrent?.subtotal       ?? 0,     prev: pNonCurAssets, bold: false, indent: true  },
+                  { label: "부채",   curr: totalLiab,                                       prev: pTotalLiab,    bold: true,  indent: false },
+                  { label: "유동",   curr: curLiab,                                         prev: pCurLiab,      bold: false, indent: true  },
+                  { label: "비유동", curr: bs?.liabilities?.noncurrent?.subtotal  ?? 0,     prev: pNonCurLiab,   bold: false, indent: true  },
+                  { label: "자본",   curr: totalEquity,                                     prev: pTotalEquity,  bold: true,  indent: false },
+                ].map((r, i) => {
+                  const deltaColor = !r.prev ? "#A1A8B3" : r.curr >= r.prev ? "#16C784" : "#FF4747";
+                  return (
+                    <tr key={i} className="border-t" style={{ borderColor: "#EEEFF1", backgroundColor: r.bold ? "#FFF5ED" : undefined }}>
+                      <td className="px-5 py-2" style={{ fontWeight: r.bold ? 700 : 400, paddingLeft: r.indent ? 28 : 20, color: r.bold ? "#FD5108" : "#000" }}>{r.label}</td>
+                      <td className="text-right px-5 py-2" style={{ fontWeight: r.bold ? 700 : 400, fontVariantNumeric: "tabular-nums" }}>{formatKRW(r.curr)}</td>
+                      <td className="text-right px-5 py-2" style={{ fontVariantNumeric: "tabular-nums", color: "#A1A8B3" }}>{formatKRW(r.prev)}</td>
+                      <td className="text-right px-5 py-2" style={{ fontWeight: 500, fontVariantNumeric: "tabular-nums", color: deltaColor }}>{pct(r.curr, r.prev)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

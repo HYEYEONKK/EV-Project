@@ -1,23 +1,14 @@
 "use client";
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { marketApi } from "@/lib/api/client";
-import CustomSelect from "@/components/ui/CustomSelect";
+import { useFilterStore } from "@/lib/store/filterStore";
 import SortableTable from "@/components/ui/SortableTable";
+import { downloadCsv } from "@/lib/utils/csvExport";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from "recharts";
-import { AXIS_STYLE, GRID_STROKE } from "@/lib/utils/chartColors";
-
-const FS = 14;
-const LS = "-0.3px";
-const FILTER_BAR: React.CSSProperties = {
-  display: "flex", alignItems: "center", gap: 12,
-  backgroundColor: "#F5F7F8", border: "1px solid #DFE3E6",
-  borderRadius: 8, padding: "10px 16px",
-};
-const DIVIDER = <div style={{ width: 1, height: 16, backgroundColor: "#DFE3E6", flexShrink: 0 }} />;
+import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors";
 
 const fmtRate = (v: number | null | undefined) => v != null ? v.toFixed(2) + "%" : "—";
 const fmtDelta = (v: number | null | undefined) => v != null ? `${v >= 0 ? "+" : ""}${v.toFixed(2)}` : null;
@@ -43,10 +34,8 @@ function KpiCard({ title, value, delta, deltaLabel, sub }: {
   );
 }
 
-const RATE_YEARS = ["2022", "2023", "2024", "2025", "2026"];
-
 export default function InterestRatePage() {
-  const [startYear, setStartYear] = useState("2024");
+  const { marketRateYear: startYear } = useFilterStore();
 
   const { data, isLoading } = useQuery({
     queryKey: ["interest-rates", startYear],
@@ -80,17 +69,6 @@ export default function InterestRatePage() {
 
   return (
     <div className="space-y-4">
-      <div style={FILTER_BAR}>
-        <span style={{ fontSize: FS, fontWeight: 600, color: "#1A1A2E", letterSpacing: LS, whiteSpace: "nowrap" }}>금리</span>
-        {DIVIDER}
-        <span style={{ fontSize: FS, color: "#A1A8B3", letterSpacing: LS, whiteSpace: "nowrap" }}>조회 시작</span>
-        <CustomSelect
-          value={startYear}
-          onChange={v => setStartYear(String(v))}
-          options={RATE_YEARS.map(y => ({ value: y, label: `${y}년 1월` }))}
-        />
-      </div>
-
       <div className="grid grid-cols-3 gap-4">
         <KpiCard title={`CD(91일) 기말금리${asOf ? ` (${asOf})` : ""}`}
           value={fmtRate(latest.cd91?.value)} delta={latest.cd91?.delta} deltaLabel="전월대비" />
@@ -104,7 +82,7 @@ export default function InterestRatePage() {
         style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
         <div className="grid" style={{ gridTemplateColumns: "2fr 1fr" }}>
           <div style={{ borderRight: "1px solid #EEEFF1" }}>
-            <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
+            <div className="px-5 border-b flex items-center" style={{ borderColor: "#EEEFF1", height: 48 }}>
               <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E" }}>금리 추이</span>
             </div>
             {isLoading ? (
@@ -124,7 +102,7 @@ export default function InterestRatePage() {
                     <YAxis tickFormatter={v => v + "%"} tick={AXIS_STYLE} tickLine={false} axisLine={false}
                       width={44} domain={["auto", "auto"]} />
                     <Tooltip formatter={(v: number) => v?.toFixed(2) + "%"}
-                      contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 12 }} />
+                      contentStyle={TOOLTIP_STYLE} />
                     <Legend wrapperStyle={{ fontSize: 13, paddingLeft: 44, paddingTop: 4 }} />
                     <Line type="monotone" dataKey="CD(91일)"    stroke="#FD5108" strokeWidth={2} dot={false} />
                     <Line type="monotone" dataKey="국고채(3년)" stroke="#54565A" strokeWidth={2} dot={false} />
@@ -134,14 +112,27 @@ export default function InterestRatePage() {
               </div>
             )}
           </div>
-          <div style={{ padding: "8px 0" }}>
-            <SortableTable
-              columns={RATE_COLS}
-              rows={tableRows}
-              filename={`금리_${startYear}`}
-              maxHeight={340}
-              loading={isLoading}
-            />
+          <div>
+            <div className="px-5 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1", height: 48 }}>
+              <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E" }}>월별 금리</span>
+              <button onClick={() => downloadCsv(["일자", "CD(91일)", "국고채(3년)", "국고채(5년)"], tableRows, `금리_${startYear}`)}
+                style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:500, color:"#A1A8B3", background:"none", border:"1px solid #DFE3E6", borderRadius:7, padding:"4px 10px", cursor:"pointer" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color="#FD5108"; (e.currentTarget as HTMLElement).style.borderColor="#FD5108"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color="#A1A8B3"; (e.currentTarget as HTMLElement).style.borderColor="#DFE3E6"; }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                CSV
+              </button>
+            </div>
+            <div>
+              <SortableTable
+                columns={RATE_COLS}
+                rows={tableRows}
+                filename={`금리_${startYear}`}
+                maxHeight={300}
+                loading={isLoading}
+                hideCsvButton
+              />
+            </div>
           </div>
         </div>
       </div>

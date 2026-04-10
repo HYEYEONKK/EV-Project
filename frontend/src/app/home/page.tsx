@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
-import * as THREE from "three";
+import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -15,6 +15,7 @@ import {
 import { useFilterStore } from "@/lib/store/filterStore";
 import { api, MonthlyPL, ScenarioMonthly } from "@/lib/api/client";
 import { formatKRW, chartAxisFormatter } from "@/lib/utils/formatters";
+import { TOOLTIP_STYLE } from "@/lib/utils/chartColors";
 import {
   Search,
   ArrowRight,
@@ -273,7 +274,7 @@ function MonthlyTrendWidget({ dateFrom, dateTo }: { dateFrom: string; dateTo: st
               <Tooltip
                 formatter={(v: unknown) => [formatKRW(Number(v)), "매출액"]}
                 labelStyle={{ fontSize: 12 }}
-                contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 12 }}
+                contentStyle={TOOLTIP_STYLE}
               />
               <Area
                 type="monotone"
@@ -873,132 +874,74 @@ function PeriodCompareWidget() {
 /* ─────────────────────────────────────────────────────────────
    Three.js 3D Particle Wave Background
 ───────────────────────────────────────────────────────────── */
-function ParticleCanvas({ width, height }: { width: number; height: number }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+/* ── Concentric Rings hero graphic ── */
+function ConcentricRings() {
+  // Static rings (breathing)
+  const staticRings = [100, 200, 310, 440, 590, 760, 950];
+  // Expanding ripple rings (staggered)
+  const rippleRings = [0, 1, 2, 3];
+  return (
+    <div style={{
+      position: "absolute", inset: 0, overflow: "hidden",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      pointerEvents: "none",
+    }}>
+      {/* Center dot */}
+      <div style={{
+        position: "absolute", width: 12, height: 12, borderRadius: "50%",
+        background: "rgba(253,81,8,0.55)",
+        boxShadow: "0 0 20px 6px rgba(253,81,8,0.18)",
+      }} />
+
+      {/* Static breathing rings */}
+      {staticRings.map((r, i) => (
+        <div key={`s${i}`} style={{
+          position: "absolute",
+          width: r * 2, height: r * 2, borderRadius: "50%",
+          border: `${i < 3 ? 1.5 : 1}px solid rgba(253,81,8,${0.28 - i * 0.032})`,
+          animation: `ring-breathe ${3.5 + i * 0.4}s ease-in-out ${i * 0.35}s infinite`,
+        }} />
+      ))}
+
+      {/* Expanding ripple rings */}
+      {rippleRings.map((i) => (
+        <div key={`r${i}`} style={{
+          position: "absolute",
+          width: 200, height: 200, borderRadius: "50%",
+          border: "1.5px solid rgba(253,81,8,0.5)",
+          animation: `ring-expand 5s ease-out ${i * 1.25}s infinite`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
+function HeroBg() {
+  const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const W = canvas.parentElement?.clientWidth  || width  || window.innerWidth;
-    const H = canvas.parentElement?.clientHeight || height || window.innerHeight;
-
-    /* ── Scene / Camera ── */
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xFFF5ED);
-
-    const camera = new THREE.PerspectiveCamera(75, W / H, 1, 10000);
-    camera.position.set(0, 200, 180);
-    camera.rotation.x = 0.38;
-
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(W, H);
-
-    /* ── Particle grid ── */
-    const SEPARATION = 50;
-    const AMOUNTX    = 70;
-    const AMOUNTY    = 35;
-    const NUM        = AMOUNTX * AMOUNTY;
-
-    const positions = new Float32Array(NUM * 3);
-    const scales    = new Float32Array(NUM);
-    let idx = 0, si = 0;
-    for (let ix = 0; ix < AMOUNTX; ix++) {
-      for (let iy = 0; iy < AMOUNTY; iy++) {
-        positions[idx]     = ix * SEPARATION - (AMOUNTX * SEPARATION) / 2;
-        positions[idx + 1] = 0;
-        positions[idx + 2] = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
-        scales[si]         = 1;
-        idx += 3; si++;
+    const v = ref.current;
+    if (!v) return;
+    const onTime = () => {
+      if (v.duration && v.currentTime > v.duration - 0.2) {
+        v.currentTime = 0;
       }
-    }
-
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute("scale",    new THREE.BufferAttribute(scales, 1));
-
-    /* ── ShaderMaterial: height → color gradient, soft circle ── */
-    const material = new THREE.ShaderMaterial({
-      vertexShader: `
-        attribute float scale;
-        varying  float vScale;
-        void main() {
-          vScale = scale;
-          vec4 mv = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = scale * (240.0 / -mv.z);
-          gl_Position  = projectionMatrix * mv;
-        }
-      `,
-      fragmentShader: `
-        varying float vScale;
-        void main() {
-          float t   = clamp((vScale - 1.0) / 9.0, 0.0, 1.0);
-          vec3  lo  = vec3(1.000, 0.961, 0.929);   // #FFF5ED
-          vec3  hi  = vec3(0.992, 0.318, 0.031);   // #FD5108
-          vec3  col = mix(lo, hi, t);
-          vec2  uv  = gl_PointCoord - 0.5;
-          float a   = 1.0 - smoothstep(0.36, 0.5, length(uv));
-          if (a < 0.01) discard;
-          gl_FragColor = vec4(col, a * mix(0.30, 0.90, t));
-        }
-      `,
-      transparent: true,
-      depthWrite:  false,
-    });
-
-    scene.add(new THREE.Points(geometry, material));
-
-    /* ── Animation loop ── */
-    let count = 0, rafId = 0;
-    const posAttr   = geometry.attributes.position as THREE.BufferAttribute;
-    const scaleAttr = geometry.attributes.scale    as THREE.BufferAttribute;
-    const posArr    = posAttr.array   as Float32Array;
-    const scaleArr  = scaleAttr.array as Float32Array;
-
-    const animate = () => {
-      rafId = requestAnimationFrame(animate);
-      let k = 0;
-      for (let ix = 0; ix < AMOUNTX; ix++) {
-        for (let iy = 0; iy < AMOUNTY; iy++) {
-          const y = Math.sin((ix + count) * 0.3) * 28 + Math.sin((iy + count) * 0.5) * 18;
-          posArr[k * 3 + 1]  = y;
-          scaleArr[k]        = 1 + ((y + 46) / 92) * 9;
-          k++;
-        }
-      }
-      posAttr.needsUpdate   = true;
-      scaleAttr.needsUpdate = true;
-      count += 0.04;
-      renderer.render(scene, camera);
     };
-    animate();
-
-    /* ── Responsive resize ── */
-    const onResize = () => {
-      const w = canvas.parentElement?.clientWidth  || window.innerWidth;
-      const h = canvas.parentElement?.clientHeight || window.innerHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", onResize);
-      geometry.dispose();
-      material.dispose();
-      renderer.dispose();
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 마운트 1회만 실행 — resize는 내부 핸들러로 처리
+    v.addEventListener("timeupdate", onTime);
+    return () => v.removeEventListener("timeupdate", onTime);
+  }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}
-    />
+    <video
+      ref={ref}
+      autoPlay
+      loop
+      muted
+      playsInline
+      style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 1 }}
+    >
+      <source src="/bg.mp4" type="video/mp4" />
+    </video>
   );
 }
 
@@ -1023,16 +966,26 @@ export default function HomePage() {
 
   /* Widget settings */
   const [showWidgetPanel, setShowWidgetPanel] = useState(false);
+  const widgetBtnRef   = useRef<HTMLButtonElement>(null);
   const widgetPanelRef = useRef<HTMLDivElement>(null);
-  const [activeWidgets, setActiveWidgets] = useState<WidgetId[]>(() => {
-    if (typeof window === "undefined") return DEFAULT_ACTIVE;
+  const [panelFixedPos, setPanelFixedPos] = useState<{ top: number; right: number } | null>(null);
+
+  const openWidgetPanel = () => {
+    if (!showWidgetPanel && widgetBtnRef.current) {
+      const r = widgetBtnRef.current.getBoundingClientRect();
+      setPanelFixedPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+    }
+    setShowWidgetPanel(v => !v);
+  };
+  const [activeWidgets, setActiveWidgets] = useState<WidgetId[]>(DEFAULT_ACTIVE);
+
+  // SSR hydration 이후 localStorage 반영 (서버/클라이언트 불일치 방지)
+  useEffect(() => {
     try {
       const saved = localStorage.getItem("easyview_home_widgets");
-      return saved ? JSON.parse(saved) : DEFAULT_ACTIVE;
-    } catch {
-      return DEFAULT_ACTIVE;
-    }
-  });
+      if (saved) setActiveWidgets(JSON.parse(saved));
+    } catch { /* ignore */ }
+  }, []);
 
   const toggleWidget = (id: WidgetId) => {
     setActiveWidgets((prev) => {
@@ -1056,24 +1009,48 @@ export default function HomePage() {
   /* 섹션 스냅 스크롤 */
   useEffect(() => {
     let locked = false;
-    const snap = (e: WheelEvent) => {
-      if (locked) { e.preventDefault(); return; }
-      const heroH = heroRef.current?.offsetHeight ?? window.innerHeight;
-      const dashTop = (dashRef.current?.offsetTop ?? heroH) - 56;
-      const y = window.scrollY;
 
+    const getPositions = () => {
+      const heroH   = heroRef.current?.offsetHeight ?? window.innerHeight;
+      const dashTop = (dashRef.current?.offsetTop ?? heroH) - 56;
+      return { heroH, dashTop };
+    };
+
+    const snapDown = () => {
+      const { dashTop } = getPositions();
+      locked = true;
+      window.scrollTo({ top: dashTop, behavior: "smooth" });
+      setTimeout(() => { locked = false; }, 900);
+    };
+    const snapUp = () => {
+      locked = true;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(() => { locked = false; }, 900);
+    };
+
+    const snap = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) return; // allow browser zoom
+      if (locked) { e.preventDefault(); return; }
+      const { heroH, dashTop } = getPositions();
+      const y = window.scrollY;
       if (e.deltaY > 0 && y < heroH * 0.85) {
-        // 히어로에서 아래로 → 대시보드 스냅
-        e.preventDefault();
-        locked = true;
-        window.scrollTo({ top: dashTop, behavior: "smooth" });
-        setTimeout(() => { locked = false; }, 900);
+        e.preventDefault(); snapDown();
       } else if (e.deltaY < 0 && y <= dashTop + 120) {
-        // 대시보드 최상단에서 위로 → 히어로 스냅
-        e.preventDefault();
-        locked = true;
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        setTimeout(() => { locked = false; }, 900);
+        e.preventDefault(); snapUp();
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!["ArrowDown", "ArrowUp", "PageDown", "PageUp"].includes(e.key)) return;
+      if (locked) { e.preventDefault(); return; }
+      const { heroH, dashTop } = getPositions();
+      const y = window.scrollY;
+      const goDown = e.key === "ArrowDown" || e.key === "PageDown";
+      const goUp   = e.key === "ArrowUp"   || e.key === "PageUp";
+      if (goDown && y < heroH * 0.85) {
+        e.preventDefault(); snapDown();
+      } else if (goUp && y <= dashTop + 120) {
+        e.preventDefault(); snapUp();
       }
     };
 
@@ -1082,11 +1059,13 @@ export default function HomePage() {
       setHeroVisible(window.scrollY < heroH * 0.5);
     };
 
-    window.addEventListener("wheel", snap, { passive: false });
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("wheel",   snap,      { passive: false });
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("scroll",  onScroll,  { passive: true });
     return () => {
-      window.removeEventListener("wheel", snap);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("wheel",   snap);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll",  onScroll);
     };
   }, []);
 
@@ -1119,30 +1098,17 @@ export default function HomePage() {
     return arr;
   }, [dragId, dragOverId, activeWidgets]);
 
-  /* Hero canvas size */
-  const heroRef   = useRef<HTMLDivElement>(null);
-  const [heroSize, setHeroSize] = useState({ w: 1200, h: 600 });
-  useEffect(() => {
-    const update = () => {
-      if (heroRef.current) {
-        setHeroSize({
-          w: heroRef.current.offsetWidth,
-          h: heroRef.current.offsetHeight,
-        });
-      }
-    };
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   /* Outside click handlers */
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node))
         setSearchOpen(false);
-      if (widgetPanelRef.current && !widgetPanelRef.current.contains(e.target as Node))
-        setShowWidgetPanel(false);
+      if (
+        widgetPanelRef.current && !widgetPanelRef.current.contains(e.target as Node) &&
+        widgetBtnRef.current  && !widgetBtnRef.current.contains(e.target as Node)
+      ) setShowWidgetPanel(false);
     };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
@@ -1179,8 +1145,74 @@ export default function HomePage() {
     { label: "현금 순증감", value: cf?.net_change ?? null,       color: "#A1A8B3" },
   ];
 
+  /* ── 위젯 패널 Portal — document.body에 직접 렌더링하여 stacking context 완전 탈출 ── */
+  const widgetPortal = showWidgetPanel && panelFixedPos && typeof document !== "undefined"
+    ? createPortal(
+        <div
+          ref={widgetPanelRef}
+          style={{
+            position: "fixed", top: panelFixedPos.top, right: panelFixedPos.right,
+            background: "#fff", border: "1px solid #DFE3E6", borderRadius: 14,
+            boxShadow: "0 12px 40px rgba(0,0,0,0.18)", zIndex: 99999, padding: 14, width: 300,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.2px" }}>
+              위젯 표시 설정
+            </span>
+            <button onClick={() => setShowWidgetPanel(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#A1A8B3", padding: 2, display: "flex" }}>
+              <X size={14} />
+            </button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+            {WIDGET_REGISTRY.map((w) => {
+              const isActive = activeWidgets.includes(w.id);
+              return (
+                <div
+                  key={w.id}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("widgetId", w.id);
+                    e.dataTransfer.effectAllowed = "copy";
+                    setPanelDragId(w.id);
+                  }}
+                  onDragEnd={() => { setPanelDragId(null); setDropIndex(null); }}
+                  onClick={() => toggleWidget(w.id)}
+                  style={{
+                    position: "relative",
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    gap: 5, padding: "12px 6px", aspectRatio: "1 / 1", borderRadius: 10, boxSizing: "border-box",
+                    border: isActive ? "1px solid #FD5108" : "1px solid #DFE3E6",
+                    background: isActive ? "#FFF8F5" : "#FAFAFA",
+                    cursor: "pointer", transition: "all .15s", userSelect: "none",
+                  }}
+                  onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.borderColor = "#FFAA72"; }}
+                  onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.borderColor = "#DFE3E6"; }}
+                >
+                  <w.Icon size={20} color={isActive ? "#FD5108" : "#A1A8B3"} />
+                  <span style={{ fontSize: 12, fontWeight: 500, color: isActive ? "#FD5108" : "#6B7280", textAlign: "center", lineHeight: 1.35, wordBreak: "keep-all", whiteSpace: "normal", width: "100%", padding: "0 4px" }}>
+                    {w.label}
+                  </span>
+                  {isActive && (
+                    <div style={{ position: "absolute", top: 5, right: 5 }}>
+                      <Check size={10} color="#FD5108" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p style={{ fontSize: 12, color: "#B0B7C3", marginTop: 12, textAlign: "center", marginBottom: 0, fontWeight: 400 }}>
+            클릭으로 추가 · 드래그하여 대시보드에 추가
+          </p>
+        </div>,
+        document.body
+      )
+    : null;
+
   return (
     <>
+      {widgetPortal}
       {/* Global keyframe injection */}
       <style>{`
         @keyframes shimmer {
@@ -1203,7 +1235,19 @@ export default function HomePage() {
           from { opacity: 0; transform: translateY(22px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes ring-breathe {
+          0%, 100% { opacity: 0.7; transform: scale(1); }
+          50%       { opacity: 1;   transform: scale(1.04); }
+        }
+        @keyframes ring-expand {
+          0%   { transform: scale(0.7); opacity: 0.9; }
+          100% { transform: scale(1.4); opacity: 0; }
+        }
+        main { background-color: transparent !important; }
       `}</style>
+
+      {/* Fixed video — behind both hero and dashboard */}
+      <HeroBg />
 
       {/* ════════════════════════════════════════════════════════
           HERO
@@ -1212,13 +1256,13 @@ export default function HomePage() {
         ref={heroRef}
         style={{
           position: "relative",
+          zIndex: 2,
           height: "100vh",
-          background: "#FFF5ED",
+          background: "transparent",
           overflow: "hidden",
           margin: "calc(-100px - 24px) -24px 0",
         }}
       >
-          <ParticleCanvas width={heroSize.w} height={heroSize.h} />
 
           {/* Center content — constrained to max 620px */}
           <div
@@ -1230,33 +1274,51 @@ export default function HomePage() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              paddingTop: 56,
+              paddingTop: 0,
+              marginTop: -20,
             }}
           >
-            <div style={{ width: "100%", maxWidth: 680, padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-              {/* Badge */}
+            <div style={{ width: "100%", maxWidth: 680, padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+              {/* Eyebrow */}
               <span style={{
-                fontSize: 11, color: "#FD5108", letterSpacing: 3, fontWeight: 700,
-                textTransform: "uppercase",
+                fontSize: 17, color: "#FD5108", letterSpacing: 1, fontWeight: 400,
                 animation: "heroFadeIn 0.5s ease 0.1s both",
+                marginBottom: -4,
+                marginTop: 16,
               }}>
-                ABC COMPANY
+                데이터 분석의 새로운 기준
               </span>
 
               {/* Title */}
               <h1 style={{
-                fontSize: "clamp(36px, 5vw, 52px)", fontWeight: 700, color: "#1A1A2E",
-                letterSpacing: -1.5, margin: 0, lineHeight: 1.1, textAlign: "center",
+                fontSize: "clamp(32px, 4.2vw, 48px)", fontWeight: 700, color: "#1A1A2E",
+                letterSpacing: -1.5, margin: 0, lineHeight: 1.2, textAlign: "center",
                 animation: "heroFadeIn 0.6s ease 0.25s both",
+                whiteSpace: "nowrap",
               }}>
-                Easy View<span style={{ color: "#FD5108" }}>+</span>에 오신 것을 환영합니다.
+                Welcome to Easy View
+                <svg
+                  viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"
+                  style={{
+                    display: "inline-block",
+                    width:  "clamp(18px, 2.4vw, 28px)",
+                    height: "clamp(18px, 2.4vw, 28px)",
+                    marginLeft: "0.04em",
+                    marginRight: "0.04em",
+                    verticalAlign: "super",
+                    position: "relative",
+                    top: "-0.08em",
+                  }}
+                >
+                  <path d="M47.062 8.01195C47.2809 7.40867 47.6803 6.88743 48.2059 6.51908C48.7314 6.15073 49.3577 5.95312 49.9995 5.95312C50.6412 5.95313 51.2675 6.15073 51.793 6.51908C52.3186 6.88743 52.718 7.40867 52.937 8.01195L55.9245 16.1745C58.2675 22.5734 61.9774 28.3845 66.7959 33.203C71.6144 38.0215 77.4255 41.7315 83.8245 44.0745L91.9807 47.062C92.584 47.2809 93.1052 47.6803 93.4736 48.2059C93.8419 48.7314 94.0395 49.3577 94.0395 49.9995C94.0395 50.6412 93.8419 51.2675 93.4736 51.793C93.1052 52.3186 92.584 52.718 91.9807 52.937L83.8245 55.9245C77.4255 58.2675 71.6144 61.9774 66.7959 66.7959C61.9774 71.6144 58.2675 77.4255 55.9245 83.8245L52.937 91.9807C52.718 92.584 52.3186 93.1052 51.793 93.4736C51.2675 93.8419 50.6412 94.0395 49.9995 94.0395C49.3577 94.0395 48.7314 93.8419 48.2059 93.4736C47.6803 93.1052 47.2809 92.584 47.062 91.9807L44.0745 83.8245C41.7315 77.4255 38.0215 71.6144 33.203 66.7959C28.3845 61.9774 22.5734 58.2675 16.1745 55.9245L8.01195 52.937C7.40867 52.718 6.88743 52.3186 6.51908 51.793C6.15073 51.2675 5.95313 50.6412 5.95312 49.9995C5.95312 49.3577 6.15073 48.7314 6.51908 48.2059C6.88743 47.6803 7.40867 47.2809 8.01195 47.062L16.1745 44.0745C22.5734 41.7315 28.3845 38.0215 33.203 33.203C38.0215 28.3845 41.7315 22.5734 44.0745 16.1745L47.062 8.01195Z" fill="#FD5108"/>
+                </svg>
               </h1>
 
-              {/* Subtitle */}
+              {/* Description */}
               <p style={{
-                fontSize: 15, color: "#6B7280", margin: 0, textAlign: "center",
+                fontSize: 17, color: "#6B7280", margin: 0, textAlign: "center",
                 lineHeight: 1.6, letterSpacing: "-0.2px",
-                animation: "heroFadeIn 0.6s ease 0.42s both",
+                animation: "heroFadeIn 0.6s ease 0.48s both",
               }}>
                 재무 결산부터 원가, 영업 분석까지 —&nbsp;
                 <span style={{ color: "#1A1A2E", fontWeight: 600 }}>원하는 데이터를 한눈에</span> 확인하세요!
@@ -1277,7 +1339,7 @@ export default function HomePage() {
                     value={query}
                     onChange={(e) => { setQuery(e.target.value); setSearchOpen(true); }}
                     onFocus={() => setSearchOpen(true)}
-                    style={{ flex: 1, border: "none", outline: "none", fontSize: 14, color: "#1A1A2E", background: "transparent" }}
+                    style={{ flex: 1, border: "none", outline: "none", fontSize: 16, color: "#1A1A2E", background: "transparent" }}
                   />
                 </div>
 
@@ -1345,10 +1407,12 @@ export default function HomePage() {
       <div
         ref={dashRef}
         style={{
+          position: "relative",
+          zIndex: 2,
           scrollMarginTop: 56,
           margin: "0 -24px -24px",
           minHeight: "calc(100vh - 56px)",
-          background: "linear-gradient(to bottom, #FFF4EE 0%, #F8F4F2 6%, #F5F7F8 18%)",
+          background: "rgba(255, 255, 255, 0.93)",
         }}
       >
         <div style={{ maxWidth: 1200, margin: "0 auto", width: "100%", padding: "32px 24px 48px" }}>
@@ -1372,9 +1436,10 @@ export default function HomePage() {
             </div>
 
             {/* Widget add button */}
-            <div ref={widgetPanelRef} style={{ position: "relative", flexShrink: 0 }}>
+            <div style={{ position: "relative", flexShrink: 0 }}>
               <button
-                onClick={() => setShowWidgetPanel((v) => !v)}
+                ref={widgetBtnRef}
+                onClick={openWidgetPanel}
                 style={{
                   display: "flex", alignItems: "center", gap: 6,
                   fontSize: 13, fontWeight: 600, color: "#fff",
@@ -1388,65 +1453,7 @@ export default function HomePage() {
                 위젯 추가
               </button>
 
-              {/* ── 3×3 위젯 선택 패널 ── */}
-              {showWidgetPanel && (
-                <div style={{
-                  position: "absolute", top: "calc(100% + 8px)", right: 0,
-                  background: "#fff", border: "1px solid #DFE3E6", borderRadius: 14,
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.14)", zIndex: 50, padding: 14, width: 300,
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: "#1A1A2E", letterSpacing: "-0.2px" }}>
-                      위젯 표시 설정
-                    </span>
-                    <button onClick={() => setShowWidgetPanel(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#A1A8B3", padding: 2, display: "flex" }}>
-                      <X size={14} />
-                    </button>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-                    {WIDGET_REGISTRY.map((w) => {
-                      const isActive = activeWidgets.includes(w.id);
-                      return (
-                        <div
-                          key={w.id}
-                          draggable
-                          onDragStart={(e) => {
-                            e.dataTransfer.setData("widgetId", w.id);
-                            e.dataTransfer.effectAllowed = "copy";
-                            setPanelDragId(w.id);
-                          }}
-                          onDragEnd={() => { setPanelDragId(null); setDropIndex(null); }}
-                          onClick={() => toggleWidget(w.id)}
-                          style={{
-                            position: "relative",
-                            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                            gap: 5, padding: "12px 6px", aspectRatio: "1 / 1", borderRadius: 10, boxSizing: "border-box",
-                            border: isActive ? "2px solid #FD5108" : "1.5px solid #DFE3E6",
-                            background: isActive ? "#FFF8F5" : "#FAFAFA",
-                            cursor: "pointer", transition: "all .15s", userSelect: "none",
-                          }}
-                          onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.borderColor = "#FFAA72"; }}
-                          onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.borderColor = "#DFE3E6"; }}
-                        >
-                          <w.Icon size={20} color={isActive ? "#FD5108" : "#A1A8B3"} />
-                          <span style={{ fontSize: 12, fontWeight: 500, color: isActive ? "#FD5108" : "#6B7280", textAlign: "center", lineHeight: 1.35, wordBreak: "keep-all", whiteSpace: "normal", width: "100%", padding: "0 4px" }}>
-                            {w.label}
-                          </span>
-                          {isActive && (
-                            <div style={{ position: "absolute", top: 5, right: 5 }}>
-                              <Check size={10} color="#FD5108" />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <p style={{ fontSize: 12, color: "#B0B7C3", marginTop: 12, textAlign: "center", marginBottom: 0, fontWeight: 400 }}>
-                    클릭으로 추가 · 드래그하여 대시보드에 추가
-                  </p>
-                </div>
-              )}
+              {/* 팝업은 Portal로 body에 직접 렌더링 → stacking context 완전 탈출 */}
             </div>
           </div>
           </FadeInView>

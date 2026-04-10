@@ -17,7 +17,7 @@ def get_conn():
     return conn
 
 
-def _build_where(date_from, date_to, extra_clauses=None):
+def _build_where(date_from, date_to, extra_clauses=None, min_amount=None, max_amount=None):
     args, clauses = [], []
     if date_from:
         clauses.append("date >= ?")
@@ -25,6 +25,12 @@ def _build_where(date_from, date_to, extra_clauses=None):
     if date_to:
         clauses.append("date <= ?")
         args.append(date_to)
+    if min_amount is not None:
+        clauses.append("amount >= ?")
+        args.append(min_amount)
+    if max_amount is not None:
+        clauses.append("amount <= ?")
+        args.append(max_amount)
     if extra_clauses:
         clauses.extend(extra_clauses)
     where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
@@ -51,8 +57,8 @@ def _monthly_from_ids(conn, je_ids: list[int], date_from, date_to) -> list:
 
 # ─── 시나리오 1: 동일금액 중복전표 ───────────────────────────
 
-def _scenario1_ids(conn, date_from, date_to) -> list[int]:
-    where, args = _build_where(date_from, date_to)
+def _scenario1_ids(conn, date_from, date_to, min_amount=None, max_amount=None) -> list[int]:
+    where, args = _build_where(date_from, date_to, min_amount=min_amount, max_amount=max_amount)
     dup_keys = conn.execute(f"""
         SELECT date, amount FROM journal_entries {where}
         GROUP BY date, amount
@@ -62,19 +68,17 @@ def _scenario1_ids(conn, date_from, date_to) -> list[int]:
         return []
     id_rows = []
     for dk in dup_keys:
-        a2, c2 = list(args) + [dk["date"], dk["amount"]], []
-        if date_from: c2.append("date >= ?")
-        if date_to: c2.append("date <= ?")
-        c2 += ["date=?", "amount=?"]
-        w2 = "WHERE " + " AND ".join(c2)
-        rows = conn.execute(f"SELECT id FROM journal_entries {w2}", a2).fetchall()
+        rows = conn.execute(
+            "SELECT id FROM journal_entries WHERE date=? AND amount=?",
+            [dk["date"], dk["amount"]]
+        ).fetchall()
         id_rows.extend(r["id"] for r in rows)
     return list(set(id_rows))
 
 
 # ─── 시나리오 2: 현금지급 후 동일금액 부채인식 ──────────────
 
-def _scenario2_ids(conn, date_from, date_to) -> list[int]:
+def _scenario2_ids(conn, date_from, date_to, min_amount=None, max_amount=None) -> list[int]:
     where, args = _build_where(date_from, date_to)
     # 같은 전표번호에 현금(C) + 부채계정(D) 동시 존재
     rows = conn.execute(f"""
@@ -91,7 +95,7 @@ def _scenario2_ids(conn, date_from, date_to) -> list[int]:
     """.replace(f"{where}\n        AND", f"{where} AND" if where else "WHERE"), args).fetchall() if False else []
 
     # cleanest approach
-    base_where, base_args = _build_where(date_from, date_to)
+    base_where, base_args = _build_where(date_from, date_to, min_amount=min_amount, max_amount=max_amount)
     cash_je = set()
     if base_where:
         rows = conn.execute(f"""
@@ -126,8 +130,8 @@ def _scenario2_ids(conn, date_from, date_to) -> list[int]:
 
 # ─── 시나리오 3: 주말 현금지급 ──────────────────────────────
 
-def _scenario3_ids(conn, date_from, date_to) -> list[int]:
-    base_where, base_args = _build_where(date_from, date_to)
+def _scenario3_ids(conn, date_from, date_to, min_amount=None, max_amount=None) -> list[int]:
+    base_where, base_args = _build_where(date_from, date_to, min_amount=min_amount, max_amount=max_amount)
     extra = "strftime('%w', date) IN ('0','6') AND debit_credit='C' AND (classification1 LIKE '%현금%' OR classification1 LIKE '%보통예금%')"
     if base_where:
         sql = f"SELECT id FROM journal_entries {base_where} AND {extra}"
@@ -138,8 +142,8 @@ def _scenario3_ids(conn, date_from, date_to) -> list[int]:
 
 # ─── 시나리오 4: 고액 현금전표 ──────────────────────────────
 
-def _scenario4_ids(conn, date_from, date_to) -> list[int]:
-    base_where, base_args = _build_where(date_from, date_to)
+def _scenario4_ids(conn, date_from, date_to, min_amount=None, max_amount=None) -> list[int]:
+    base_where, base_args = _build_where(date_from, date_to, min_amount=min_amount, max_amount=max_amount)
     extra = "amount > 1000000000 AND (classification1 LIKE '%현금%' OR classification1 LIKE '%보통예금%')"
     if base_where:
         sql = f"SELECT id FROM journal_entries {base_where} AND {extra}"
@@ -150,8 +154,8 @@ def _scenario4_ids(conn, date_from, date_to) -> list[int]:
 
 # ─── 시나리오 5: 비용인식+현금지급 동시 ─────────────────────
 
-def _scenario5_ids(conn, date_from, date_to) -> list[int]:
-    base_where, base_args = _build_where(date_from, date_to)
+def _scenario5_ids(conn, date_from, date_to, min_amount=None, max_amount=None) -> list[int]:
+    base_where, base_args = _build_where(date_from, date_to, min_amount=min_amount, max_amount=max_amount)
     # 같은 je_number에 비용(D, entry_type=PL) + 현금(C, entry_type=BS)
     if base_where:
         expense_je = conn.execute(f"""
@@ -178,8 +182,8 @@ def _scenario5_ids(conn, date_from, date_to) -> list[int]:
 
 # ─── 시나리오 6: 저빈도 거래처 ──────────────────────────────
 
-def _scenario6_ids(conn, date_from, date_to) -> list[int]:
-    base_where, base_args = _build_where(date_from, date_to)
+def _scenario6_ids(conn, date_from, date_to, min_amount=None, max_amount=None) -> list[int]:
+    base_where, base_args = _build_where(date_from, date_to, min_amount=min_amount, max_amount=max_amount)
     if base_where:
         sql = f"""
             SELECT id FROM journal_entries {base_where}
@@ -204,8 +208,8 @@ def _scenario6_ids(conn, date_from, date_to) -> list[int]:
 
 # ─── 시나리오 7: 주말/비정상 요일 전표 ──────────────────────
 
-def _scenario7_ids(conn, date_from, date_to) -> list[int]:
-    base_where, base_args = _build_where(date_from, date_to)
+def _scenario7_ids(conn, date_from, date_to, min_amount=None, max_amount=None) -> list[int]:
+    base_where, base_args = _build_where(date_from, date_to, min_amount=min_amount, max_amount=max_amount)
     extra = "strftime('%w', date) IN ('0','6')"
     if base_where:
         sql = f"SELECT id FROM journal_entries {base_where} AND {extra}"
@@ -232,12 +236,14 @@ def scenario_summary(
     scenario_id: int,
     date_from: Optional[str] = Query(None),
     date_to: Optional[str] = Query(None),
+    min_amount: Optional[float] = Query(None),
+    max_amount: Optional[float] = Query(None),
 ):
     if scenario_id not in SCENARIO_FUNCS:
         return []
     conn = get_conn()
     try:
-        ids = SCENARIO_FUNCS[scenario_id](conn, date_from, date_to)
+        ids = SCENARIO_FUNCS[scenario_id](conn, date_from, date_to, min_amount, max_amount)
         return _monthly_from_ids(conn, ids, date_from, date_to)
     finally:
         conn.close()
@@ -248,13 +254,15 @@ def scenario_entries(
     scenario_id: int,
     date_from: Optional[str] = Query(None),
     date_to: Optional[str] = Query(None),
+    min_amount: Optional[float] = Query(None),
+    max_amount: Optional[float] = Query(None),
     limit: int = Query(200),
 ):
     if scenario_id not in SCENARIO_FUNCS:
         return []
     conn = get_conn()
     try:
-        ids = SCENARIO_FUNCS[scenario_id](conn, date_from, date_to)
+        ids = SCENARIO_FUNCS[scenario_id](conn, date_from, date_to, min_amount, max_amount)
         if not ids:
             return []
         plh = ",".join("?" * len(ids))

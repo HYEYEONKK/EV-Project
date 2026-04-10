@@ -24,11 +24,18 @@ interface FilterState {
   scenarioMinAmount: number | null;
   scenarioMaxAmount: number | null;
   scenarioAllToggle: boolean;
+  // Market page filters
+  marketRateYear: string;
+  marketExchangeYear: string;
+  marketExchangeCurrency: string;
   // Actions
   setDateRange: (from: string, to: string) => void;
   setScenarioDateRange: (from: string, to: string) => void;
   setScenarioAmounts: (min: number | null, max: number | null) => void;
   setScenarioAllToggle: (v: boolean) => void;
+  setMarketRateYear: (v: string) => void;
+  setMarketExchangeYear: (v: string) => void;
+  setMarketExchangeCurrency: (v: string) => void;
   setCrossFilter: (
     key:
       | "activeMonth"
@@ -61,11 +68,17 @@ export const useFilterStore = create<FilterState>((set) => ({
   scenarioMinAmount: null,
   scenarioMaxAmount: null,
   scenarioAllToggle: false,
+  marketRateYear: String(new Date().getFullYear() - 1),
+  marketExchangeYear: String(new Date().getFullYear() - 1),
+  marketExchangeCurrency: "USD",
 
   setDateRange: (from, to) => set({ dateFrom: from, dateTo: to }),
   setScenarioDateRange: (from, to) => set({ scenarioDateFrom: from, scenarioDateTo: to }),
   setScenarioAmounts: (min, max) => set({ scenarioMinAmount: min, scenarioMaxAmount: max }),
   setScenarioAllToggle: (v) => set({ scenarioAllToggle: v }),
+  setMarketRateYear: (v) => set({ marketRateYear: v }),
+  setMarketExchangeYear: (v) => set({ marketExchangeYear: v }),
+  setMarketExchangeCurrency: (v) => set({ marketExchangeCurrency: v }),
   setCrossFilter: (key, value) =>
     set((state) => ({
       ...state,

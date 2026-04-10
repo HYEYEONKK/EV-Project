@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useFilterStore } from "@/lib/store/filterStore";
+import { useAuthStore } from "@/lib/store/authStore";
 import { chatAsk, ChatResponse } from "@/lib/api/client";
 import Link from "next/link";
 
@@ -10,9 +11,14 @@ interface Message {
   queryType?: string;
   suggestions?: string[];
   navLinks?: { label: string; href: string }[];
+  ts?: number; // timestamp
 }
 
-// 반말로, 최신 연도 반영
+const WELCOME_MESSAGE: Message = {
+  role: "assistant",
+  text: "안녕하세요, 저는 EVE입니다. 무엇을 도와드릴까요?",
+};
+
 const EXAMPLE_QUESTIONS = [
   "2026년 주요 수익 항목과 매출 현황은?",
   "현재 유동비율과 부채비율은?",
@@ -31,26 +37,25 @@ const NAV_LINKS: Record<string, { label: string; href: string }[]> = {
   scenario: [{ label: "주말전표 탐지", href: "/scenario/7"   }, { label: "중복전표 탐지", href: "/scenario/1"   }],
 };
 
-// 모든 쿼리 유형 #FD5108 통일, radius & style 통일
 const QUERY_TYPE_LABELS: Record<string, { label: string }> = {
   pnl:      { label: "손익 분석"  },
   bs:       { label: "재무상태표" },
   scenario: { label: "이상 탐지"  },
 };
 
-// 공통 뱃지/링크 스타일
 const TAG_STYLE: React.CSSProperties = {
   fontSize: 12, fontWeight: 500,
   padding: "4px 10px", borderRadius: 8,
-  background: "#FFF0E8",
-  border: "1px solid rgba(253,81,8,0.2)",
-  color: "#FD5108",
+  background: "#FFF0E8", border: "1px solid rgba(253,81,8,0.2)", color: "#FD5108",
   boxShadow: "0 1px 3px rgba(253,81,8,0.08)",
   display: "inline-flex", alignItems: "center", gap: 3,
   textDecoration: "none",
 };
 
-// ── 인라인 마크다운 파싱 (**bold**, ~~strike~~, *italic*) ──
+const MIN_W = 320, MAX_W = 820;
+const MIN_H = 400, MAX_H = 920;
+
+/* ── 인라인 마크다운 파싱 ──────────────────────────────────── */
 function InlineText({ text }: { text: string }) {
   const parts: React.ReactNode[] = [];
   const re = /(\*\*(.+?)\*\*|~~(.+?)~~|\*(.+?)\*)/g;
@@ -69,17 +74,15 @@ function InlineText({ text }: { text: string }) {
   return <>{parts}</>;
 }
 
-function stripEmoji(s: string): string {
+function stripEmoji(s: string) {
   return s.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{1FA00}-\u{1FAFF}]/gu, "")
-          .replace(/  +/g, " ").trim();
+    .replace(/  +/g, " ").trim();
 }
 
-// ── 구조화된 답변 렌더링 ────────────────────────────────────
 function MessageContent({ text }: { text: string }) {
-  const lines = text.split("\n");
   return (
     <div style={{ fontSize: 14, lineHeight: 1.7 }}>
-      {lines.map((line, i) => {
+      {text.split("\n").map((line, i) => {
         const tr = line.trim();
         if (!tr) return <div key={i} style={{ height: 5 }} />;
         if (line.startsWith("📊 "))
@@ -103,7 +106,6 @@ function MessageContent({ text }: { text: string }) {
   );
 }
 
-// ── Bot 아바타 (키워줌) ───────────────────────────────────
 function BotAvatar() {
   return (
     <div style={{
@@ -118,58 +120,189 @@ function BotAvatar() {
   );
 }
 
-// ── 메인 컴포넌트 ─────────────────────────────────────────
+/* ── 리사이즈 핸들 ──────────────────────────────────────────── */
+function ResizeHandle({
+  dir, onMouseDown,
+}: {
+  dir: "left" | "top" | "corner";
+  onMouseDown: (e: React.MouseEvent, dir: "left" | "top" | "corner") => void;
+}) {
+  const [hov, setHov] = useState(false);
+  const baseStyle: React.CSSProperties = {
+    position: "absolute", zIndex: 10,
+    backgroundColor: hov ? "rgba(253,81,8,0.15)" : "transparent",
+    transition: "background-color 0.15s",
+  };
+  if (dir === "corner") return (
+    <div
+      onMouseDown={(e) => onMouseDown(e, "corner")}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{ ...baseStyle, top: 0, left: 0, width: 16, height: 16, cursor: "nw-resize", borderRadius: "8px 0 0 0" }}
+    >
+      {hov && (
+        <svg style={{ position: "absolute", top: 2, left: 2 }} width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M1 11L1 1L11 1" stroke="#FD5108" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M4 8L1 11L4 11" stroke="#FD5108" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M8 4L11 1L11 4" stroke="#FD5108" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+    </div>
+  );
+  if (dir === "left") return (
+    <div
+      onMouseDown={(e) => onMouseDown(e, "left")}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{ ...baseStyle, top: 16, left: 0, width: 5, bottom: 0, cursor: "w-resize" }}
+    />
+  );
+  // top
+  return (
+    <div
+      onMouseDown={(e) => onMouseDown(e, "top")}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{ ...baseStyle, top: 0, left: 16, right: 0, height: 5, cursor: "n-resize" }}
+    />
+  );
+}
+
+/* ── 메인 컴포넌트 ─────────────────────────────────────────── */
 export default function ChatWidget() {
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([{
-    role: "assistant",
-    text: "안녕하세요, 저는 EVE입니다. 무엇을 도와드릴까요?",
-  }]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef  = useRef<HTMLInputElement>(null);
+  const [open, setOpen]         = useState(false);
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
+  const [input, setInput]       = useState("");
+  const [loading, setLoading]   = useState(false);
+  const [btnPos, setBtnPos]     = useState({ bottom: 28, right: 28 });
+  const [chatSize, setChatSize] = useState({ width: 400, height: 590 });
+
+  const { user }         = useAuthStore();
   const { dateFrom, dateTo } = useFilterStore();
 
-  // ── 드래그 가능한 버튼 위치 ──────────────────────────────
-  const [btnPos, setBtnPos] = useState({ bottom: 28, right: 28 });
-  const dragRef = useRef({ dragging: false, startX: 0, startY: 0, startBottom: 28, startRight: 28, moved: false });
+  const scrollRef  = useRef<HTMLDivElement>(null);
+  const bottomRef  = useRef<HTMLDivElement>(null);
+  const inputRef   = useRef<HTMLInputElement>(null);
+  const chatSzRef  = useRef(chatSize);  // for resize closure
+  const btnDrag    = useRef({ dragging: false, startX: 0, startY: 0, startBottom: 28, startRight: 28, moved: false });
 
+  useEffect(() => { chatSzRef.current = chatSize; }, [chatSize]);
+
+  /* ── 채팅 이력 로드 ────────────────────────────────────── */
+  useEffect(() => {
+    if (!user?.email) return;
+    try {
+      const saved = localStorage.getItem(`ev_chat_${user.email}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) setMessages(parsed);
+      }
+    } catch { /* ignore */ }
+  }, [user?.email]);
+
+  /* ── 채팅 이력 저장 ────────────────────────────────────── */
+  useEffect(() => {
+    if (!user?.email || messages.length <= 1) return;
+    try {
+      localStorage.setItem(`ev_chat_${user.email}`, JSON.stringify(messages.slice(-120)));
+    } catch { /* ignore */ }
+  }, [messages, user?.email]);
+
+  /* ── 대화 초기화 ───────────────────────────────────────── */
+  const clearChat = useCallback(() => {
+    setMessages([WELCOME_MESSAGE]);
+    if (user?.email) localStorage.removeItem(`ev_chat_${user.email}`);
+  }, [user?.email]);
+
+  /* ── 플로팅 버튼 드래그 ────────────────────────────────── */
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    dragRef.current = {
+    btnDrag.current = {
       dragging: true,
       startX: e.clientX, startY: e.clientY,
       startBottom: btnPos.bottom, startRight: btnPos.right,
       moved: false,
     };
     const onMove = (ev: MouseEvent) => {
-      if (!dragRef.current.dragging) return;
-      const dx = ev.clientX - dragRef.current.startX;
-      const dy = ev.clientY - dragRef.current.startY;
-      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragRef.current.moved = true;
+      if (!btnDrag.current.dragging) return;
+      const dx = ev.clientX - btnDrag.current.startX;
+      const dy = ev.clientY - btnDrag.current.startY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) btnDrag.current.moved = true;
       setBtnPos({
-        right:  Math.max(8, dragRef.current.startRight  - dx),
-        bottom: Math.max(8, dragRef.current.startBottom - dy),
+        right:  Math.max(8, btnDrag.current.startRight  - dx),
+        bottom: Math.max(8, btnDrag.current.startBottom - dy),
       });
     };
     const onUp = () => {
-      dragRef.current.dragging = false;
+      btnDrag.current.dragging = false;
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup",   onUp);
-      if (!dragRef.current.moved) setOpen(v => !v);
+      if (!btnDrag.current.moved) setOpen(v => !v);
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup",   onUp);
   }, [btnPos]);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
-  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 150); }, [open]);
+  /* ── 채팅 창 리사이즈 ──────────────────────────────────── */
+  const onResizeStart = useCallback((e: React.MouseEvent, dir: "left" | "top" | "corner") => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = chatSzRef.current.width;
+    const startH = chatSzRef.current.height;
 
+    const onMove = (ev: MouseEvent) => {
+      const dx = ev.clientX - startX; // 왼쪽 드래그 → dx 음수 → 너비 증가
+      const dy = ev.clientY - startY; // 위쪽 드래그 → dy 음수 → 높이 증가
+      setChatSize({
+        width:  dir !== "top"  ? Math.max(MIN_W, Math.min(MAX_W, startW - dx)) : startW,
+        height: dir !== "left" ? Math.max(MIN_H, Math.min(MAX_H, startH - dy)) : startH,
+      });
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup",   onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup",   onUp);
+  }, []);
+
+  /* ── 스크롤 / 자동 맨아래 ──────────────────────────────── */
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 150);
+  }, [open]);
+
+  /* ── 키보드 스크롤 ─────────────────────────────────────── */
+  const handleScrollKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (e.key === "ArrowDown")  { e.preventDefault(); el.scrollTop += 80; }
+    else if (e.key === "ArrowUp")   { e.preventDefault(); el.scrollTop -= 80; }
+    else if (e.key === "PageDown")  { e.preventDefault(); el.scrollTop += el.clientHeight * 0.85; }
+    else if (e.key === "PageUp")    { e.preventDefault(); el.scrollTop -= el.clientHeight * 0.85; }
+    else if (e.key === "End")       { e.preventDefault(); el.scrollTop = el.scrollHeight; }
+    else if (e.key === "Home")      { e.preventDefault(); el.scrollTop = 0; }
+  };
+
+  /* ── 입력창 키보드 (Enter 전송, 빈칸에서 ↑↓ 스크롤) ─── */
+  const handleInputKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); return; }
+    if (!input && scrollRef.current) {
+      if (e.key === "ArrowDown") { e.preventDefault(); scrollRef.current.scrollTop += 80; }
+      if (e.key === "ArrowUp")   { e.preventDefault(); scrollRef.current.scrollTop -= 80; }
+    }
+  };
+
+  /* ── 메시지 전송 ───────────────────────────────────────── */
   async function send(question: string) {
     if (!question.trim() || loading) return;
     setInput("");
-    setMessages(prev => [...prev, { role: "user", text: question }]);
+    setMessages(prev => [...prev, { role: "user", text: question, ts: Date.now() }]);
     setLoading(true);
     try {
       const res: ChatResponse = await chatAsk({ question, date_from: dateFrom, date_to: dateTo });
@@ -179,10 +312,11 @@ export default function ChatWidget() {
         text: res.answer,
         queryType: qt,
         suggestions: SUGGESTIONS[qt] ?? SUGGESTIONS.pnl,
-        navLinks:    NAV_LINKS[qt],
+        navLinks: NAV_LINKS[qt],
+        ts: Date.now(),
       }]);
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", text: "백엔드 연결에 실패했습니다. 서버 상태를 확인해주세요." }]);
+      setMessages(prev => [...prev, { role: "assistant", text: "백엔드 연결에 실패했습니다. 서버 상태를 확인해주세요.", ts: Date.now() }]);
     } finally {
       setLoading(false);
     }
@@ -193,7 +327,7 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* ── 플로팅 버튼 (드래그 가능) ─────────────────────── */}
+      {/* ── 플로팅 버튼 ──────────────────────────────────── */}
       <button
         onMouseDown={onMouseDown}
         aria-label="EVE AI 챗봇"
@@ -221,58 +355,96 @@ export default function ChatWidget() {
 
       {/* ── 채팅 창 ──────────────────────────────────────── */}
       {open && (
-        <div style={{
-          position: "fixed", bottom: winBottom, right: winRight,
-          width: 400, height: 590,
-          borderRadius: 18,
-          background: "#ffffff",
-          border: "1px solid #E5E7EB",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
-          display: "flex", flexDirection: "column", overflow: "hidden",
-          zIndex: 9998,
-          animation: "eveSlideUp 0.22s cubic-bezier(0.34,1.56,0.64,1)",
-        }}>
+        <div
+          style={{
+            position: "fixed", bottom: winBottom, right: winRight,
+            width: chatSize.width, height: chatSize.height,
+            borderRadius: 18,
+            background: "#ffffff",
+            border: "1px solid #E5E7EB",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
+            display: "flex", flexDirection: "column", overflow: "hidden",
+            zIndex: 9998,
+            animation: "eveSlideUp 0.22s cubic-bezier(0.34,1.56,0.64,1)",
+            userSelect: "none",
+          }}
+        >
+          {/* ── 리사이즈 핸들 (왼쪽·위쪽·모서리) ── */}
+          <ResizeHandle dir="corner" onMouseDown={onResizeStart} />
+          <ResizeHandle dir="left"   onMouseDown={onResizeStart} />
+          <ResizeHandle dir="top"    onMouseDown={onResizeStart} />
 
           {/* 헤더 */}
           <div style={{
-            padding: "14px 18px",
+            padding: "12px 16px",
             background: "#FD5108",
-            display: "flex", alignItems: "center", gap: 12,
+            display: "flex", alignItems: "center", gap: 10,
+            flexShrink: 0,
           }}>
-            {/* 헤더 아이콘 */}
             <div style={{
-              width: 42, height: 42, borderRadius: "50%",
+              width: 40, height: 40, borderRadius: "50%",
               background: "rgba(255,255,255,0.22)",
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
-              <img src="/ai-agent.svg" width={24} height={24}
+              <img src="/ai-agent.svg" width={22} height={22}
                 style={{ filter: "brightness(0) invert(1)" }} alt="EVE" />
             </div>
-            <div>
-              {/* EVE (크게) + Easy View Expert (살짝 작게) 같은 줄 */}
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                <span style={{ fontSize: 17, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>EVE</span>
-                <span style={{ fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,0.82)", letterSpacing: "0.1px" }}>Easy View+ Expert</span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>EVE</span>
+                <span style={{ fontSize: 11.5, fontWeight: 400, color: "rgba(255,255,255,0.82)" }}>Easy View+ Expert</span>
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.62)", marginTop: 1, letterSpacing: "0.2px" }}>
-                ABC Company
-              </div>
+              {user && (
+                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.65)", marginTop: 1 }}>
+                  {user.name} 님과 대화 중
+                </div>
+              )}
             </div>
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 5 }}>
+
+            {/* 온라인 상태 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 5, marginRight: 4 }}>
               <div style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: "#86efac", boxShadow: "0 0 6px #86efac" }} />
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>온라인</span>
+              <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.65)" }}>온라인</span>
             </div>
+
+            {/* 대화 초기화 버튼 */}
+            <button
+              onClick={clearChat}
+              title="대화 초기화"
+              style={{
+                background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)",
+                borderRadius: 7, cursor: "pointer", color: "#fff",
+                display: "flex", alignItems: "center", gap: 4,
+                padding: "5px 9px", fontSize: 11.5, fontWeight: 500,
+                transition: "background-color 0.15s", flexShrink: 0,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.28)")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.15)")}
+            >
+              <TrashIcon />
+              초기화
+            </button>
           </div>
 
-          {/* 메시지 영역 */}
-          <div style={{
-            flex: 1, overflowY: "auto", padding: "14px 14px 6px",
-            display: "flex", flexDirection: "column", gap: 14,
-            background: "#F9FAFB",
-          }}>
+          {/* 메시지 영역 ── tabIndex + onWheel 스톱 + 키보드 스크롤 */}
+          <div
+            ref={scrollRef}
+            tabIndex={0}
+            onKeyDown={handleScrollKey}
+            onWheel={(e) => e.stopPropagation()}
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              overflowX: "hidden",
+              padding: "14px 14px 6px",
+              display: "flex", flexDirection: "column", gap: 14,
+              background: "#F9FAFB",
+              outline: "none",
+              scrollBehavior: "smooth",
+            }}
+          >
             {messages.map((msg, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {/* 말풍선 */}
                 <div style={{
                   display: "flex", gap: 9,
                   flexDirection: msg.role === "user" ? "row-reverse" : "row",
@@ -291,17 +463,18 @@ export default function ChatWidget() {
                         color: "#fff", fontSize: 14, lineHeight: 1.65,
                         whiteSpace: "pre-wrap", wordBreak: "keep-all",
                         boxShadow: "0 3px 12px rgba(208,74,2,0.28)",
+                        userSelect: "text",
                       } : {
                         background: "#fff", color: "#1A1A2E",
                         border: "1px solid #EAECF0",
                         boxShadow: "0 2px 8px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)",
+                        userSelect: "text",
                       }),
                     }}>
                       {msg.role === "assistant"
                         ? <MessageContent text={msg.text} />
                         : msg.text}
                     </div>
-                    {/* 쿼리 유형 뱃지 — navLinks와 동일 스타일 */}
                     {msg.queryType && QUERY_TYPE_LABELS[msg.queryType] && (
                       <span style={{ ...TAG_STYLE, cursor: "default" }}>
                         {QUERY_TYPE_LABELS[msg.queryType].label}
@@ -310,14 +483,11 @@ export default function ChatWidget() {
                   </div>
                 </div>
 
-                {/* 바로가기 링크 + 관련 질문 */}
                 {msg.role === "assistant" && msg.navLinks && (
                   <div style={{ paddingLeft: 47, display: "flex", flexDirection: "column", gap: 6 }}>
-                    {/* 바로가기 — 뱃지와 동일 스타일 */}
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                       {msg.navLinks.map((link, j) => (
-                        <Link key={j} href={link.href} onClick={() => setOpen(false)}
-                          style={TAG_STYLE}>
+                        <Link key={j} href={link.href} onClick={() => setOpen(false)} style={TAG_STYLE}>
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
                             <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -326,7 +496,6 @@ export default function ChatWidget() {
                         </Link>
                       ))}
                     </div>
-                    {/* 관련 질문 */}
                     {msg.suggestions && (
                       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                         <div style={{ fontSize: 11, color: "#B0B7C3", fontWeight: 500 }}>관련 질문</div>
@@ -358,7 +527,7 @@ export default function ChatWidget() {
                   display: "flex", gap: 6, alignItems: "center",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
                 }}>
-                  {[0,1,2].map(j => (
+                  {[0, 1, 2].map(j => (
                     <div key={j} style={{
                       width: 7, height: 7, borderRadius: "50%",
                       background: "linear-gradient(135deg, #FD5108, #FF8040)",
@@ -370,7 +539,7 @@ export default function ChatWidget() {
               </div>
             )}
 
-            {/* 초기 추천 질문 — 채팅 텍스트(14px)보다 살짝 작은 13.5px, 인사말과 동일 색상/웨이트 */}
+            {/* 초기 추천 질문 */}
             {messages.length === 1 && !loading && (
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 <div style={{ fontSize: 11, color: "#B0B7C3", fontWeight: 500, letterSpacing: "0.3px" }}>추천 질문</div>
@@ -388,47 +557,76 @@ export default function ChatWidget() {
                 ))}
               </div>
             )}
+
             <div ref={bottomRef} />
           </div>
 
-          {/* 입력창 */}
-          <div style={{
-            padding: "10px 12px", borderTop: "1px solid #F0F0F0",
-            background: "#ffffff",
-            display: "flex", gap: 8, alignItems: "center",
-          }}>
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
-              placeholder="무엇이든 물어보세요..."
-              disabled={loading}
-              style={{
-                flex: 1, background: "#F5F7F8",
-                border: "1px solid #DFE3E6", borderRadius: 12,
-                padding: "10px 14px", fontSize: 14, color: "#1A1A2E", outline: "none",
-              }}
-            />
-            <button
-              onClick={() => send(input)}
-              disabled={loading || !input.trim()}
-              style={{
-                width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-                border: "none",
-                cursor: input.trim() && !loading ? "pointer" : "not-allowed",
-                background: input.trim() && !loading
-                  ? "linear-gradient(135deg, #FD5108, #FF8040)" : "#DFE3E6",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all 0.15s",
-                boxShadow: input.trim() && !loading ? "0 2px 10px rgba(208,74,2,0.35)" : "none",
-              }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"
-                  stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
+          {/* 사이즈 안내 + 입력창 */}
+          <div style={{ flexShrink: 0 }}>
+            {/* 사이즈 표시 */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "3px 14px 2px",
+              borderTop: "1px solid #F0F0F0",
+              background: "#FAFAFA",
+            }}>
+              <span style={{ fontSize: 10.5, color: "#C5C9D0" }}>
+                {chatSize.width} × {chatSize.height}px &nbsp;·&nbsp; ↖ 모서리 드래그로 크기 조절
+              </span>
+              {/* 맨 아래로 버튼 */}
+              <button
+                onClick={() => bottomRef.current?.scrollIntoView({ behavior: "smooth" })}
+                title="맨 아래로"
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#C5C9D0", padding: 2, display: "flex", alignItems: "center" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#FD5108")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#C5C9D0")}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* 입력창 */}
+            <div style={{
+              padding: "10px 12px 12px",
+              background: "#ffffff",
+              display: "flex", gap: 8, alignItems: "center",
+            }}>
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleInputKey}
+                placeholder="무엇이든 물어보세요..."
+                disabled={loading}
+                style={{
+                  flex: 1, background: "#F5F7F8",
+                  border: "1px solid #DFE3E6", borderRadius: 12,
+                  padding: "10px 14px", fontSize: 14, color: "#1A1A2E", outline: "none",
+                  userSelect: "text",
+                }}
+              />
+              <button
+                onClick={() => send(input)}
+                disabled={loading || !input.trim()}
+                style={{
+                  width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+                  border: "none",
+                  cursor: input.trim() && !loading ? "pointer" : "not-allowed",
+                  background: input.trim() && !loading
+                    ? "linear-gradient(135deg, #FD5108, #FF8040)" : "#DFE3E6",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all 0.15s",
+                  boxShadow: input.trim() && !loading ? "0 2px 10px rgba(208,74,2,0.35)" : "none",
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"
+                    stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -440,9 +638,17 @@ export default function ChatWidget() {
         }
         @keyframes eveSlideUp {
           from { opacity: 0; transform: translateY(16px) scale(0.96); }
-          to   { opacity: 1; transform: translateY(0)    scale(1);    }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
     </>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+    </svg>
   );
 }

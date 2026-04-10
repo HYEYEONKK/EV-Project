@@ -1,9 +1,9 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import { formatKRW, formatPct, chartAxisFormatter } from "@/lib/utils/formatters";
-import { AXIS_STYLE, GRID_STROKE } from "@/lib/utils/chartColors";
+import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors";
 import DatePicker from "@/components/ui/DatePicker";
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -25,10 +25,37 @@ function SectionHeader({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
       <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", whiteSpace: "nowrap" }}>{title}</span>
-      <div style={{
-        flex: 1, height: 2, borderRadius: 2, position: "relative", overflow: "hidden",
-        background: "linear-gradient(90deg, rgba(253,81,8,0.08) 0%, rgba(255,170,114,0.5) 28%, #FE7C39 62%, #FD5108 100%)",
-      }} />
+      <div style={{ flex: 1, height: 1, backgroundColor: "#DFE3E6" }} />
+    </div>
+  );
+}
+
+/* ── 공통 카드 hover 핸들러 ── */
+function useCardHover() {
+  const onEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget as HTMLElement;
+    el.style.transform = "translateY(-3px)";
+    el.style.boxShadow = "0 8px 28px rgba(253,81,8,0.11)";
+    el.style.borderColor = "rgba(253,81,8,0.25)";
+  }, []);
+  const onLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget as HTMLElement;
+    el.style.transform = "";
+    el.style.boxShadow = "var(--shadow-card)";
+    el.style.borderColor = "#DFE3E6";
+  }, []);
+  return { onMouseEnter: onEnter, onMouseLeave: onLeave };
+}
+
+function HoverCard({ children, style, className }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
+  const hover = useCardHover();
+  return (
+    <div
+      className={`bg-white rounded-lg border${className ? " " + className : ""}`}
+      style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", transition: "transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease", cursor: "default", ...style }}
+      {...hover}
+    >
+      {children}
     </div>
   );
 }
@@ -64,43 +91,58 @@ function KpiCompareCard({
   const delta = valueA - valueB;
   const deltaPct = valueB !== 0 ? (delta / Math.abs(valueB)) * 100 : 0;
   const deltaColor = delta >= 0 ? POS_COLOR : NEG_COLOR;
+  const total = Math.abs(valueA) + Math.abs(valueB);
+  const pctA = total > 0 ? (Math.abs(valueA) / total) * 100 : 50;
+  const pctB = 100 - pctA;
+  const hover = useCardHover();
 
   return (
     <div
       className="bg-white rounded-lg border overflow-hidden"
-      style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}
+      style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", transition: "transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease", cursor: "default" }}
+      {...hover}
     >
       {/* 카드 상단 레이블 */}
       <div className="px-5 pt-4 pb-3" style={{ borderBottom: "1px solid #EEEFF1" }}>
-        <p style={{ fontSize: 14, fontWeight: 500, color: "#A1A8B3", marginBottom: 2 }}>{label}</p>
+        <p style={{ fontSize: 14, fontWeight: 500, color: "#A1A8B3" }}>{label}</p>
       </div>
 
-      {/* A / B / 증감 */}
-      <div className="grid grid-cols-3 divide-x" style={{ borderColor: "#EEEFF1" }}>
+      {/* A / B / 증감 — custom dividers in EEEFF1 */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
         {/* 기간 A */}
-        <div className="px-4 py-3">
-          <p style={{ fontSize: 12, fontWeight: 500, color: colorA, marginBottom: 4 }}>기간 A</p>
-          <p style={{ fontSize: 30, fontWeight: 700, color: "#000", letterSpacing: "-0.5px", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
+        <div className="px-4 py-3" style={{ borderRight: "1px solid #EEEFF1" }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: colorA, marginBottom: 4 }}>기간 A</p>
+          <p style={{ fontSize: 22, fontWeight: 700, color: "#000", letterSpacing: "-0.5px", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
             {formatKRW(valueA)}
           </p>
         </div>
         {/* 기간 B */}
-        <div className="px-4 py-3">
-          <p style={{ fontSize: 12, fontWeight: 500, color: colorB, marginBottom: 4 }}>기간 B</p>
-          <p style={{ fontSize: 30, fontWeight: 700, color: "#374151", letterSpacing: "-0.5px", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
+        <div className="px-4 py-3" style={{ borderRight: "1px solid #EEEFF1" }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: colorB, marginBottom: 4 }}>기간 B</p>
+          <p style={{ fontSize: 22, fontWeight: 700, color: "#374151", letterSpacing: "-0.5px", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
             {formatKRW(valueB)}
           </p>
         </div>
         {/* 증감 */}
         <div className="px-4 py-3">
           <p style={{ fontSize: 12, fontWeight: 500, color: "#A1A8B3", marginBottom: 4 }}>증감 (A−B)</p>
-          <p style={{ fontSize: 30, fontWeight: 700, color: deltaColor, letterSpacing: "-0.5px", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
+          <p style={{ fontSize: 22, fontWeight: 700, color: deltaColor, letterSpacing: "-0.5px", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
             {delta >= 0 ? "+" : ""}{formatKRW(delta)}
           </p>
           <p style={{ fontSize: 13, fontWeight: 400, color: deltaColor, marginTop: 2 }}>
             {deltaPct >= 0 ? "▲" : "▼"} {Math.abs(deltaPct).toFixed(1)}%
           </p>
         </div>
+      </div>
+
+      {/* 비율 게이지 바 */}
+      <div style={{ height: 6, display: "flex", margin: "0 0 0 0" }}>
+        <div style={{ width: `${pctA}%`, backgroundColor: colorA, transition: "width 0.4s ease" }} />
+        <div style={{ flex: 1, backgroundColor: colorB }} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 16px 8px", fontSize: 11, color: "#A1A8B3" }}>
+        <span style={{ color: colorA }}>A {pctA.toFixed(0)}%</span>
+        <span style={{ color: colorB }}>B {pctB.toFixed(0)}%</span>
       </div>
     </div>
   );
@@ -122,7 +164,26 @@ type PLData = {
   net_margin_pct?: number;
 };
 
+type PlSortKey = "valA" | "valB" | "delta" | "deltaPct";
+type PlSortDir = "asc" | "desc";
+
 function PlCompareTable({ plA, plB }: { plA: PLData | undefined; plB: PLData | undefined }) {
+  const [sortKey, setSortKey] = useState<PlSortKey | null>(null);
+  const [sortDir, setSortDir] = useState<PlSortDir>("desc");
+
+  const handleSort = (key: PlSortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === "desc" ? "asc" : "desc");
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  };
+
+  const SortIcon = ({ col }: { col: PlSortKey }) => {
+    if (sortKey !== col) return <span style={{ opacity: 0.25, fontSize: 10 }}>↕</span>;
+    return <span style={{ fontSize: 10, color: "#FD5108" }}>{sortDir === "desc" ? "↓" : "↑"}</span>;
+  };
   const revenueA = plA?.revenue?.items?.reduce((s: number, i: any) => s + i.amount, 0) ?? 0;
   const revenueB = plB?.revenue?.items?.reduce((s: number, i: any) => s + i.amount, 0) ?? 0;
   const cogsA = plA?.cogs?.total ?? 0;
@@ -142,15 +203,11 @@ function PlCompareTable({ plA, plB }: { plA: PLData | undefined; plB: PLData | u
   const netMrgA = plA?.net_margin_pct ?? 0;
   const netMrgB = plB?.net_margin_pct ?? 0;
 
-  const rows: {
-    label: string;
-    indent?: boolean;
-    bold?: boolean;
-    valA: number;
-    valB: number;
-    mrgA?: number;
-    mrgB?: number;
-  }[] = [
+  type PlRow = {
+    label: string; indent?: boolean; bold?: boolean;
+    valA: number; valB: number; mrgA?: number; mrgB?: number;
+  };
+  const baseRows: PlRow[] = [
     { label: "매출액",          bold: true,  valA: revenueA, valB: revenueB },
     { label: "매출원가",         indent: true, valA: cogsA,    valB: cogsB    },
     { label: "매출총이익",       bold: true,  valA: gpA,      valB: gpB,      mrgA: gpMrgA,  mrgB: gpMrgB  },
@@ -159,24 +216,46 @@ function PlCompareTable({ plA, plB }: { plA: PLData | undefined; plB: PLData | u
     { label: "당기순이익",       bold: true,  valA: netA,     valB: netB,     mrgA: netMrgA, mrgB: netMrgB },
   ];
 
+  const withDelta = baseRows.map(r => ({
+    ...r,
+    delta: r.valA - r.valB,
+    deltaPct: r.valB !== 0 ? ((r.valA - r.valB) / Math.abs(r.valB)) * 100 : 0,
+  }));
+
+  const rows = sortKey
+    ? [...withDelta].sort((a, b) => {
+        const v = sortKey === "delta" ? a.delta - b.delta
+                : sortKey === "deltaPct" ? a.deltaPct - b.deltaPct
+                : sortKey === "valA" ? a.valA - b.valA
+                : a.valB - b.valB;
+        return sortDir === "desc" ? -v : v;
+      })
+    : withDelta;
+
+  const thStyle = (col: PlSortKey, color: string) => ({
+    cursor: "pointer" as const,
+    userSelect: "none" as const,
+    color,
+    whiteSpace: "nowrap" as const,
+  });
+
   return (
-    <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+    <HoverCard className="overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr style={{ backgroundColor: "#F5F7F8" }}>
             <th className="text-left px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>손익항목</th>
-            <th className="text-right px-5 py-2.5 font-semibold" style={{ color: PERIOD_A_COLOR }}>기간 A</th>
-            <th className="text-right px-5 py-2.5 font-semibold" style={{ color: PERIOD_B_COLOR }}>기간 B</th>
-            <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#374151" }}>증감액</th>
-            <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#374151" }}>증감률</th>
+            <th className="text-right px-5 py-2.5 font-semibold" onClick={() => handleSort("valA")} style={thStyle("valA", PERIOD_A_COLOR)}>기간 A <SortIcon col="valA" /></th>
+            <th className="text-right px-5 py-2.5 font-semibold" onClick={() => handleSort("valB")} style={thStyle("valB", PERIOD_B_COLOR)}>기간 B <SortIcon col="valB" /></th>
+            <th className="text-right px-5 py-2.5 font-semibold" onClick={() => handleSort("delta")} style={thStyle("delta", "#374151")}>증감액 <SortIcon col="delta" /></th>
+            <th className="text-right px-5 py-2.5 font-semibold" onClick={() => handleSort("deltaPct")} style={thStyle("deltaPct", "#374151")}>증감률 <SortIcon col="deltaPct" /></th>
             <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>A 이익률</th>
             <th className="text-right px-5 py-2.5 font-semibold" style={{ color: "#A1A8B3" }}>B 이익률</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r, i) => {
-            const delta = r.valA - r.valB;
-            const deltaPct = r.valB !== 0 ? (delta / Math.abs(r.valB)) * 100 : 0;
+            const { delta, deltaPct } = r;
             const deltaColor = delta >= 0 ? POS_COLOR : NEG_COLOR;
             return (
               <tr
@@ -217,7 +296,7 @@ function PlCompareTable({ plA, plB }: { plA: PLData | undefined; plB: PLData | u
           })}
         </tbody>
       </table>
-    </div>
+    </HoverCard>
   );
 }
 
@@ -242,7 +321,7 @@ function BsCompareTable({ bsA, bsB }: { bsA: BSData | undefined; bsB: BSData | u
   ];
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+    <HoverCard className="overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr style={{ backgroundColor: "#F5F7F8" }}>
@@ -291,7 +370,7 @@ function BsCompareTable({ bsA, bsB }: { bsA: BSData | undefined; bsB: BSData | u
           })}
         </tbody>
       </table>
-    </div>
+    </HoverCard>
   );
 }
 
@@ -348,24 +427,28 @@ function MonthlyCompareChart({ monthlyA, monthlyB, labelA, labelB }: MonthlyChar
   };
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
-      <div className="px-5 py-3 border-b flex items-center gap-4" style={{ borderColor: "#EEEFF1" }}>
+    <HoverCard className="overflow-hidden">
+      <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
         <span style={{ fontSize: 14, fontWeight: 600, color: "#000" }}>월별 매출액 / 순이익 추이 비교</span>
-        <div className="flex items-center gap-4 ml-auto" style={{ fontSize: 13 }}>
+        <div className="flex items-center gap-5 mt-2 flex-wrap" style={{ fontSize: 13 }}>
           {[
-            { color: PERIOD_A_COLOR, label: `${labelA} 매출`, dash: false },
-            { color: PERIOD_B_COLOR, label: `${labelB} 매출`, dash: true  },
-            { color: "#FE7C39",      label: `${labelA} 순이익`, dash: false },
-            { color: "#B5BCC4",      label: `${labelB} 순이익`, dash: true  },
-          ].map(({ color, label, dash }) => (
-            <span key={label} className="flex items-center gap-1.5" style={{ color: "#A1A8B3" }}>
-              <span style={{
-                width: 20, height: 2, display: "inline-block", borderRadius: 1,
-                background: dash
-                  ? `repeating-linear-gradient(90deg,${color} 0,${color} 4px,transparent 4px,transparent 7px)`
-                  : color,
-              }} />
-              {label}
+            { color: PERIOD_A_COLOR, label: `${labelA} 매출 (막대)`, dash: false, isBar: true },
+            { color: PERIOD_B_COLOR, label: `${labelB} 매출 (막대)`, dash: false, isBar: true },
+            { color: PERIOD_A_COLOR, label: `${labelA} 순이익 (선)`, dash: false, isBar: false },
+            { color: "#B5BCC4",      label: `${labelB} 순이익 (선)`, dash: true,  isBar: false },
+          ].map(({ color, label, dash, isBar }) => (
+            <span key={label} className="flex items-center gap-2">
+              {isBar ? (
+                <span style={{ width: 12, height: 12, borderRadius: 2, backgroundColor: color, display: "inline-block", flexShrink: 0, opacity: color === PERIOD_B_COLOR ? 0.6 : 0.85 }} />
+              ) : (
+                <span style={{
+                  width: 24, height: 3, display: "inline-block", borderRadius: 2, flexShrink: 0,
+                  background: dash
+                    ? `repeating-linear-gradient(90deg,${color} 0,${color} 5px,transparent 5px,transparent 9px)`
+                    : color,
+                }} />
+              )}
+              <span style={{ color: "#374151", fontSize: 13 }}>{label}</span>
             </span>
           ))}
         </div>
@@ -397,7 +480,7 @@ function MonthlyCompareChart({ monthlyA, monthlyB, labelA, labelB }: MonthlyChar
           </ResponsiveContainer>
         )}
       </div>
-    </div>
+    </HoverCard>
   );
 }
 
@@ -426,7 +509,7 @@ function AccountDeltaChart({ plA, plB }: { plA: PLData | undefined; plB: PLData 
   }
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+    <HoverCard className="overflow-hidden">
       <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
         <span style={{ fontSize: 14, fontWeight: 600, color: "#000" }}>판관비 계정별 증감 (A − B, 상위 10개)</span>
       </div>
@@ -453,18 +536,18 @@ function AccountDeltaChart({ plA, plB }: { plA: PLData | undefined; plB: PLData 
             />
             <Tooltip
               formatter={(v: number) => [formatKRW(v), "증감액"]}
-              contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 12, boxShadow: "0 4px 16px #0000001A" }}
+              contentStyle={TOOLTIP_STYLE}
             />
             <ReferenceLine x={0} stroke="#EEEFF1" />
             <Bar dataKey="delta" radius={[0, 2, 2, 0]}>
               {items.map((entry, i) => (
-                <Cell key={i} fill={entry.delta >= 0 ? PERIOD_A_COLOR : PERIOD_B_COLOR} />
+                <Cell key={i} fill={entry.delta >= 0 ? POS_COLOR : NEG_COLOR} />
               ))}
             </Bar>
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </HoverCard>
   );
 }
 
@@ -478,8 +561,9 @@ function MarginCompareCard({
 }) {
   const delta = marginA - marginB;
   const deltaColor = delta >= 0 ? POS_COLOR : NEG_COLOR;
+  const hover = useCardHover();
   return (
-    <div className="bg-white rounded-lg border p-4" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+    <div className="bg-white rounded-lg border p-4" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", transition: "transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease", cursor: "default" }} {...hover}>
       <p style={{ fontSize: 14, fontWeight: 500, color: "#A1A8B3", marginBottom: 10 }}>{label}</p>
       <div className="flex items-end gap-3 mb-3">
         <p style={{ fontSize: 30, fontWeight: 700, color: PERIOD_A_COLOR, letterSpacing: "-0.5px", lineHeight: 1 }}>
@@ -700,7 +784,7 @@ export default function PeriodComparePage() {
                   : 0;
                 return (
                   <>
-                    <div className="bg-white rounded-lg border p-5" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+                    <HoverCard style={{ padding: 20 }}>
                       <p style={{ fontSize: 14, fontWeight: 500, color: "#A1A8B3", marginBottom: 12 }}>부채비율</p>
                       <div className="flex items-end gap-3 mb-4">
                         <span style={{ fontSize: 30, fontWeight: 700, color: debtA < 100 ? POS_COLOR : NEG_COLOR, letterSpacing: "-0.5px" }}>
@@ -734,9 +818,9 @@ export default function PeriodComparePage() {
                       <p style={{ fontSize: 12, color: "#A1A8B3", marginTop: 8 }}>
                         100% 미만이 양호 — 낮을수록 재무건전성 높음
                       </p>
-                    </div>
+                    </HoverCard>
 
-                    <div className="bg-white rounded-lg border p-5" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+                    <HoverCard style={{ padding: 20 }}>
                       <p style={{ fontSize: 14, fontWeight: 500, color: "#A1A8B3", marginBottom: 12 }}>유동비율</p>
                       <div className="flex items-end gap-3 mb-4">
                         <span style={{ fontSize: 30, fontWeight: 700, color: curA > 100 ? POS_COLOR : NEG_COLOR, letterSpacing: "-0.5px" }}>
@@ -770,7 +854,7 @@ export default function PeriodComparePage() {
                       <p style={{ fontSize: 12, color: "#A1A8B3", marginTop: 8 }}>
                         100% 이상이 양호 — 높을수록 단기 유동성 우수
                       </p>
-                    </div>
+                    </HoverCard>
                   </>
                 );
               })()}

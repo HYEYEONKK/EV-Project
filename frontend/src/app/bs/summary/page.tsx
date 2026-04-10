@@ -7,7 +7,7 @@ import {
   AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
-import { AXIS_STYLE, GRID_STROKE } from "@/lib/utils/chartColors";
+import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors";
 
 const fmtM = (v: string) => v.slice(2, 4) + "." + v.slice(5);
 
@@ -54,24 +54,33 @@ function InlineLegend({ items }: { items: { label: string; color: string; dashed
 }
 
 // ─── KPI 카드 (자산/부채/자본) ──────────────────────────────────
-function BsKpiCard({ label, data, color }: { label: string; data: any; color: string }) {
+function BsKpiCard({ label, data, color, ytdLabel, mtdLabel, icon }: {
+  label: string; data: any; color: string; ytdLabel: string; mtdLabel: string; icon: string;
+}) {
   return (
     <div className="bg-white rounded-lg border p-5 flex-1 card-hover"
       style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
-      <div style={{ fontSize: 14, fontWeight: 500, color, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 30, fontWeight: 700, color: "#000", letterSpacing: "-0.5px", lineHeight: 1.1, marginBottom: 14 }}>
-        {formatKRW(data?.current ?? 0)}
+      {/* 상단: 레이블+금액 / 아이콘 */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 500, color, marginBottom: 6 }}>{label}</div>
+          <div style={{ fontSize: 30, fontWeight: 700, color: "#000", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+            {formatKRW(data?.current ?? 0)}
+          </div>
+        </div>
+        <img src={`/icons/${icon}`} alt={label} style={{ width: 60, height: 60, flexShrink: 0 }} />
       </div>
-      <div style={{ borderTop: "1px solid #F0F0F0", paddingTop: 10, display: "flex", flexDirection: "column", gap: 7 }}>
+      {/* 하단: 비교 행 */}
+      <div style={{ borderTop: "1px solid #F0F0F0", paddingTop: 10, marginTop: 14, display: "flex", flexDirection: "column", gap: 7 }}>
         <div className="flex justify-between items-center">
-          <span style={LABEL_STYLE}>당기 기초 금액</span>
+          <span style={LABEL_STYLE}>연초 기준 ({ytdLabel})</span>
           <div className="flex items-center gap-2">
             <span style={{ fontSize: 13, color: "#374151", fontVariantNumeric: "tabular-nums" }}>{formatKRW(data?.ytd_start ?? 0)}</span>
             <PctTag v={data?.ytd_pct} />
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span style={LABEL_STYLE}>당월 기초 금액</span>
+          <span style={LABEL_STYLE}>전월 기준 ({mtdLabel})</span>
           <div className="flex items-center gap-2">
             <span style={{ fontSize: 13, color: "#374151", fontVariantNumeric: "tabular-nums" }}>{formatKRW(data?.mtd_start ?? 0)}</span>
             <PctTag v={data?.mtd_pct} />
@@ -116,7 +125,7 @@ function BsTrendChart({ data, branches, colors, height = 130 }: {
         <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={72}
           tickFormatter={v => formatKRW(v)} />
         <Tooltip formatter={(v: number) => formatKRW(v)}
-          contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 11 }} />
+          contentStyle={TOOLTIP_STYLE} />
         {branches.map(b => (
           <Area key={b} type="monotone" dataKey={b} stackId="a"
             stroke={colors[b]} strokeWidth={1.5}
@@ -141,6 +150,14 @@ function ChartHeader({ title }: { title: string }) {
 export default function BsSummaryPage() {
   const { dateFrom, dateTo } = useFilterStore();
   const params = { date_from: dateFrom, date_to: dateTo };
+
+  // 분석 기간 종료일을 KPI 기준월로 사용
+  const refYear = parseInt(dateTo.slice(0, 4));
+  const refMonth = parseInt(dateTo.slice(5, 7));
+  const ytdLabel = `${refYear}.01.01`;
+  const mtdLabel = refMonth === 1
+    ? `${refYear - 1}.12.31`
+    : `${refYear}.${String(refMonth - 1).padStart(2, "0")}.말`;
 
   const { data: kpi } = useQuery({
     queryKey: ["bs-kpi", dateTo],
@@ -206,14 +223,17 @@ export default function BsSummaryPage() {
     <div className="space-y-5">
 
       {/* Section 1: 자산, 부채, 자본 증감 및 추이 */}
-      <SectionLabel title="자산, 부채, 자본 증감 및 추이" />
-      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 2fr" }}>
+      <div className="flex items-center gap-3 mb-4">
+        <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", whiteSpace: "nowrap" }}>자산, 부채, 자본 증감 및 추이</span>
+        <div style={{ flex: 1, height: 1, backgroundColor: "#DFE3E6" }} />
+      </div>
+      <div className="grid gap-4" style={{ gridTemplateColumns: "290px 1fr" }}>
 
         {/* Left: 3 stacked KPI cards */}
         <div className="flex flex-col gap-4">
-          <BsKpiCard label="자산" data={kpi?.["자산"]} color="#FD5108" />
-          <BsKpiCard label="부채" data={kpi?.["부채"]} color="#A1A8B3" />
-          <BsKpiCard label="자본" data={kpi?.["자본"]} color="#FFAA72" />
+          <BsKpiCard label="자산" data={kpi?.["자산"]} color="#FD5108" ytdLabel={ytdLabel} mtdLabel={mtdLabel} icon="asset-and-wealth.svg" />
+          <BsKpiCard label="부채" data={kpi?.["부채"]} color="#A1A8B3" ytdLabel={ytdLabel} mtdLabel={mtdLabel} icon="bank.svg" />
+          <BsKpiCard label="자본" data={kpi?.["자본"]} color="#FFAA72" ytdLabel={ytdLabel} mtdLabel={mtdLabel} icon="investment.svg" />
         </div>
 
         {/* Right: 3 stacked area charts */}
@@ -249,7 +269,7 @@ export default function BsSummaryPage() {
                   <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={72}
                     tickFormatter={v => formatKRW(v)} />
                   <Tooltip formatter={(v: number) => formatKRW(v)}
-                    contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 11 }} />
+                    contentStyle={TOOLTIP_STYLE} />
                   <Area type="monotone" dataKey="자본" stroke="#FFAA72" strokeWidth={1.5}
                     fill="url(#gradEquity)" dot={false} />
                 </AreaChart>
@@ -276,7 +296,7 @@ export default function BsSummaryPage() {
                 <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={44}
                   tickFormatter={v => v + "%"} />
                 <Tooltip formatter={(v: number) => v.toFixed(1) + "%"}
-                  contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 11 }} />
+                  contentStyle={TOOLTIP_STYLE} />
                 <Line type="monotone" dataKey="당좌비율" stroke="#FD5108" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="유동비율" stroke="#FFAA72" strokeWidth={2} dot={false} />
               </LineChart>
@@ -294,7 +314,7 @@ export default function BsSummaryPage() {
                 <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={44}
                   tickFormatter={v => v + "%"} />
                 <Tooltip formatter={(v: number) => v.toFixed(1) + "%"}
-                  contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 11 }} />
+                  contentStyle={TOOLTIP_STYLE} />
                 <Line type="monotone" dataKey="부채비율" stroke="#A1A8B3" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -342,7 +362,7 @@ export default function BsSummaryPage() {
                   <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={48}
                     tickFormatter={v => v + "일"} />
                   <Tooltip formatter={(v: number) => v.toFixed(1) + "일"}
-                    contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 11 }} />
+                    contentStyle={TOOLTIP_STYLE} />
                   {avgRecvDays > 0 && (
                     <ReferenceLine y={avgRecvDays} stroke="#FD5108" strokeDasharray="4 2" strokeWidth={1}
                       label={{ value: `평균 ${avgRecvDays.toFixed(1)}일`, position: "insideTopLeft", fontSize: 10, fill: "#FD5108", offset: 4 }} />
@@ -392,7 +412,7 @@ export default function BsSummaryPage() {
                   <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={48}
                     tickFormatter={v => v + "일"} />
                   <Tooltip formatter={(v: number) => v.toFixed(1) + "일"}
-                    contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 11 }} />
+                    contentStyle={TOOLTIP_STYLE} />
                   {avgInvDays > 0 && (
                     <ReferenceLine y={avgInvDays} stroke="#FE7C39" strokeDasharray="4 2" strokeWidth={1}
                       label={{ value: `평균 ${avgInvDays.toFixed(1)}일`, position: "insideTopLeft", fontSize: 10, fill: "#FE7C39", offset: 4 }} />

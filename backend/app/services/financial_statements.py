@@ -775,6 +775,15 @@ def get_bs_ratios_monthly(params: dict) -> list:
             acct_monthly.setdefault(r["account_code"], {})[r["month"]] = r["net"] or 0
             all_months.add(r["month"])
 
+        # 재고자산 계정: 정확히 일치하거나 "(..."로 시작하는 변형 포함, 충당금 제외
+        INV_EXACT = {"제품", "원재료", "재공품", "반제품", "상품", "저장품"}
+
+        def _is_inventory(cls1: str) -> bool:
+            if "충당금" in cls1:
+                return False
+            base = cls1.split("(")[0].strip()
+            return base in INV_EXACT
+
         result = []
         for month in sorted(all_months):
             t = {"유동자산": 0.0, "비유동자산": 0.0, "유동부채": 0.0, "비유동부채": 0.0, "재고자산": 0.0}
@@ -789,7 +798,8 @@ def get_bs_ratios_monthly(params: dict) -> list:
                         t["비유동자산"] += bal
                     else:
                         t["유동자산"] += bal
-                        if "재고자산" in cls1:
+                        # 재고자산 = 제품/원재료/재공품/반제품/상품 (충당금 제외)
+                        if _is_inventory(cls1):
                             t["재고자산"] += bal
                 elif branch == "부채":
                     if "비유동" in division:
@@ -853,6 +863,16 @@ def get_bs_activity_monthly(params: dict) -> dict:
                 if _classify_expense(r["classification1"] or "") == "매출원가":
                     monthly_pl[m]["cogs"] += abs(net)
 
+        # 매출채권 = 외상매출금 + 받을어음 (충당금 제외)
+        RECV_KEYWORDS = ["외상매출금", "받을어음"]
+        # 재고자산: base name exact match (충당금 제외)
+        INV_EXACT_ACT = {"제품", "원재료", "재공품", "반제품", "상품", "저장품"}
+
+        def _is_inv_act(cls1: str) -> bool:
+            if "충당금" in cls1:
+                return False
+            return cls1.split("(")[0].strip() in INV_EXACT_ACT
+
         monthly_result = []
         for month in sorted(all_months):
             recv, inv = 0.0, 0.0
@@ -862,9 +882,9 @@ def get_bs_activity_monthly(params: dict) -> dict:
                 cls1 = info["classification1"]
                 cum = sum(v for m, v in acct_monthly.get(ac, {}).items() if m <= month)
                 bal = info["balance"] + cum
-                if "매출채권" in cls1:
+                if any(k in cls1 for k in RECV_KEYWORDS) and "충당금" not in cls1:
                     recv += bal
-                if "재고자산" in cls1:
+                if _is_inv_act(cls1):
                     inv += bal
 
             yr, mo = int(month[:4]), int(month[5:7])

@@ -9,7 +9,7 @@ import {
   ResponsiveContainer, LineChart, Line, Legend,
   ReferenceLine, Cell, ComposedChart, Area,
 } from "recharts";
-import { AXIS_STYLE, GRID_STROKE } from "@/lib/utils/chartColors";
+import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors";
 
 // ─── PwC 컬러 팔레트 ──────────────────────────────────────
 // Orange: #FD5108 → #FE7C39 → #FFAA72 → #FFCDA8 → #FFE8D4 → #FFF5ED
@@ -189,7 +189,7 @@ function KpiChartCell({
                   tickLine={false} axisLine={false} width={72} />
                 <Tooltip
                   formatter={(v: number) => formatKRW(v)}
-                  contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 12, boxShadow: "0 4px 16px #0000001A" }}
+                  contentStyle={TOOLTIP_STYLE}
                 />
                 {/* 전기 — 점선 */}
                 <Line type="monotone" dataKey={priorKey} stroke={PRIOR_COLOR} strokeWidth={1.5}
@@ -239,7 +239,7 @@ function MarginTrendChart({
               tickLine={false} axisLine={false} width={40} domain={["auto", "auto"]} />
             <Tooltip
               formatter={(v: number) => `${v?.toFixed(1)}%`}
-              contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 12, boxShadow: "0 4px 16px #0000001A" }}
+              contentStyle={TOOLTIP_STYLE}
             />
             <Legend wrapperStyle={{ fontSize: 13, paddingTop: 4 }} />
             <Line type="monotone" dataKey={priorKey} stroke={PRIOR_COLOR} strokeWidth={1.5}
@@ -338,8 +338,7 @@ function PlBridgeChart({ waterfallData }: { waterfallData: any[] }) {
               tickLine={false} axisLine={false} width={72} />
             <Tooltip
               formatter={(v: number) => formatKRW(v)}
-              contentStyle={{ border: "1px solid #DFE3E6", borderRadius: 8, fontSize: 12,
-                boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }} />
+              contentStyle={TOOLTIP_STYLE} />
             <ReferenceLine y={0} stroke="#DFE3E6" strokeWidth={1.5} />
             <Line type="monotone" dataKey="매출총이익" stroke="#FD5108" strokeWidth={2}
               dot={false} name="매출총이익" />
