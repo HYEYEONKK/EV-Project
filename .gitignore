@@ -1,3 +1,6 @@
+# 사용자 데이터
+backend/users.json
+
 # 업로드된 파일 (실제 회사 데이터)
 backend/uploads/*.xlsx
 backend/uploads/*.xls

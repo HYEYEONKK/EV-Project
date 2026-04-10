@@ -10,17 +10,19 @@ const API_BASE = _SERVER + '/api/bi';
 // 유저 아바타 & 드롭다운
 // ─────────────────────────────────────────────────────────────────────────────
 (function () {
-  const user     = sessionStorage.getItem('user') || '';
-  const namePart = user.split('@')[0];
-  const initials = namePart.slice(0, 2).toUpperCase();
+  const raw     = sessionStorage.getItem('user') || '{}';
+  const userObj = (() => { try { return JSON.parse(raw); } catch { return { email: raw }; } })();
+  const email   = userObj.email || '';
+  const name    = userObj.name  || email.split('@')[0];
+  const initials = name.slice(0, 2).toUpperCase();
 
   const avatarInitials = document.querySelector('.avatar-initials');
-  if (avatarInitials && initials) avatarInitials.textContent = initials;
+  if (avatarInitials) avatarInitials.textContent = initials;
 
   const nameEl  = document.getElementById('dropdownName');
   const emailEl = document.getElementById('dropdownEmail');
-  if (nameEl)  nameEl.textContent  = namePart;
-  if (emailEl) emailEl.textContent = user;
+  if (nameEl)  nameEl.textContent  = name;
+  if (emailEl) emailEl.textContent = email;
 
   const btn      = document.getElementById('avatarBtn');
   const dropdown = document.getElementById('avatarDropdown');

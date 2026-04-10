@@ -33,7 +33,7 @@
             <div class="dropdown-user-email" id="dropdownEmail"></div>
           </div>
           <div class="dropdown-menu">
-            <button class="dropdown-item" onclick="alert('내 정보 기능은 준비 중입니다.')">
+            <button class="dropdown-item" id="myInfoBtn">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
               내 정보
             </button>
@@ -164,6 +164,56 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- 내 정보 모달 -->
+  <div id="myInfoModal" class="modal-overlay" style="display:none">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">내 정보</h2>
+          <p class="modal-desc">프로필 정보를 확인하고 수정할 수 있습니다.</p>
+        </div>
+        <button class="modal-close" id="myInfoClose">✕</button>
+      </div>
+      <div class="modal-body" style="gap:0">
+        <form id="myInfoForm">
+          <div class="info-avatar-row">
+            <div class="info-avatar" id="infoAvatar"></div>
+            <div>
+              <div class="info-email" id="infoEmail"></div>
+              <div class="info-joined">Worldwide Easy View 회원</div>
+            </div>
+          </div>
+          <div class="info-fields">
+            <div class="info-field">
+              <label>이름</label>
+              <input type="text" id="info-name" placeholder="홍길동" />
+            </div>
+            <div class="info-field">
+              <label>이메일</label>
+              <input type="email" id="info-email-display" disabled />
+            </div>
+            <div class="info-field">
+              <label>회사명</label>
+              <input type="text" id="info-company" placeholder="(주)ABC" />
+            </div>
+            <div class="info-field">
+              <label>부서</label>
+              <input type="text" id="info-department" placeholder="재무팀" />
+            </div>
+            <div class="info-field">
+              <label>연락처</label>
+              <input type="tel" id="info-phone" placeholder="010-0000-0000" />
+            </div>
+          </div>
+          <p class="info-save-msg" id="infoSaveMsg"></p>
+          <div class="info-actions">
+            <button type="submit" class="btn-info-save">저장하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <!-- 데이터 형식 모달 -->

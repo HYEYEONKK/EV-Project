@@ -2,18 +2,20 @@
 const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:5000' : '';
 
 // ===== 유저 아바타 & 드롭다운 =====
-(function () {
-  const user     = sessionStorage.getItem('user') || '';
-  const namePart = user.split('@')[0];
-  const initials = namePart.slice(0, 2).toUpperCase();
+const _userRaw  = sessionStorage.getItem('user') || '{}';
+const _userObj  = (() => { try { return JSON.parse(_userRaw); } catch { return { email: _userRaw }; } })();
+const _email    = _userObj.email || '';
+const _namePart = (_userObj.name || _email.split('@')[0]);
+const _initials = _namePart.slice(0, 2).toUpperCase();
 
+(function () {
   const avatarInitials = document.querySelector('.avatar-initials');
-  if (avatarInitials && initials) avatarInitials.textContent = initials;
+  if (avatarInitials) avatarInitials.textContent = _initials;
 
   const nameEl  = document.getElementById('dropdownName');
   const emailEl = document.getElementById('dropdownEmail');
-  if (nameEl)  nameEl.textContent  = namePart;
-  if (emailEl) emailEl.textContent = user;
+  if (nameEl)  nameEl.textContent  = _namePart;
+  if (emailEl) emailEl.textContent = _email;
 
   const btn      = document.getElementById('avatarBtn');
   const dropdown = document.getElementById('avatarDropdown');
@@ -26,6 +28,75 @@ const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:5000' 
 
   document.addEventListener('click', () => {
     dropdown.classList.remove('open');
+  });
+})();
+
+// ===== 내 정보 모달 =====
+(function () {
+  const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:5000' : '';
+  const modal    = document.getElementById('myInfoModal');
+  const openBtn  = document.getElementById('myInfoBtn');
+  const closeBtn = document.getElementById('myInfoClose');
+  const form     = document.getElementById('myInfoForm');
+  const saveMsg  = document.getElementById('infoSaveMsg');
+  if (!modal || !openBtn) return;
+
+  function openModal() {
+    // 현재 데이터 채우기
+    document.getElementById('infoAvatar').textContent       = _initials;
+    document.getElementById('infoEmail').textContent        = _email;
+    document.getElementById('info-email-display').value     = _email;
+    document.getElementById('info-name').value              = _userObj.name       || '';
+    document.getElementById('info-company').value           = _userObj.company    || '';
+    document.getElementById('info-department').value        = _userObj.department || '';
+    document.getElementById('info-phone').value             = _userObj.phone      || '';
+    saveMsg.textContent = '';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    // 드롭다운 닫기
+    document.getElementById('avatarDropdown').classList.remove('open');
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const updated = {
+      name:       document.getElementById('info-name').value.trim(),
+      company:    document.getElementById('info-company').value.trim(),
+      department: document.getElementById('info-department').value.trim(),
+      phone:      document.getElementById('info-phone').value.trim(),
+    };
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/me?email=${encodeURIComponent(_email)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+      if (!res.ok) throw new Error();
+      // sessionStorage 갱신
+      const newUser = { ..._userObj, ...updated };
+      sessionStorage.setItem('user', JSON.stringify(newUser));
+      saveMsg.textContent = '✓ 저장되었습니다.';
+      // 드롭다운 이름 갱신
+      const nameEl = document.getElementById('dropdownName');
+      if (nameEl) nameEl.textContent = updated.name || _email.split('@')[0];
+      const avatarInitials = document.querySelector('.avatar-initials');
+      const newInitials = (updated.name || _email.split('@')[0]).slice(0, 2).toUpperCase();
+      if (avatarInitials) avatarInitials.textContent = newInitials;
+      document.getElementById('infoAvatar').textContent = newInitials;
+    } catch {
+      saveMsg.style.color = '#e53935';
+      saveMsg.textContent = '저장에 실패했습니다.';
+    }
   });
 })();
 

@@ -236,6 +236,18 @@ input[type="password"]::-ms-clear { display: none; }
   color: #555555;
 }
 
+/* ===== Form extras ===== */
+.required {
+  color: #FF9F00;
+}
+
+.form-error {
+  font-size: 13px;
+  color: #e53935;
+  min-height: 18px;
+  margin-top: -8px;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 640px) {
   .login-panel-left {
