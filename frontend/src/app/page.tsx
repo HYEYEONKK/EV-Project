@@ -74,8 +74,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* 오른쪽: 스텝 네비 + 스크린샷 (화면 끝까지) */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        {/* 오른쪽: 스텝 네비 + 스크린샷 */}
+        <div style={{ flex: 1, minWidth: 0, maxWidth: 700 }}>
           <MockupCard />
         </div>
       </section>
@@ -312,7 +312,7 @@ function MockupCard() {
         </div>
 
         {/* 스크린샷 */}
-        <div style={{ position: "relative", overflow: "hidden", maxHeight: 340 }}>
+        <div style={{ position: "relative", overflow: "hidden" }}>
           <img
             src={STEPS[step].image}
             alt={STEPS[step].label}
