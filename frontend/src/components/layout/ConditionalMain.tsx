@@ -1,11 +1,11 @@
 "use client";
 import { usePathname } from "next/navigation";
 
-const AUTH_PATHS = ["/login", "/signup"];
+const AUTH_PATHS = ["/login", "/signup", "/input", "/output"];
 
 export default function ConditionalMain({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuth = AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  const isAuth = pathname === "/" || AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   if (isAuth) {
     // 인증 페이지: padding 없는 full-screen (페이지가 직접 fixed layout 사용)
