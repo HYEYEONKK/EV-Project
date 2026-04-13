@@ -9,7 +9,7 @@ import Link from "next/link";
 export default function OutputPage() {
   const router = useRouter();
 
-  const goHome = () => router.push("/home");
+  const goHome = () => window.open("/home", "_blank", "noopener");
 
   const sidebarItems = [
     { href: "/", icon: <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />, tooltip: "Home" },

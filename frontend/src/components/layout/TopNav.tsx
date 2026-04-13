@@ -94,9 +94,6 @@ export default function TopNav() {
     window.location.href = "/login";
   };
 
-  const handleGoInput = () => {
-    window.location.href = "/input";
-  };
 
   const [openId, setOpenId] = useState<string | null>(null);
   const [dropdownLeft, setDropdownLeft] = useState(0);
@@ -277,32 +274,6 @@ export default function TopNav() {
               전체 해제
             </button>
           )}
-
-          {/* 홈(Input) 버튼 */}
-          <button
-            onClick={handleGoInput}
-            title="Input Data"
-            style={{
-              display: "flex", alignItems: "center", gap: 5,
-              background: "none", border: "1px solid #DFE3E6", cursor: "pointer",
-              color: "#374151", fontSize: 13, fontWeight: 500,
-              padding: "5px 12px", borderRadius: 6,
-              transition: "all 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "#FD5108";
-              (e.currentTarget as HTMLElement).style.color = "#FD5108";
-              (e.currentTarget as HTMLElement).style.backgroundColor = "#FFF5ED";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "#DFE3E6";
-              (e.currentTarget as HTMLElement).style.color = "#374151";
-              (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
-            }}
-          >
-            <Home size={14} strokeWidth={2} />
-            {!compact && <span>홈</span>}
-          </button>
 
           {/* 구분선 */}
           {user && (

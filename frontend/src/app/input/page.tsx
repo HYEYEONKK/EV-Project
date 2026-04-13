@@ -39,9 +39,10 @@ export default function InputPage() {
     if (!trialFile) { alert("시산표 파일을 업로드해주세요."); return; }
 
     setLoading(true);
-    // Navigate to /home (main dashboard)
+    // Open dashboard in a new popup window
     setTimeout(() => {
-      router.push("/home");
+      setLoading(false);
+      window.open("/home", "_blank", "noopener");
     }, 1500);
   };
 
