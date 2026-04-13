@@ -1,0 +1,72 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+@import "tailwindcss";
+
+@theme inline {
+  /* PwC Brand Orange */
+  --color-pwc-orange: #FD5108;
+  --color-pwc-orange-medium: #FE7C39;
+  --color-pwc-orange-light: #FFAA72;
+  --color-pwc-orange-pale: #FFCDA8;
+  --color-pwc-orange-lighter: #FFE8D4;
+  --color-pwc-orange-ghost: #FFF5ED;
+  /* PwC Brand Grey */
+  --color-pwc-grey: #A1A8B3;
+  --color-pwc-grey-medium: #B5BCC4;
+  --color-pwc-grey-light: #CBD1D6;
+  --color-pwc-grey-pale: #DFE3E6;
+  --color-pwc-grey-lighter: #EEEFF1;
+  --color-pwc-grey-ghost: #F5F7F8;
+  /* Layout */
+  --color-sidebar: #1A1A2E;
+  --color-sidebar-hover: rgba(255,255,255,0.07);
+  --color-sidebar-active: rgba(253,81,8,0.15);
+  --color-sidebar-text: rgba(255,255,255,0.75);
+  --color-surface: #F5F7F8;
+  --color-surface-card: #FFFFFF;
+  --color-border: #DFE3E6;
+  --color-text-primary: #000000;
+  --color-text-secondary: #A1A8B3;
+  --color-positive: #16C784;
+  --color-negative: #FF4747;
+  --font-sans: "PretendardVariable", "Pretendard", system-ui, sans-serif;
+  --shadow-card: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px 0 rgba(0,0,0,0.03);
+  --shadow-card-hover: 0 4px 12px 0 rgba(0,0,0,0.10);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "PretendardVariable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: #F7F8FC;
+  color: #111827;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* ── 카드 호버 효과 (모든 페이지 공통) ── */
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+.card-hover:hover {
+  box-shadow: 0 4px 12px 0 rgba(0,0,0,0.10) !important;
+  transform: translateY(-1px);
+}
+
+/* ── 섹션 구분선 shimmer ── */
+@keyframes sectionShimmer {
+  0%          { transform: translateX(-120%) skewX(-20deg); opacity: 0; }
+  15%         { opacity: 1; }
+  85%         { opacity: 1; }
+  100%        { transform: translateX(220%) skewX(-20deg); opacity: 0; }
+}
+.section-divider-shimmer {
+  animation: sectionShimmer 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: 0.8s;
+}
