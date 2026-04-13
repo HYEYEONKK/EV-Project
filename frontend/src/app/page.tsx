@@ -41,8 +41,8 @@ export default function LandingPage() {
 
       {/* Hero — 좌우 배치 */}
       <section style={{
-        display: "flex", alignItems: "center",
-        gap: 48, padding: "60px 48px 60px 80px",
+        display: "flex", alignItems: "flex-start",
+        gap: 48, padding: "80px 48px 60px 80px",
         minHeight: "calc(100vh - 60px)",
         background: "linear-gradient(135deg, #FFF5ED 0%, #ffffff 60%)",
         overflow: "hidden",
