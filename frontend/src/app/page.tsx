@@ -42,25 +42,25 @@ export default function LandingPage() {
       {/* Hero — 좌우 배치 */}
       <section style={{
         display: "flex", alignItems: "center",
-        gap: 48, padding: "60px 48px 60px 80px",
+        padding: "60px 0 60px 80px",
         minHeight: "calc(100vh - 60px)",
-        background: "linear-gradient(135deg, #FFF5ED 0%, #ffffff 60%)",
-        overflow: "hidden",
+        background: "linear-gradient(135deg, #FFF5ED 0%, #ffffff 50%)",
+        overflow: "hidden", gap: 0,
       }}>
-        {/* 왼쪽: 텍스트 */}
-        <div style={{ width: 400, flexShrink: 0 }}>
+        {/* 왼쪽: 텍스트 + 스텝 네비 */}
+        <div style={{ width: 380, flexShrink: 0, paddingRight: 40 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: "#FD5108", letterSpacing: 1, textTransform: "uppercase", marginBottom: 20 }}>
             PwC 삼일회계법인
           </p>
-          <h1 style={{ fontSize: 52, fontWeight: 800, color: "#1A1A2E", lineHeight: 1.15, letterSpacing: -1.5, marginBottom: 24 }}>
+          <h1 style={{ fontSize: 48, fontWeight: 800, color: "#1A1A2E", lineHeight: 1.15, letterSpacing: -1.5, marginBottom: 24 }}>
             재무 데이터를<br />한눈에 파악하세요
           </h1>
-          <p style={{ fontSize: 16, color: "#374151", lineHeight: 1.7, marginBottom: 36 }}>
+          <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.7, marginBottom: 32 }}>
             삼일회계법인이 개발한 Worldwide Easy View는
             대상 법인의 전표 데이터를 이용하여 다양한 경영정보와
             예외사항을 웹으로 확인하는 정기구독 서비스입니다.
           </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 48 }}>
             <Link href="/input" style={{
               padding: "14px 32px", fontSize: 15, fontWeight: 700,
               color: "#fff", backgroundColor: "#FD5108",
@@ -74,7 +74,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* 오른쪽: 대시보드 목업 */}
+        {/* 오른쪽: 스텝 네비 + 스크린샷 (화면 끝까지) */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <MockupCard />
         </div>
@@ -243,9 +243,9 @@ function MockupCard() {
   const [step, setStep] = useState(0);
 
   return (
-    <div style={{ display: "flex", gap: 48, alignItems: "flex-start", maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
       {/* 왼쪽: 세로 스텝 네비게이션 */}
-      <div style={{ width: 220, flexShrink: 0, paddingTop: 16 }}>
+      <div style={{ width: 200, flexShrink: 0, paddingTop: 16 }}>
         <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 28 }}>
           {/* 연결선 */}
           <div style={{
@@ -290,11 +290,12 @@ function MockupCard() {
         </div>
       </div>
 
-      {/* 오른쪽: 브라우저 목업 프레임 */}
+      {/* 오른쪽: 브라우저 목업 프레임 (오른쪽 끝까지) */}
       <div style={{
-        flex: 1, background: "#fff", borderRadius: 12,
+        flex: 1, background: "#fff", borderRadius: "12px 0 0 12px",
         boxShadow: "0 24px 80px rgba(0,0,0,0.12)",
         overflow: "hidden", border: "1px solid #DFE3E6",
+        borderRight: "none",
       }}>
         {/* 브라우저 탑바 */}
         <div style={{
@@ -311,7 +312,7 @@ function MockupCard() {
         </div>
 
         {/* 스크린샷 */}
-        <div style={{ position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "relative", overflow: "hidden", maxHeight: 340 }}>
           <img
             src={STEPS[step].image}
             alt={STEPS[step].label}
