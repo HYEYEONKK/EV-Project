@@ -129,23 +129,21 @@ export default function LandingPage() {
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
             {[
-              { icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", title: "신뢰성", desc: "전표 원천 데이터를 직접 이용하여 경영진에게 표준화된 재무정보를 확인할 수 있습니다." },
-              { icon: "M22 12 18 12 15 21 9 3 6 12 2 12", title: "효율성", desc: "해외법인 자료의 언어·통화·회계기준의 장벽을 해석하여 쉽게 관리할 수 있습니다.", isPolyline: true },
-              { icon: "M5 2 19 2 19 22 5 22Z", title: "간편성", desc: "어디서나 노트북이나 태블릿으로 경영정보를 바로 확인할 수 있습니다." },
-              { icon: "M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", title: "경제성", desc: "합리적인 금액으로 별도의 ERP 또는 BIS/BI 시스템 없이도 효율적으로 확인이 가능합니다." },
+              { pictogram: "/pictograms/trust.svg", title: "신뢰성", desc: "전표 원천 데이터를 직접 이용하여 경영진에게 표준화된 재무정보를 확인할 수 있습니다." },
+              { pictogram: "/pictograms/efficiency.svg", title: "효율성", desc: "해외법인 자료의 언어·통화·회계기준의 장벽을 해석하여 쉽게 관리할 수 있습니다." },
+              { pictogram: "/pictograms/simplicity.svg", title: "간편성", desc: "어디서나 노트북이나 태블릿으로 경영정보를 바로 확인할 수 있습니다." },
+              { pictogram: "/pictograms/economy.svg", title: "경제성", desc: "합리적인 금액으로 별도의 ERP 또는 BIS/BI 시스템 없이도 효율적으로 확인이 가능합니다." },
             ].map((item, i) => (
               <div key={i} style={{
                 background: "#fff", border: "1px solid #DFE3E6",
                 borderRadius: 14, padding: "32px 24px", textAlign: "center",
               }}>
                 <div style={{
-                  width: 56, height: 56, borderRadius: 16, background: "#FFF5ED",
+                  width: 72, height: 72, borderRadius: 16, background: "#FFF5ED",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  margin: "0 auto 18px", color: "#FD5108",
+                  margin: "0 auto 18px",
                 }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} width={26} height={26}>
-                    {item.isPolyline ? <polyline points={item.icon} /> : <path d={item.icon} />}
-                  </svg>
+                  <img src={item.pictogram} alt={item.title} style={{ width: 48, height: 48 }} />
                 </div>
                 <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1A1A2E", marginBottom: 10 }}>{item.title}</h3>
                 <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.7 }}>{item.desc}</p>
