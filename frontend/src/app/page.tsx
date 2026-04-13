@@ -243,7 +243,7 @@ function MockupCard() {
   const [step, setStep] = useState(0);
 
   return (
-    <div style={{ display: "flex", gap: 32, alignItems: "flex-start", marginLeft: 120 }}>
+    <div style={{ display: "flex", gap: 32, alignItems: "flex-start", marginLeft: 155 }}>
       {/* 왼쪽: 세로 스텝 네비게이션 */}
       <div style={{ width: 200, flexShrink: 0, paddingTop: 16 }}>
         <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 28 }}>
