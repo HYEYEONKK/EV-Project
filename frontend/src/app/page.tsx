@@ -231,73 +231,83 @@ export default function LandingPage() {
 
 /* ── 대시보드 목업 카드 ── */
 const STEPS = [
-  { label: "Summary", image: "/screenshots/summary.png" },
-  { label: "PL 추이분석", image: "/screenshots/pl-trend.png" },
-  { label: "전표검색", image: "/screenshots/voucher.png" },
-  { label: "시나리오분석", image: "/screenshots/scenario.png" },
-  { label: "BS 요약", image: "/screenshots/bs-summary.png" },
+  { label: "Summary", sub: "경영 현황 요약", image: "/screenshots/summary.png" },
+  { label: "PL 추이분석", sub: "손익계산서 추이", image: "/screenshots/pl-trend.png" },
+  { label: "BS 요약", sub: "재무상태표", image: "/screenshots/bs-summary.png" },
+  { label: "전표검색", sub: "분개 전표 조회", image: "/screenshots/voucher.png" },
+  { label: "시나리오분석", sub: "이상거래 탐지", image: "/screenshots/scenario.png" },
 ];
 
 function MockupCard() {
   const [step, setStep] = useState(0);
 
   return (
-    <div style={{
-      background: "#fff", borderRadius: 16,
-      boxShadow: "0 24px 80px rgba(0,0,0,0.12)",
-      overflow: "hidden", border: "1px solid #DFE3E6",
-    }}>
-      {/* 브라우저 탑바 */}
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* 브라우저 목업 프레임 */}
       <div style={{
-        background: "#F5F7F8", padding: "10px 16px",
-        display: "flex", alignItems: "center", gap: 6,
-        borderBottom: "1px solid #DFE3E6",
+        background: "#fff", borderRadius: 16,
+        boxShadow: "0 24px 80px rgba(0,0,0,0.12)",
+        overflow: "hidden", border: "1px solid #DFE3E6",
       }}>
-        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57", display: "inline-block" }} />
-        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", display: "inline-block" }} />
-        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840", display: "inline-block" }} />
-        <span style={{ fontSize: 11, color: "#A1A8B3", marginLeft: 8, fontFamily: "monospace" }}>
-          easyview.pwc.com/{STEPS[step].label.toLowerCase().replace(/\s/g, "-")}
-        </span>
+        {/* 브라우저 탑바 */}
+        <div style={{
+          background: "#F5F7F8", padding: "10px 16px",
+          display: "flex", alignItems: "center", gap: 6,
+          borderBottom: "1px solid #DFE3E6",
+        }}>
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57", display: "inline-block" }} />
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", display: "inline-block" }} />
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840", display: "inline-block" }} />
+          <span style={{ fontSize: 11, color: "#A1A8B3", marginLeft: 8, fontFamily: "monospace" }}>
+            easyview.pwc.com
+          </span>
+        </div>
+
+        {/* 스크린샷 이미지 */}
+        <div style={{ position: "relative", overflow: "hidden" }}>
+          <img
+            src={STEPS[step].image}
+            alt={STEPS[step].label}
+            style={{ width: "100%", display: "block", transition: "opacity 0.3s ease" }}
+          />
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0, height: 40,
+            background: "linear-gradient(transparent, rgba(255,255,255,0.85))",
+          }} />
+        </div>
       </div>
 
-      {/* 탭 네비게이션 */}
-      <div style={{
-        display: "flex", gap: 0, borderBottom: "1px solid #EEEFF1",
-        background: "#fff", padding: "0 12px",
-      }}>
+      {/* 스텝 네비게이션 */}
+      <div style={{ display: "flex", gap: 6 }}>
         {STEPS.map((s, i) => (
           <button
             key={i}
             onClick={() => setStep(i)}
             style={{
-              padding: "8px 14px", fontSize: 11, fontWeight: step === i ? 700 : 400,
-              color: step === i ? "#FD5108" : "#A1A8B3",
-              background: "none", border: "none", cursor: "pointer",
-              borderBottom: step === i ? "2px solid #FD5108" : "2px solid transparent",
-              fontFamily: "inherit", transition: "all 0.2s",
+              flex: 1, padding: "10px 8px",
+              background: step === i ? "#FD5108" : "#fff",
+              border: step === i ? "1px solid #FD5108" : "1px solid #DFE3E6",
+              borderRadius: 10, cursor: "pointer",
+              transition: "all 0.25s ease",
+              fontFamily: "inherit",
+              textAlign: "center",
             }}
           >
-            {s.label}
+            <div style={{
+              fontSize: 11, fontWeight: 700,
+              color: step === i ? "#fff" : "#1A1A2E",
+              marginBottom: 2,
+            }}>
+              {s.label}
+            </div>
+            <div style={{
+              fontSize: 9,
+              color: step === i ? "rgba(255,255,255,0.75)" : "#A1A8B3",
+            }}>
+              {s.sub}
+            </div>
           </button>
         ))}
-      </div>
-
-      {/* 스크린샷 이미지 */}
-      <div style={{ position: "relative", overflow: "hidden" }}>
-        <img
-          src={STEPS[step].image}
-          alt={STEPS[step].label}
-          style={{
-            width: "100%", display: "block",
-            transition: "opacity 0.3s ease",
-          }}
-        />
-        {/* 하단 그라데이션 페이드 */}
-        <div style={{
-          position: "absolute", bottom: 0, left: 0, right: 0, height: 60,
-          background: "linear-gradient(transparent, rgba(255,255,255,0.9))",
-        }} />
       </div>
     </div>
   );
