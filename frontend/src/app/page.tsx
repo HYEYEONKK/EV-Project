@@ -73,7 +73,7 @@ export default function LandingPage() {
         </div>
 
         {/* 오른쪽: 목업 */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, maxWidth: 580 }}>
           <MockupCard />
         </div>
       </section>
