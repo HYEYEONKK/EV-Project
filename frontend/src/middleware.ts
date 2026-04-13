@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/signup"];
+const PUBLIC_PATHS = ["/login", "/signup", "/input", "/output"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -12,6 +12,11 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/favicon") ||
     pathname.match(/\.\w+$/)
   ) {
+    return NextResponse.next();
+  }
+
+  // 랜딩 페이지 (root)는 항상 공개
+  if (pathname === "/") {
     return NextResponse.next();
   }
 
