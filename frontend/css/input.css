@@ -1,3 +1,5 @@
+/* ===== EasyView — PwC Design Guide Applied (Input Page) ===== */
+
 /* ===== Reset & Base ===== */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -6,22 +8,22 @@
 }
 
 body {
-  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: 'Pretendard Variable', 'Pretendard', sans-serif;
   background-color: #ffffff;
-  color: #1a1a1a;
+  color: #1A1A2E;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* ===== Header (Index와 동일) ===== */
+/* ===== Header ===== */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
   height: 56px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #DFE3E6;
   background-color: #ffffff;
   position: sticky;
   top: 0;
@@ -47,9 +49,9 @@ body {
 .header-title {
   font-size: 14px;
   font-weight: 400;
-  color: #333333;
+  color: #1A1A2E;
   padding-left: 12px;
-  border-left: 1px solid #d0d0d0;
+  border-left: 1px solid #DFE3E6;
 }
 
 .header-right {
@@ -57,7 +59,7 @@ body {
   align-items: center;
 }
 
-/* 아바타 + 드롭다운 컨테이너 */
+/* Avatar + Dropdown */
 .avatar-wrap {
   position: relative;
 }
@@ -66,7 +68,7 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: #FF9F00;
+  background-color: #FD5108;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,7 +79,7 @@ body {
 }
 
 .user-avatar:hover {
-  background-color: #e08c00;
+  background-color: #D04A02;
 }
 
 .avatar-initials {
@@ -86,14 +88,14 @@ body {
   color: #ffffff;
 }
 
-/* 드롭다운 메뉴 */
+/* Dropdown Menu */
 .avatar-dropdown {
   display: none;
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
   background: #ffffff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #DFE3E6;
   border-radius: 10px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.13);
   min-width: 220px;
@@ -107,13 +109,13 @@ body {
 
 .dropdown-header {
   padding: 16px 18px 12px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #EEEFF1;
 }
 
 .dropdown-user-name {
   font-size: 13px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1A1A2E;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -121,7 +123,7 @@ body {
 
 .dropdown-user-email {
   font-size: 12px;
-  color: #999999;
+  color: #A1A8B3;
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -138,7 +140,7 @@ body {
   gap: 10px;
   padding: 10px 18px;
   font-size: 13px;
-  color: #333333;
+  color: #1A1A2E;
   cursor: pointer;
   transition: background-color 0.15s;
   border: none;
@@ -149,41 +151,41 @@ body {
 }
 
 .dropdown-item:hover {
-  background-color: #f7f7f7;
+  background-color: #F5F7F8;
 }
 
 .dropdown-item svg {
   width: 15px;
   height: 15px;
-  color: #888888;
+  color: #A1A8B3;
   flex-shrink: 0;
 }
 
 .dropdown-divider {
   height: 1px;
-  background: #f0f0f0;
+  background: #EEEFF1;
   margin: 4px 0;
 }
 
 .dropdown-item.logout {
-  color: #e53935;
+  color: #FF4747;
 }
 
 .dropdown-item.logout svg {
-  color: #e53935;
+  color: #FF4747;
 }
 
-/* ===== Layout (헤더 아래, 사이드바 + 콘텐츠) ===== */
+/* ===== Layout ===== */
 .layout {
   display: flex;
   flex: 1;
 }
 
-/* ===== Sidebar ===== */
+/* ===== Sidebar (Dark — PwC #1A1A2E) ===== */
 .sidebar {
   width: 75px;
   flex-shrink: 0;
-  border-right: 1px solid #e5e5e5;
+  background-color: #1A1A2E;
   position: sticky;
   top: 56px;
   height: calc(100vh - 56px);
@@ -205,7 +207,7 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  color: #aaaaaa;
+  color: #B5BCC4;
   text-decoration: none;
   transition: background-color 0.15s, color 0.15s;
 }
@@ -216,26 +218,27 @@ body {
 }
 
 .nav-item:hover {
-  background-color: #fff3e0;
-  color: #FF9F00;
+  background-color: rgba(253, 81, 8, 0.08);
+  color: #FD5108;
 }
 
 .nav-item.active {
-  background-color: #FF9F00;
-  color: #ffffff;
+  background-color: rgba(253, 81, 8, 0.08);
+  color: #FD5108;
+  border-left: 2px solid #FD5108;
 }
 
-/* 툴팁 */
+/* Tooltip */
 .nav-item::after {
   content: attr(data-tooltip);
   position: absolute;
   left: calc(100% + 10px);
   top: 50%;
   transform: translateY(-50%);
-  background-color: #333333;
+  background-color: #1A1A2E;
   color: #ffffff;
   font-size: 12px;
-  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: 'Pretendard Variable', 'Pretendard', sans-serif;
   padding: 4px 10px;
   border-radius: 5px;
   white-space: nowrap;
@@ -257,6 +260,7 @@ body {
   flex-direction: column;
   gap: 24px;
   overflow-y: auto;
+  background-color: #F5F7F8;
 }
 
 .page-header {
@@ -279,9 +283,9 @@ body {
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
-  color: #FF9F00;
-  background: #fff8ec;
-  border: 1.5px solid #FF9F00;
+  color: #FD5108;
+  background: #FFF5ED;
+  border: 1.5px solid #FD5108;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
@@ -293,17 +297,17 @@ body {
 }
 
 .btn-data-format:hover {
-  background: #FF9F00;
+  background: #FD5108;
   color: #ffffff;
 }
 
-/* ===== 내 정보 모달 ===== */
+/* ===== My Info Modal ===== */
 .info-avatar-row {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 20px 0 24px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #EEEFF1;
   margin-bottom: 20px;
 }
 
@@ -311,7 +315,7 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: #FF9F00;
+  background: #FD5108;
   color: #fff;
   font-size: 20px;
   font-weight: 700;
@@ -324,12 +328,12 @@ body {
 .info-email {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #1A1A2E;
 }
 
 .info-joined {
   font-size: 12px;
-  color: #aaaaaa;
+  color: #A1A8B3;
   margin-top: 3px;
 }
 
@@ -349,34 +353,34 @@ body {
 .info-field label {
   font-size: 12px;
   font-weight: 600;
-  color: #888888;
+  color: #A1A8B3;
 }
 
 .info-field input {
   padding: 10px 14px;
   font-size: 14px;
   font-family: inherit;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #DFE3E6;
   border-radius: 8px;
   outline: none;
-  background: #fafafa;
+  background: #F5F7F8;
   transition: border-color 0.2s;
 }
 
 .info-field input:focus {
-  border-color: #FF9F00;
+  border-color: #FD5108;
   background: #fff;
 }
 
 .info-field input:disabled {
-  background: #f5f5f5;
-  color: #999;
+  background: #F5F7F8;
+  color: #A1A8B3;
   cursor: not-allowed;
 }
 
 .info-save-msg {
   font-size: 13px;
-  color: #22a06b;
+  color: #16C784;
   min-height: 18px;
   margin-bottom: 12px;
 }
@@ -391,7 +395,7 @@ body {
   font-size: 14px;
   font-weight: 700;
   font-family: inherit;
-  background: #FF9F00;
+  background: #FD5108;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -400,10 +404,10 @@ body {
 }
 
 .btn-info-save:hover {
-  background: #e08c00;
+  background: #D04A02;
 }
 
-/* ===== 데이터 형식 모달 ===== */
+/* ===== Data Format Modal ===== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -432,27 +436,27 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   padding: 24px 28px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #EEEFF1;
   flex-shrink: 0;
 }
 
 .modal-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1A1A2E;
   margin-bottom: 4px;
 }
 
 .modal-desc {
   font-size: 13px;
-  color: #888888;
+  color: #A1A8B3;
 }
 
 .modal-close {
   background: none;
   border: none;
   font-size: 18px;
-  color: #aaaaaa;
+  color: #A1A8B3;
   cursor: pointer;
   padding: 0 0 0 16px;
   line-height: 1;
@@ -461,7 +465,7 @@ body {
 }
 
 .modal-close:hover {
-  color: #333333;
+  color: #1A1A2E;
 }
 
 .modal-body {
@@ -475,11 +479,11 @@ body {
 .modal-group-title {
   font-size: 12px;
   font-weight: 700;
-  color: #999999;
+  color: #A1A8B3;
   letter-spacing: 0.3px;
   margin-bottom: 10px;
   padding-bottom: 6px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid #EEEFF1;
 }
 
 .modal-erp-list {
@@ -493,15 +497,15 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: #fafafa;
+  background: #F5F7F8;
   border-radius: 8px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #EEEFF1;
 }
 
 .modal-erp-name {
   font-size: 14px;
   font-weight: 600;
-  color: #333333;
+  color: #1A1A2E;
 }
 
 .modal-dl-btns {
@@ -522,33 +526,33 @@ body {
 }
 
 .dl-btn.ko {
-  background: #fff8ec;
-  color: #FF9F00;
-  border: 1px solid #ffe0a0;
+  background: #FFF5ED;
+  color: #FD5108;
+  border: 1px solid #FFCDA8;
 }
 
 .dl-btn.ko:hover {
-  background: #FF9F00;
+  background: #FD5108;
   color: #ffffff;
-  border-color: #FF9F00;
+  border-color: #FD5108;
 }
 
 .dl-btn.en {
-  background: #f5f5f5;
-  color: #555555;
-  border: 1px solid #e0e0e0;
+  background: #F5F7F8;
+  color: #374151;
+  border: 1px solid #DFE3E6;
 }
 
 .dl-btn.en:hover {
-  background: #333333;
+  background: #1A1A2E;
   color: #ffffff;
-  border-color: #333333;
+  border-color: #1A1A2E;
 }
 
 .page-title {
   font-size: 28px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1A1A2E;
 }
 
 .btn-process {
@@ -557,7 +561,7 @@ body {
   font-weight: 600;
   font-family: inherit;
   color: #ffffff;
-  background-color: #FF9F00;
+  background-color: #FD5108;
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -565,29 +569,30 @@ body {
 }
 
 .btn-process:hover {
-  background-color: #e08c00;
+  background-color: #D04A02;
 }
 
 .btn-process:active {
-  background-color: #c47a00;
+  background-color: #D04A02;
   transform: scale(0.97);
 }
 
 .btn-process:disabled {
-  background-color: #cccccc;
+  background-color: #B5BCC4;
   cursor: not-allowed;
   transform: none;
 }
 
 .page-desc {
   font-size: 15px;
-  color: #555555;
+  color: #374151;
   line-height: 1.6;
 }
 
 /* ===== Options Section ===== */
 .options-section {
-  background-color: #FFF5E6;
+  background-color: #FFF5ED;
+  border: 1px solid #FFCDA8;
   border-radius: 12px;
   padding: 24px;
   display: flex;
@@ -617,12 +622,12 @@ body {
   padding: 10px 32px 10px 14px;
   font-size: 14px;
   font-family: inherit;
-  color: #333333;
+  color: #1A1A2E;
   background-color: #ffffff;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #DFE3E6;
   border-radius: 6px;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A1A8B3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   cursor: pointer;
@@ -631,8 +636,8 @@ body {
 }
 
 .select-wrapper select:focus {
-  border-color: #FF9F00;
-  box-shadow: 0 0 0 3px rgba(255, 159, 0, 0.15);
+  border-color: #FD5108;
+  box-shadow: 0 0 0 3px rgba(253, 81, 8, 0.15);
 }
 
 /* ===== Upload Section ===== */
@@ -645,23 +650,24 @@ body {
 
 .upload-box {
   flex: 1;
-  border: 1.5px solid #e0e0e0;
+  border: 1.5px solid #DFE3E6;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
+  background-color: #ffffff;
 }
 
 .upload-box:hover {
-  border-color: #FF9F00;
-  background-color: #fffaf2;
+  border-color: #FD5108;
+  background-color: #FFF5ED;
 }
 
 .upload-box.dragover {
-  border-color: #FF9F00;
-  background-color: #fff3e0;
+  border-color: #FD5108;
+  background-color: #FFE8D4;
 }
 
 .upload-inner {
@@ -678,22 +684,22 @@ body {
 .upload-icon {
   width: 36px;
   height: 36px;
-  color: #cccccc;
+  color: #B5BCC4;
   transition: color 0.2s;
 }
 
 .upload-box:hover .upload-icon {
-  color: #FF9F00;
+  color: #FD5108;
 }
 
 .upload-label {
   font-size: 14px;
-  color: #999999;
+  color: #A1A8B3;
   transition: color 0.2s;
 }
 
 .upload-box:hover .upload-label {
-  color: #FF9F00;
+  color: #FD5108;
 }
 
 /* ===== Output Placeholder ===== */
@@ -702,10 +708,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px dashed #e0e0e0;
+  border: 1.5px dashed #DFE3E6;
   border-radius: 12px;
   min-height: 300px;
-  color: #bbbbbb;
+  color: #A1A8B3;
   font-size: 15px;
 }
 
@@ -731,8 +737,8 @@ body {
 .loading-spinner {
   width: 52px;
   height: 52px;
-  border: 4px solid #f0f0f0;
-  border-top-color: #FF9F00;
+  border: 4px solid #EEEFF1;
+  border-top-color: #FD5108;
   border-radius: 50%;
   animation: loading-spin 0.8s linear infinite;
   margin: 0 auto 28px;
@@ -745,11 +751,11 @@ body {
 .loading-text {
   font-size: 16px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #1A1A2E;
   margin-bottom: 8px;
 }
 
 .loading-sub {
   font-size: 13px;
-  color: #888888;
+  color: #A1A8B3;
 }
