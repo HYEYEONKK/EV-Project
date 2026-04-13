@@ -39,7 +39,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero — 좌: 텍스트, 우: 목업 */}
+      {/* Hero — 좌우 배치 */}
       <section style={{
         display: "flex", alignItems: "center",
         gap: 48, padding: "60px 48px 60px 80px",
@@ -48,15 +48,17 @@ export default function LandingPage() {
         overflow: "hidden",
       }}>
         {/* 왼쪽: 텍스트 */}
-        <div style={{ flex: "0 0 440px" }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: "#FD5108", letterSpacing: 1, textTransform: "uppercase", marginBottom: 16 }}>
+        <div style={{ width: 400, flexShrink: 0 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "#FD5108", letterSpacing: 1, textTransform: "uppercase", marginBottom: 20 }}>
             PwC 삼일회계법인
           </p>
-          <h1 style={{ fontSize: 56, fontWeight: 800, color: "#1A1A2E", lineHeight: 1.1, letterSpacing: -2, marginBottom: 20 }}>
+          <h1 style={{ fontSize: 52, fontWeight: 800, color: "#1A1A2E", lineHeight: 1.15, letterSpacing: -1.5, marginBottom: 24 }}>
             재무 데이터를<br />한눈에 파악하세요
           </h1>
-          <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.7, marginBottom: 32 }}>
-            삼일회계법인이 개발한 Worldwide Easy View는 대상 법인의 전표 데이터를 이용하여 다양한 경영정보와 예외사항을 웹으로 확인하는 정기구독 서비스입니다.
+          <p style={{ fontSize: 16, color: "#374151", lineHeight: 1.7, marginBottom: 36 }}>
+            삼일회계법인이 개발한 Worldwide Easy View는
+            대상 법인의 전표 데이터를 이용하여 다양한 경영정보와
+            예외사항을 웹으로 확인하는 정기구독 서비스입니다.
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <Link href="/input" style={{
@@ -72,8 +74,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* 오른쪽: 목업 */}
-        <div style={{ flex: 1, minWidth: 0, maxWidth: 580 }}>
+        {/* 오른쪽: 대시보드 목업 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           <MockupCard />
         </div>
       </section>
