@@ -184,14 +184,19 @@ const selectStyle: React.CSSProperties = {
 /* ── Upload Box Component ── */
 function UploadBox({ label, file, onFile }: { label: string; file: File | null; onFile: (f: File) => void }) {
   const [hover, setHover] = useState(false);
+  const hasFile = !!file;
+
+  const borderColor = hasFile ? "#16C784" : hover ? "#FD5108" : "#DFE3E6";
+  const bgColor = hasFile ? "#F0FDF4" : hover ? "#FFF5ED" : "#fff";
 
   return (
     <div
       style={{
-        flex: 1, border: `1.5px solid ${hover ? "#FD5108" : "#DFE3E6"}`,
+        flex: 1, border: `2px solid ${borderColor}`,
         borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: "pointer", backgroundColor: hover ? "#FFF5ED" : "#fff",
-        transition: "border-color 0.2s, background-color 0.2s",
+        cursor: "pointer", backgroundColor: bgColor,
+        transition: "all 0.3s ease",
+        position: "relative",
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -214,15 +219,61 @@ function UploadBox({ label, file, onFile }: { label: string; file: File | null; 
         if (f) onFile(f);
       }}
     >
+      {/* 업로드 완료 배지 */}
+      {hasFile && (
+        <div style={{
+          position: "absolute", top: 16, right: 16,
+          width: 28, height: 28, borderRadius: "50%",
+          backgroundColor: "#16C784", display: "flex",
+          alignItems: "center", justifyContent: "center",
+          boxShadow: "0 2px 8px rgba(22,199,132,0.3)",
+        }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" width={16} height={16}>
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: 24 }}>
-        <svg viewBox="0 0 24 24" fill="none" stroke={hover ? "#FD5108" : "#B5BCC4"} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" width={36} height={36}>
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="17 8 12 3 7 8" />
-          <line x1="12" y1="3" x2="12" y2="15" />
-        </svg>
-        <span style={{ fontSize: 14, color: hover ? "#FD5108" : "#A1A8B3" }}>
-          {file ? file.name : label}
-        </span>
+        {hasFile ? (
+          /* 파일 업로드 완료 상태 */
+          <>
+            <div style={{
+              width: 52, height: 52, borderRadius: 12,
+              backgroundColor: "#E8FFF3", display: "flex",
+              alignItems: "center", justifyContent: "center",
+            }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16C784" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" width={28} height={28}>
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+            </div>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#1A1A2E" }}>
+              {file.name}
+            </span>
+            <span style={{ fontSize: 12, color: "#16C784", fontWeight: 500 }}>
+              업로드 완료 · {(file.size / 1024).toFixed(0)} KB
+            </span>
+            <span style={{ fontSize: 11, color: "#A1A8B3", marginTop: -4 }}>
+              클릭하여 파일 변경
+            </span>
+          </>
+        ) : (
+          /* 기본 상태 */
+          <>
+            <svg viewBox="0 0 24 24" fill="none" stroke={hover ? "#FD5108" : "#B5BCC4"} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" width={36} height={36}>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <span style={{ fontSize: 14, color: hover ? "#FD5108" : "#A1A8B3" }}>
+              {label}
+            </span>
+            <span style={{ fontSize: 11, color: "#B5BCC4" }}>
+              .xlsx, .xls, .csv 파일 지원
+            </span>
+          </>
+        )}
       </div>
     </div>
   );
