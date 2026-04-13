@@ -48,7 +48,7 @@ export default function LandingPage() {
         overflow: "hidden",
       }}>
         {/* 왼쪽: 텍스트 */}
-        <div style={{ flex: "0 0 380px", marginTop: -40 }}>
+        <div style={{ flex: "0 0 440px" }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: "#FD5108", letterSpacing: 1, textTransform: "uppercase", marginBottom: 16 }}>
             PwC 삼일회계법인
           </p>
