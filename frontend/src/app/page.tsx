@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 
 /* ─────────────────────────────────────────────
@@ -72,49 +73,9 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Dashboard Preview */}
-        <div style={{ flex: 1, maxWidth: 520 }}>
-          <div style={{
-            background: "#fff", borderRadius: 16,
-            boxShadow: "0 24px 80px rgba(0,0,0,0.12)",
-            overflow: "hidden", border: "1px solid #DFE3E6",
-          }}>
-            <div style={{ background: "#F5F7F8", padding: "10px 16px", display: "flex", alignItems: "center", gap: 6, borderBottom: "1px solid #DFE3E6" }}>
-              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57", display: "inline-block" }} />
-              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", display: "inline-block" }} />
-              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840", display: "inline-block" }} />
-              <span style={{ fontSize: 11, color: "#A1A8B3", marginLeft: 8, fontFamily: "monospace" }}>wwev.onrender.com/output</span>
-            </div>
-            <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <span style={{ display: "inline-block", background: "#FD5108", color: "#fff", fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, marginBottom: 4 }}>ABC Group</span>
-                <div style={{ fontSize: 10, color: "#A1A8B3" }}>가나다 주식회사 · Monthly Summary</div>
-              </div>
-              <div style={{ display: "flex", gap: 12 }}>
-                <div style={{ flex: 1, background: "#FFF5ED", borderRadius: 8, padding: "12px 14px", border: "1px solid #FFCDA8" }}>
-                  <div style={{ fontSize: 10, color: "#A1A8B3", marginBottom: 4 }}>당월 매출액</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "#FD5108" }}>₩ 14,143M</div>
-                  <div style={{ fontSize: 10, color: "#16C784", fontWeight: 600, marginTop: 2 }}>▲ 12.7%</div>
-                </div>
-                <div style={{ flex: 1, background: "#F5F7F8", borderRadius: 8, padding: "12px 14px", border: "1px solid #EEEFF1" }}>
-                  <div style={{ fontSize: 10, color: "#A1A8B3", marginBottom: 4 }}>당월 영업이익률</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "#1A1A2E" }}>(+) 18.3%</div>
-                </div>
-                <div style={{ flex: 1, background: "#F5F7F8", borderRadius: 8, padding: "12px 14px", border: "1px solid #EEEFF1" }}>
-                  <div style={{ fontSize: 10, color: "#A1A8B3", marginBottom: 4 }}>당월 순이익률</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "#1A1A2E" }}>(+) 24.7%</div>
-                </div>
-              </div>
-              <div style={{ background: "#F5F7F8", borderRadius: 8, padding: 14, border: "1px solid #EEEFF1" }}>
-                <div style={{ fontSize: 10, color: "#A1A8B3", marginBottom: 12, fontWeight: 600 }}>월별 매출 추이</div>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 60 }}>
-                  {[40,55,48,70,60,65,72,68,75,88].map((h, i) => (
-                    <div key={i} style={{ flex: 1, height: `${h}%`, background: i === 9 ? "#FD5108" : "#FFE8D4", borderRadius: "3px 3px 0 0" }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Dashboard Mockup */}
+        <div style={{ flex: 1, maxWidth: 600 }}>
+          <MockupCard />
         </div>
       </section>
 
@@ -264,6 +225,80 @@ export default function LandingPage() {
           <p style={{ fontSize: 13, color: "#A1A8B3" }}>© 2026 PwC 삼일회계법인. All rights reserved.</p>
         </div>
       </footer>
+    </div>
+  );
+}
+
+/* ── 대시보드 목업 카드 ── */
+const STEPS = [
+  { label: "Summary", image: "/screenshots/summary.png" },
+  { label: "PL 추이분석", image: "/screenshots/pl-trend.png" },
+  { label: "전표검색", image: "/screenshots/voucher.png" },
+  { label: "시나리오분석", image: "/screenshots/scenario.png" },
+  { label: "BS 요약", image: "/screenshots/bs-summary.png" },
+];
+
+function MockupCard() {
+  const [step, setStep] = useState(0);
+
+  return (
+    <div style={{
+      background: "#fff", borderRadius: 16,
+      boxShadow: "0 24px 80px rgba(0,0,0,0.12)",
+      overflow: "hidden", border: "1px solid #DFE3E6",
+    }}>
+      {/* 브라우저 탑바 */}
+      <div style={{
+        background: "#F5F7F8", padding: "10px 16px",
+        display: "flex", alignItems: "center", gap: 6,
+        borderBottom: "1px solid #DFE3E6",
+      }}>
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57", display: "inline-block" }} />
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", display: "inline-block" }} />
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840", display: "inline-block" }} />
+        <span style={{ fontSize: 11, color: "#A1A8B3", marginLeft: 8, fontFamily: "monospace" }}>
+          easyview.pwc.com/{STEPS[step].label.toLowerCase().replace(/\s/g, "-")}
+        </span>
+      </div>
+
+      {/* 탭 네비게이션 */}
+      <div style={{
+        display: "flex", gap: 0, borderBottom: "1px solid #EEEFF1",
+        background: "#fff", padding: "0 12px",
+      }}>
+        {STEPS.map((s, i) => (
+          <button
+            key={i}
+            onClick={() => setStep(i)}
+            style={{
+              padding: "8px 14px", fontSize: 11, fontWeight: step === i ? 700 : 400,
+              color: step === i ? "#FD5108" : "#A1A8B3",
+              background: "none", border: "none", cursor: "pointer",
+              borderBottom: step === i ? "2px solid #FD5108" : "2px solid transparent",
+              fontFamily: "inherit", transition: "all 0.2s",
+            }}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 스크린샷 이미지 */}
+      <div style={{ position: "relative", overflow: "hidden" }}>
+        <img
+          src={STEPS[step].image}
+          alt={STEPS[step].label}
+          style={{
+            width: "100%", display: "block",
+            transition: "opacity 0.3s ease",
+          }}
+        />
+        {/* 하단 그라데이션 페이드 */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, height: 60,
+          background: "linear-gradient(transparent, rgba(255,255,255,0.9))",
+        }} />
+      </div>
     </div>
   );
 }
