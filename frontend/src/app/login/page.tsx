@@ -7,7 +7,7 @@ import Link from "next/link";
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const { login, isAuthenticated } = useAuthStore();
+  const { login, logout, isAuthenticated } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,13 +17,13 @@ function LoginForm() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  /* 이미 로그인된 경우 리다이렉트 */
+  /* 로그인 페이지 진입 시 기존 세션 정리 — 항상 새로 로그인 */
   useEffect(() => {
     if (isAuthenticated) {
-      const from = params.get("from") ?? "/input";
-      router.replace(from);
+      logout();
     }
-  }, [isAuthenticated, router, params]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* 비디오 끊김 없는 루프 */
   useEffect(() => {
