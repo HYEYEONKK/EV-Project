@@ -39,15 +39,12 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero */}
+      {/* Hero — 텍스트 */}
       <section style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        gap: 48, padding: "80px 48px 80px 80px",
-        minHeight: "calc(100vh - 60px)",
+        padding: "80px 48px 40px 80px",
         background: "linear-gradient(135deg, #FFF5ED 0%, #ffffff 60%)",
-        overflow: "hidden",
       }}>
-        <div style={{ flex: 1, maxWidth: 580 }}>
+        <div style={{ maxWidth: 600 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: "#FD5108", letterSpacing: 1, textTransform: "uppercase", marginBottom: 20 }}>
             PwC 삼일회계법인
           </p>
@@ -72,11 +69,11 @@ export default function LandingPage() {
             </a>
           </div>
         </div>
+      </section>
 
-        {/* Dashboard Mockup */}
-        <div style={{ flex: 1, maxWidth: 600 }}>
-          <MockupCard />
-        </div>
+      {/* Hero — 대시보드 목업 (풀 와이드) */}
+      <section style={{ padding: "0 48px 80px 80px", background: "#fff" }}>
+        <MockupCard />
       </section>
 
       {/* Value Propositions */}
@@ -231,39 +228,85 @@ export default function LandingPage() {
 
 /* ── 대시보드 목업 카드 ── */
 const STEPS = [
-  { label: "Summary", sub: "경영 현황 요약", image: "/screenshots/summary.png" },
-  { label: "PL 추이분석", sub: "손익계산서 추이", image: "/screenshots/pl-trend.png" },
-  { label: "BS 요약", sub: "재무상태표", image: "/screenshots/bs-summary.png" },
-  { label: "전표검색", sub: "분개 전표 조회", image: "/screenshots/voucher.png" },
-  { label: "시나리오분석", sub: "이상거래 탐지", image: "/screenshots/scenario.png" },
+  { label: "Executive Summary", sub: "경영 현황과 주요 KPI를 한눈에 확인합니다.", image: "/screenshots/summary.png" },
+  { label: "손익계산서 분석", sub: "매출·비용·영업이익의 월별 추이를 분석합니다.", image: "/screenshots/pl-trend.png" },
+  { label: "재무상태표 드릴다운", sub: "자산·부채·자본의 증감과 추이를 확인합니다.", image: "/screenshots/bs-summary.png" },
+  { label: "분개 전표 검색", sub: "전표를 조건별로 필터링하고 검색합니다.", image: "/screenshots/voucher.png" },
+  { label: "이상거래 시나리오", sub: "동일 금액 반복 등 예외 전표를 탐지합니다.", image: "/screenshots/scenario.png" },
 ];
 
 function MockupCard() {
   const [step, setStep] = useState(0);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* 브라우저 목업 프레임 */}
+    <div style={{ display: "flex", gap: 48, alignItems: "flex-start", maxWidth: 1200, margin: "0 auto" }}>
+      {/* 왼쪽: 세로 스텝 네비게이션 */}
+      <div style={{ width: 220, flexShrink: 0, paddingTop: 16 }}>
+        <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 28 }}>
+          {/* 연결선 */}
+          <div style={{
+            position: "absolute", left: 6, top: 8, width: 1,
+            bottom: 10, background: "#DFE3E6",
+          }} />
+
+          {STEPS.map((s, i) => (
+            <div
+              key={i}
+              onClick={() => setStep(i)}
+              style={{ display: "flex", gap: 14, alignItems: "flex-start", cursor: "pointer" }}
+            >
+              {/* 도트 */}
+              <div style={{
+                width: 13, height: 13,
+                background: step === i ? "#FD5108" : "#DFE3E6",
+                flexShrink: 0, marginTop: 4,
+                position: "relative", zIndex: 1,
+                transition: "background 0.2s",
+                borderRadius: 2,
+              }} />
+              {/* 텍스트 */}
+              <div>
+                <div style={{
+                  fontSize: step === i ? 16 : 14,
+                  fontWeight: step === i ? 700 : 400,
+                  color: step === i ? "#1A1A2E" : "#A1A8B3",
+                  lineHeight: 1.3, marginBottom: step === i ? 6 : 0,
+                  transition: "all 0.2s", letterSpacing: "-0.01em",
+                }}>
+                  {s.label}
+                </div>
+                {step === i && (
+                  <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6 }}>
+                    {s.sub}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 오른쪽: 브라우저 목업 프레임 */}
       <div style={{
-        background: "#fff", borderRadius: 16,
+        flex: 1, background: "#fff", borderRadius: 12,
         boxShadow: "0 24px 80px rgba(0,0,0,0.12)",
         overflow: "hidden", border: "1px solid #DFE3E6",
       }}>
         {/* 브라우저 탑바 */}
         <div style={{
-          background: "#F5F7F8", padding: "10px 16px",
+          background: "#F5F7F8", padding: "8px 14px",
           display: "flex", alignItems: "center", gap: 6,
           borderBottom: "1px solid #DFE3E6",
         }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57", display: "inline-block" }} />
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", display: "inline-block" }} />
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840", display: "inline-block" }} />
-          <span style={{ fontSize: 11, color: "#A1A8B3", marginLeft: 8, fontFamily: "monospace" }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ff5f57", display: "inline-block" }} />
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#febc2e", display: "inline-block" }} />
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#28c840", display: "inline-block" }} />
+          <span style={{ fontSize: 10, color: "#A1A8B3", marginLeft: 6, fontFamily: "monospace" }}>
             easyview.pwc.com
           </span>
         </div>
 
-        {/* 스크린샷 이미지 */}
+        {/* 스크린샷 */}
         <div style={{ position: "relative", overflow: "hidden" }}>
           <img
             src={STEPS[step].image}
@@ -275,39 +318,6 @@ function MockupCard() {
             background: "linear-gradient(transparent, rgba(255,255,255,0.85))",
           }} />
         </div>
-      </div>
-
-      {/* 스텝 네비게이션 */}
-      <div style={{ display: "flex", gap: 6 }}>
-        {STEPS.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => setStep(i)}
-            style={{
-              flex: 1, padding: "10px 8px",
-              background: step === i ? "#FD5108" : "#fff",
-              border: step === i ? "1px solid #FD5108" : "1px solid #DFE3E6",
-              borderRadius: 10, cursor: "pointer",
-              transition: "all 0.25s ease",
-              fontFamily: "inherit",
-              textAlign: "center",
-            }}
-          >
-            <div style={{
-              fontSize: 11, fontWeight: 700,
-              color: step === i ? "#fff" : "#1A1A2E",
-              marginBottom: 2,
-            }}>
-              {s.label}
-            </div>
-            <div style={{
-              fontSize: 9,
-              color: step === i ? "rgba(255,255,255,0.75)" : "#A1A8B3",
-            }}>
-              {s.sub}
-            </div>
-          </button>
-        ))}
       </div>
     </div>
   );
