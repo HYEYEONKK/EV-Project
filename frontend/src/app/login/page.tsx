@@ -20,7 +20,7 @@ function LoginForm() {
   /* 이미 로그인된 경우 리다이렉트 */
   useEffect(() => {
     if (isAuthenticated) {
-      const from = params.get("from") ?? "/home";
+      const from = params.get("from") ?? "/input";
       router.replace(from);
     }
   }, [isAuthenticated, router, params]);
@@ -44,7 +44,7 @@ function LoginForm() {
     const res = await login(email, password);
     setLoading(false);
     if (res.success) {
-      const from = params.get("from") ?? "/home";
+      const from = params.get("from") ?? "/input";
       router.replace(from);
     } else {
       setError(res.error ?? "로그인에 실패했습니다.");

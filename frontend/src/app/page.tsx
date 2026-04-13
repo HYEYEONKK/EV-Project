@@ -28,7 +28,7 @@ export default function LandingPage() {
             <a href="#video" style={{ fontSize: 14, color: "#374151", textDecoration: "none" }}>소개 영상</a>
             <a href="#contact" style={{ fontSize: 14, color: "#374151", textDecoration: "none" }}>문의하기</a>
           </nav>
-          <Link href="/login" style={{
+          <Link href="/login?from=/input" style={{
             padding: "8px 20px", fontSize: 13, fontWeight: 600,
             color: "#fff", backgroundColor: "#FD5108",
             border: "none", borderRadius: 6, textDecoration: "none",
@@ -59,7 +59,7 @@ export default function LandingPage() {
             예외사항을 웹으로 확인하는 정기구독 서비스입니다.
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <Link href="/login" style={{
+            <Link href="/login?from=/input" style={{
               padding: "14px 32px", fontSize: 15, fontWeight: 700,
               color: "#fff", backgroundColor: "#FD5108",
               borderRadius: 8, textDecoration: "none",
@@ -215,7 +215,7 @@ export default function LandingPage() {
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, maxWidth: 1100, margin: "0 auto" }}>
           <h2 style={{ fontSize: 40, fontWeight: 800, color: "#fff", letterSpacing: -0.8 }}>지금 바로 시작해보세요</h2>
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.85)" }}>Excel 파일만 있으면 누구나 전문적인 경영 분석 보고서를 만들 수 있습니다.</p>
-          <Link href="/login" style={{
+          <Link href="/login?from=/input" style={{
             padding: "16px 48px", fontSize: 16, fontWeight: 700,
             color: "#FD5108", backgroundColor: "#fff",
             borderRadius: 8, textDecoration: "none", marginTop: 8,
