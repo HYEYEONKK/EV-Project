@@ -52,9 +52,7 @@ export default function LandingPage() {
             재무 데이터를<br />한눈에 파악하세요
           </h1>
           <p style={{ fontSize: 16, color: "#374151", lineHeight: 1.7, marginBottom: 32 }}>
-            삼일회계법인이 개발한 Worldwide Easy View는
-            대상 법인의 전표 데이터를 이용하여 다양한 경영정보와
-            예외사항을 웹으로 확인하는 정기구독 서비스입니다.
+            삼일회계법인이 개발한 Worldwide Easy View는 대상 법인의 전표 데이터를 이용하여 다양한 경영정보와 예외사항을 웹으로 확인하는 정기구독 서비스입니다.
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <Link href="/input" style={{
