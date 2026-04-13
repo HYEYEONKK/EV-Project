@@ -5,7 +5,7 @@ import { Providers } from "@/lib/providers";
 import ConditionalTopNav from "@/components/layout/ConditionalTopNav";
 import ConditionalFooter from "@/components/layout/ConditionalFooter";
 import ConditionalMain from "@/components/layout/ConditionalMain";
-import ChatWidget from "@/components/ui/ChatWidget";
+import ConditionalChatWidget from "@/components/ui/ConditionalChatWidget";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -37,7 +37,7 @@ export default function RootLayout({
           </ConditionalMain>
           <ConditionalFooter />
           <ScrollToTop />
-          <ChatWidget />
+          <ConditionalChatWidget />
         </Providers>
       </body>
     </html>

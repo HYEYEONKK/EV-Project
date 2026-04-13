@@ -1,11 +1,11 @@
 "use client";
 import { usePathname } from "next/navigation";
-import TopNav from "./TopNav";
+import ChatWidget from "./ChatWidget";
 
 const HIDE_PATHS = ["/login", "/signup", "/input", "/output"];
 
-export default function ConditionalTopNav() {
+export default function ConditionalChatWidget() {
   const pathname = usePathname();
   if (pathname === "/" || HIDE_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
-  return <TopNav />;
+  return <ChatWidget />;
 }

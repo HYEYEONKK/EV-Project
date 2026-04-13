@@ -42,7 +42,7 @@ export default function OutputPage() {
       <div style={{ display: "flex", flex: 1 }}>
         {/* Sidebar */}
         <aside style={{
-          width: 75, flexShrink: 0, backgroundColor: "#1A1A2E",
+          width: 75, flexShrink: 0, backgroundColor: "#fff", borderRight: "1px solid #DFE3E6",
           position: "sticky", top: 56, height: "calc(100vh - 56px)",
         }}>
           <nav style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 16, gap: 4 }}>
@@ -50,9 +50,9 @@ export default function OutputPage() {
               <Link key={i} href={item.href} style={{
                 width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center",
                 borderRadius: 10, textDecoration: "none",
-                color: item.active ? "#FD5108" : "#B5BCC4",
+                color: item.active ? "#FD5108" : "#A1A8B3",
                 backgroundColor: item.active ? "rgba(253, 81, 8, 0.08)" : "transparent",
-                borderLeft: item.active ? "2px solid #FD5108" : "2px solid transparent",
+                borderLeft: item.active ? "2px solid #FD5108" : "none",
               }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" width={22} height={22}>
                   {item.icon}
