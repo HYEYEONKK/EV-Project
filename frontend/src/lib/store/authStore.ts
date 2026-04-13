@@ -67,8 +67,8 @@ function saveOTPs(otps: OTPEntry[]) {
 }
 
 /* ── 쿠키 헬퍼 (미들웨어 인증용) ─────────────────────────────── */
-function setCookie(name: string, value: string, days: number) {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+function setCookie(name: string, value: string, minutes: number) {
+  const expires = new Date(Date.now() + minutes * 60_000).toUTCString();
   document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Strict`;
 }
 function deleteCookie(name: string) {
@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
         saveUsers(users);
         const user: User = { email, name, createdAt: newUser.createdAt };
         set({ user, isAuthenticated: true });
-        setCookie("ev_auth", "1", 7);
+        setCookie("ev_auth", "1", 4);
         return { success: true };
       },
 
@@ -132,7 +132,7 @@ export const useAuthStore = create<AuthState>()(
         if (!found) return { success: false, error: "이메일 또는 비밀번호가 올바르지 않습니다." };
         const user: User = { email: found.email, name: found.name, createdAt: found.createdAt };
         set({ user, isAuthenticated: true });
-        setCookie("ev_auth", "1", 7);
+        setCookie("ev_auth", "1", 4);
         return { success: true };
       },
 
