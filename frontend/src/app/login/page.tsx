@@ -17,9 +17,16 @@ function LoginForm() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  /* 로그인 페이지 진입 시 기존 세션 정리 — 항상 새로 로그인 */
+  /* 로그인 페이지 진입 시:
+     - "로그인" 버튼으로 직접 온 경우 (from 없음) → 세션 정리
+     - middleware 리다이렉트로 온 경우 (from 있음) → 세션 유지, 로그인되어 있으면 바로 이동 */
   useEffect(() => {
-    if (isAuthenticated) {
+    const from = params.get("from");
+    if (from && isAuthenticated) {
+      // middleware 리다이렉트인데 이미 로그인됨 → 바로 이동
+      router.replace(from);
+    } else if (!from && isAuthenticated) {
+      // 랜딩에서 "로그인" 버튼 클릭 → 새로 로그인
       logout();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
