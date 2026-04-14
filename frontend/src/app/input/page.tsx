@@ -1,14 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 
 /* ─────────────────────────────────────────────
    Input Data Page (PwC Design Guide)
 ───────────────────────────────────────────── */
 export default function InputPage() {
-  const router = useRouter();
-
   const [baseMonth, setBaseMonth] = useState("");
   const [closingMonth, setClosingMonth] = useState("");
   const [language, setLanguage] = useState("ko");
@@ -31,7 +28,7 @@ export default function InputPage() {
     return opts;
   })();
 
-  const handleProcess = () => {
+  const handleProcess = async () => {
     if (!baseMonth) { alert("기준월을 선택해주세요."); return; }
     if (!closingMonth) { alert("결산월을 선택해주세요."); return; }
     if (!company) { alert("회사명을 선택해주세요."); return; }
@@ -39,11 +36,35 @@ export default function InputPage() {
     if (!trialFile) { alert("시산표 파일을 업로드해주세요."); return; }
 
     setLoading(true);
-    // Open dashboard in a new popup window
-    setTimeout(() => {
+
+    const formData = new FormData();
+    formData.append("journalFile", journalFile);
+    formData.append("trialFile", trialFile);
+    formData.append("baseMonth", baseMonth);
+    formData.append("company", company);
+
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${API_URL}/api/v1/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || `서버 오류 (${res.status})`);
+      }
+
+      const data = await res.json();
+      console.log("Upload result:", data);
+
+      // Open dashboard in new tab
       setLoading(false);
       window.open("/home", "_blank", "noopener");
-    }, 1500);
+    } catch (err: any) {
+      setLoading(false);
+      alert(`파일 업로드에 실패했습니다.\n백엔드 서버가 실행 중인지 확인해주세요.\n\n${err.message}`);
+    }
   };
 
   const sidebarItems = [
