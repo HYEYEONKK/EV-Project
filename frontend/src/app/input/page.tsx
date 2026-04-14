@@ -39,17 +39,12 @@ export default function InputPage() {
 
     setLoading(true);
 
-    // Wake up Render server while showing loading, then navigate
-    wakeUpServer().then(() => {
+    // Start waking server in background, navigate after 2s
+    wakeUpServer();
+    setTimeout(() => {
       setLoading(false);
-      const a = document.createElement("a");
-      a.href = "/home";
-      a.target = "_blank";
-      a.rel = "noopener";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
+      window.open("/home", "_blank", "noopener");
+    }, 2000);
   };
 
   const sidebarItems = [
