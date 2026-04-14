@@ -1,0 +1,16 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    # 14분마다 실행 (GitHub Actions 최소 단위는 5분)
+    - cron: "*/14 * * * *"
+  workflow_dispatch: # 수동 실행도 가능
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render health endpoint
+        run: |
+          curl -sf --max-time 300 https://easyview-api-soff.onrender.com/health || true
+          echo "Ping sent at $(date -u)"
