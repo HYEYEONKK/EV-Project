@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "easyview.db"
+from app.database import DB_PATH  # centralized DB path
 
 # ─── LLM 설정 ────────────────────────────────────────────
 LLM_API_KEY = "sk-7DGAHe0SoOJYgYMbLd4qWA"

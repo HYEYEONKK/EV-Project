@@ -8,7 +8,7 @@ from pathlib import Path
 
 router = APIRouter(prefix="/scenarios", tags=["Scenarios"])
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "easyview.db"
+from app.database import DB_PATH  # centralized DB path
 
 
 def get_conn():

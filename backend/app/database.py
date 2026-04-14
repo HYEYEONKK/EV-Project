@@ -1,8 +1,20 @@
+import shutil
 from pathlib import Path
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-DB_PATH = Path(__file__).parent.parent / "data" / "easyview.db"
+# Source DB (from git repo, read-only on Render)
+SRC_DB = Path(__file__).parent.parent / "data" / "easyview.db"
+
+# Runtime DB (writable location)
+RUNTIME_DB = Path("/tmp/easyview.db")
+
+# On startup: copy source DB to writable location if not already there
+if SRC_DB.exists() and not RUNTIME_DB.exists():
+    shutil.copy2(str(SRC_DB), str(RUNTIME_DB))
+
+# Use runtime DB if it exists, otherwise fall back to source
+DB_PATH = RUNTIME_DB if RUNTIME_DB.exists() else SRC_DB
 DB_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(
@@ -16,7 +28,7 @@ def set_sqlite_pragma(dbapi_conn, _):
     cursor = dbapi_conn.cursor()
     cursor.execute("PRAGMA journal_mode=WAL")
     cursor.execute("PRAGMA synchronous=NORMAL")
-    cursor.execute("PRAGMA cache_size=-64000")  # 64MB cache
+    cursor.execute("PRAGMA cache_size=-64000")
     cursor.close()
 
 

@@ -9,7 +9,7 @@ import datetime
 import calendar
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "easyview.db"
+from app.database import DB_PATH  # centralized DB path
 
 # ─── 비용 keyword 분류 ────────────────────────────────────────
 COGS_KEYWORDS = [

@@ -13,7 +13,7 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 
 router = APIRouter(tags=["upload"])
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "easyview.db"
+from app.database import DB_PATH  # centralized DB path
 UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
 
 

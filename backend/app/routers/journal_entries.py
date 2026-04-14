@@ -5,7 +5,7 @@ from typing import Optional
 
 router = APIRouter(prefix="/journal-entries", tags=["Journal Entries"])
 
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "easyview.db"
+from app.database import DB_PATH  # centralized DB path
 
 
 def get_conn():
