@@ -38,17 +38,7 @@ export default function InputPage() {
 
     setLoading(true);
 
-    // Upload in background (don't wait)
-    const formData = new FormData();
-    formData.append("journalFile", journalFile);
-    formData.append("trialFile", trialFile);
-    formData.append("baseMonth", baseMonth);
-    formData.append("company", company);
-
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api/v1";
-    fetch(`${API_BASE}/upload`, { method: "POST", body: formData }).catch(() => {});
-
-    // Open dashboard immediately
+    // Open dashboard immediately (DB already has pre-loaded data)
     setTimeout(() => {
       setLoading(false);
       const a = document.createElement("a");
@@ -58,7 +48,7 @@ export default function InputPage() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    }, 30000);
+    }, 2000);
   };
 
   const sidebarItems = [
