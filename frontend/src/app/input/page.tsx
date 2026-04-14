@@ -139,22 +139,22 @@ export default function InputPage() {
           </p>
 
           {/* Options */}
-          <section style={{ backgroundColor: "#FFF5ED", border: "1px solid #FFCDA8", borderRadius: 12, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
+          <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 2fr", gap: 14 }}>
-              <select value={baseMonth} onChange={e => setBaseMonth(e.target.value)} style={selectStyle}>
+              <select value={baseMonth} onChange={e => setBaseMonth(e.target.value)} style={requiredSelectStyle}>
                 <option value="" disabled>기준월 *</option>
                 {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              <select value={closingMonth} onChange={e => setClosingMonth(e.target.value)} style={selectStyle}>
+              <select value={closingMonth} onChange={e => setClosingMonth(e.target.value)} style={requiredSelectStyle}>
                 <option value="" disabled>결산월 *</option>
                 {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              <select value={language} onChange={e => setLanguage(e.target.value)} style={selectStyle}>
+              <select value={language} onChange={e => setLanguage(e.target.value)} style={requiredSelectStyle}>
                 <option value="" disabled>언어 선택 *</option>
                 <option value="ko">한국어</option>
                 <option value="en">English</option>
               </select>
-              <select value={company} onChange={e => setCompany(e.target.value)} style={selectStyle}>
+              <select value={company} onChange={e => setCompany(e.target.value)} style={requiredSelectStyle}>
                 <option value="" disabled>회사명 선택 *</option>
                 <option value="ABC">ABC</option>
                 <option value="DEF">DEF</option>
@@ -204,6 +204,17 @@ const selectStyle: React.CSSProperties = {
   flex: 1, padding: "10px 32px 10px 14px", fontSize: 14,
   color: "#1A1A2E", backgroundColor: "#fff",
   border: "1px solid #DFE3E6", borderRadius: 6,
+  appearance: "none" as const, cursor: "pointer", outline: "none",
+  fontFamily: "inherit",
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A1A8B3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "right 12px center",
+};
+
+const requiredSelectStyle: React.CSSProperties = {
+  flex: 1, padding: "10px 32px 10px 14px", fontSize: 14,
+  color: "#1A1A2E", backgroundColor: "#FFF5ED",
+  border: "1px solid #FFCDA8", borderRadius: 6,
   appearance: "none" as const, cursor: "pointer", outline: "none",
   fontFamily: "inherit",
   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A1A8B3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
