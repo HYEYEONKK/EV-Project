@@ -58,9 +58,15 @@ export default function InputPage() {
       const data = await res.json();
       console.log("Upload result:", data);
 
-      // Open dashboard in new tab
+      // Open dashboard in new tab (use link click to avoid popup blocker)
       setLoading(false);
-      window.open("/home", "_blank", "noopener");
+      const a = document.createElement("a");
+      a.href = "/home";
+      a.target = "_blank";
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } catch (err: any) {
       setLoading(false);
       alert(`파일 업로드에 실패했습니다.\n백엔드 서버가 실행 중인지 확인해주세요.\n\n${err.message}`);
