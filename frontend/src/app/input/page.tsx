@@ -133,9 +133,12 @@ export default function InputPage() {
               </button>
             </div>
           </div>
-          <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.6 }}>
-            아래 정보를 입력한 후 각 파일을 업로드하시면 경영 정보 보고서를 생성합니다.
-          </p>
+          <div>
+            <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.6 }}>
+              아래 정보를 입력한 후 각 파일을 업로드하시면 경영 정보 보고서를 생성합니다.
+            </p>
+            <p style={{ fontSize: 12, color: "#FD5108", marginTop: 6 }}>* 필수 선택값</p>
+          </div>
 
           {/* Options */}
           <section style={{ backgroundColor: "#FFF5ED", border: "1px solid #FFCDA8", borderRadius: 12, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
@@ -149,11 +152,11 @@ export default function InputPage() {
                 {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               <select value={language} onChange={e => setLanguage(e.target.value)} style={selectStyle}>
-                <option value="ko">한국어</option>
+                <option value="ko">언어 선택</option>
                 <option value="en">English</option>
               </select>
               <select value={company} onChange={e => setCompany(e.target.value)} style={selectStyle}>
-                <option value="" disabled>회사명을 선택하시오 *</option>
+                <option value="" disabled>회사명 선택 *</option>
                 <option value="ABC">ABC</option>
                 <option value="DEF">DEF</option>
                 <option value="GHI">GHI</option>
@@ -161,7 +164,7 @@ export default function InputPage() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 2fr", gap: 14 }}>
               <select value={extraOption} onChange={e => setExtraOption(e.target.value)} style={selectStyle}>
-                <option value="" disabled>추가 옵션을 선택하시오</option>
+                <option value="" disabled>추가 옵션 선택</option>
                 <option value="manufacturing">제조원가 보여주기</option>
                 <option value="cashflow">현금흐름표 보여주기</option>
                 <option value="division">사업부 추가</option>
