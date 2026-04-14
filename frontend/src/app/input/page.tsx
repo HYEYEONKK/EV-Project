@@ -8,7 +8,7 @@ import Link from "next/link";
 export default function InputPage() {
   const [baseMonth, setBaseMonth] = useState("");
   const [closingMonth, setClosingMonth] = useState("");
-  const [language, setLanguage] = useState("ko");
+  const [language, setLanguage] = useState("");
   const [company, setCompany] = useState("");
   const [extraOption, setExtraOption] = useState("");
   const [journalFile, setJournalFile] = useState<File | null>(null);
@@ -31,6 +31,7 @@ export default function InputPage() {
   const handleProcess = async () => {
     if (!baseMonth) { alert("기준월을 선택해주세요."); return; }
     if (!closingMonth) { alert("결산월을 선택해주세요."); return; }
+    if (!language) { alert("언어를 선택해주세요."); return; }
     if (!company) { alert("회사명을 선택해주세요."); return; }
     if (!journalFile) { alert("분개장 파일을 업로드해주세요."); return; }
     if (!trialFile) { alert("시산표 파일을 업로드해주세요."); return; }
@@ -149,7 +150,8 @@ export default function InputPage() {
                 {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               <select value={language} onChange={e => setLanguage(e.target.value)} style={selectStyle}>
-                <option value="ko">언어 선택</option>
+                <option value="" disabled>언어 선택 *</option>
+                <option value="ko">한국어</option>
                 <option value="en">English</option>
               </select>
               <select value={company} onChange={e => setCompany(e.target.value)} style={selectStyle}>
