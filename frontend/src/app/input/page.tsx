@@ -233,7 +233,7 @@ function UploadBox({ label, file, onFile }: { label: string; file: File | null; 
       onClick={() => {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = ".xlsx,.xls,.csv";
+        input.accept = ".xlsx,.xls,.csv,.txt";
         input.onchange = (e) => {
           const f = (e.target as HTMLInputElement).files?.[0];
           if (f) onFile(f);
@@ -300,7 +300,7 @@ function UploadBox({ label, file, onFile }: { label: string; file: File | null; 
               {label}
             </span>
             <span style={{ fontSize: 11, color: "#B5BCC4" }}>
-              .xlsx, .xls, .csv 파일 지원
+              .xlsx, .xls, .csv, .txt 파일 지원
             </span>
           </>
         )}
