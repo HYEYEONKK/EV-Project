@@ -4,7 +4,7 @@ import DatePicker from "@/components/ui/DatePicker";
 
 const LS = "-0.3px";
 const DATA_MIN = "2024-01-01";
-const DATA_MAX = "2026-03-31";
+const DATA_MAX = "2025-09-30";
 
 export default function DateRangeFilterBar() {
   const { dateFrom, dateTo, setDateRange } = useFilterStore();

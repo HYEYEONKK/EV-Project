@@ -94,7 +94,7 @@ export default function BsAccountPage() {
       {/* 기준일 선택 */}
       <div className="flex items-center gap-3">
         <span style={{ fontSize: 13, color: "#A1A8B3" }}>기준일</span>
-        <DatePicker value={refDate} onChange={setRefDate} minDate="2024-01-01" maxDate="2026-03-31" />
+        <DatePicker value={refDate} onChange={setRefDate} minDate="2024-01-01" maxDate="2025-09-30" />
         {isLoading && <span style={{ fontSize: 12, color: "#A1A8B3" }}>불러오는 중...</span>}
       </div>
 

@@ -96,13 +96,13 @@ export default function ScenarioFilterBar({ n }: Props) {
       <DatePicker
         value={scenarioDateFrom}
         onChange={(v) => setScenarioDateRange(v, scenarioDateTo)}
-        minDate="2024-01-01" maxDate="2026-03-31"
+        minDate="2024-01-01" maxDate="2025-09-30"
       />
       <span style={{ fontSize: 14, letterSpacing: LS, color: "#A1A8B3" }}>~</span>
       <DatePicker
         value={scenarioDateTo}
         onChange={(v) => setScenarioDateRange(scenarioDateFrom, v)}
-        minDate="2024-01-01" maxDate="2026-03-31"
+        minDate="2024-01-01" maxDate="2025-09-30"
       />
 
       {/* 금액 범위 드롭다운 (시나리오 1, 2, 4) */}

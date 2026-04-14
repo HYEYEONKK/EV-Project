@@ -7,9 +7,9 @@ const LS = "-0.3px"; // letter-spacing
 
 /* ── Available months ── */
 const MONTHS: string[] = [];
-for (let y = 2024; y <= 2026; y++) {
+for (let y = 2024; y <= 2025; y++) {
   for (let mo = 1; mo <= 12; mo++) {
-    if (y === 2026 && mo > 3) break;
+    if (y === 2025 && mo > 9) break;
     MONTHS.push(`${y}-${String(mo).padStart(2, "0")}`);
   }
 }
