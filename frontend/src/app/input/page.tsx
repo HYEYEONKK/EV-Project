@@ -44,7 +44,7 @@ export default function InputPage() {
     formData.append("company", company);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
       const res = await fetch(`${API_URL}/api/v1/upload`, {
         method: "POST",
         body: formData,
