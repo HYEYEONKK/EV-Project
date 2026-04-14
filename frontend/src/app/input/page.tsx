@@ -58,7 +58,7 @@ export default function InputPage() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    }, 1500);
+    }, 30000);
   };
 
   const sidebarItems = [
