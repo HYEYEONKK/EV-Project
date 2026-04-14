@@ -135,7 +135,7 @@ export default function InputPage() {
             </div>
           </div>
           <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.6 }}>
-            아래 정보를 입력한 후 각 파일을 업로드하시면 경영 정보 보고서를 생성합니다. <span style={{ fontSize: 12, color: "#FD5108", marginLeft: 8 }}>* 필수 선택값</span>
+            아래 정보를 입력한 후 각 파일을 업로드하시면 경영 정보 보고서를 생성합니다. <span style={{ fontSize: 12, color: "#FD5108", marginLeft: 8 }}>* 필수 선택</span>
           </p>
 
           {/* Options */}
