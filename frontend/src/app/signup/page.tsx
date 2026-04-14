@@ -27,7 +27,7 @@ export default function SignupPage() {
 
   /* 이미 로그인된 경우 */
   useEffect(() => {
-    if (isAuthenticated) router.replace("/home");
+    if (isAuthenticated) router.replace("/input");
   }, [isAuthenticated, router]);
 
   /* 비디오 루프 */
