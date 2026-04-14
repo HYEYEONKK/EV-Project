@@ -192,7 +192,7 @@ export default function ExchangeRatePage() {
                     <XAxis dataKey="month" tick={AXIS_STYLE} tickLine={false} axisLine={false} />
                     <YAxis tickFormatter={v => v?.toLocaleString()} tick={AXIS_STYLE}
                       tickLine={false} axisLine={false} width={56} domain={["auto", "auto"]} />
-                    <Tooltip formatter={(v: number) => fmtFx(v)}
+                    <Tooltip formatter={(v: any) => fmtFx(v)}
                       contentStyle={TOOLTIP_STYLE} />
                     <Legend wrapperStyle={{ fontSize: 13, paddingLeft: 56, paddingTop: 4 }} />
                     <Area type="monotone" dataKey="전기환율" stroke="#A1A8B3" strokeWidth={1.5}

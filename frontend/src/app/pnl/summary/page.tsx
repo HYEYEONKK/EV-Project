@@ -188,7 +188,7 @@ function KpiChartCell({
                 <YAxis tickFormatter={(v: number) => formatKRW(v)} tick={{ ...AXIS_STYLE, fontSize: 10 }}
                   tickLine={false} axisLine={false} width={72} />
                 <Tooltip
-                  formatter={(v: number) => formatKRW(v)}
+                  formatter={(v: any) => formatKRW(v)}
                   contentStyle={TOOLTIP_STYLE}
                 />
                 {/* 전기 — 점선 */}
@@ -238,7 +238,7 @@ function MarginTrendChart({
             <YAxis tickFormatter={(v: number) => `${v.toFixed(0)}%`} tick={{ ...AXIS_STYLE, fontSize: 10 }}
               tickLine={false} axisLine={false} width={40} domain={["auto", "auto"]} />
             <Tooltip
-              formatter={(v: number) => `${v?.toFixed(1)}%`}
+              formatter={(v: any) => `${v?.toFixed(1)}%`}
               contentStyle={TOOLTIP_STYLE}
             />
             <Legend wrapperStyle={{ fontSize: 13, paddingTop: 4 }} />
@@ -337,7 +337,7 @@ function PlBridgeChart({ waterfallData }: { waterfallData: any[] }) {
               tick={{ fontSize: 10, fill: "#A1A8B3" }}
               tickLine={false} axisLine={false} width={72} />
             <Tooltip
-              formatter={(v: number) => formatKRW(v)}
+              formatter={(v: any) => formatKRW(v)}
               contentStyle={TOOLTIP_STYLE} />
             <ReferenceLine y={0} stroke="#DFE3E6" strokeWidth={1.5} />
             <Line type="monotone" dataKey="매출총이익" stroke="#FD5108" strokeWidth={2}

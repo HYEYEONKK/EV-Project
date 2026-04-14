@@ -124,7 +124,7 @@ function BsTrendChart({ data, branches, colors, height = 130 }: {
         <XAxis dataKey="month" tick={XTick} tickLine={false} axisLine={false} interval={0} />
         <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={72}
           tickFormatter={v => formatKRW(v)} />
-        <Tooltip formatter={(v: number) => formatKRW(v)}
+        <Tooltip formatter={(v: any) => formatKRW(Number(v))}
           contentStyle={TOOLTIP_STYLE} />
         {branches.map(b => (
           <Area key={b} type="monotone" dataKey={b} stackId="a"
@@ -268,7 +268,7 @@ export default function BsSummaryPage() {
                   <XAxis dataKey="month" tick={makeXTick(equityData.length)} tickLine={false} axisLine={false} interval={0} />
                   <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={72}
                     tickFormatter={v => formatKRW(v)} />
-                  <Tooltip formatter={(v: number) => formatKRW(v)}
+                  <Tooltip formatter={(v: any) => formatKRW(Number(v))}
                     contentStyle={TOOLTIP_STYLE} />
                   <Area type="monotone" dataKey="자본" stroke="#FFAA72" strokeWidth={1.5}
                     fill="url(#gradEquity)" dot={false} />
@@ -295,7 +295,7 @@ export default function BsSummaryPage() {
                 <XAxis dataKey="month" tick={ratioXTick} tickLine={false} axisLine={false} interval={0} />
                 <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={44}
                   tickFormatter={v => v + "%"} />
-                <Tooltip formatter={(v: number) => v.toFixed(1) + "%"}
+                <Tooltip formatter={(v: any) => Number(v).toFixed(1) + "%"}
                   contentStyle={TOOLTIP_STYLE} />
                 <Line type="monotone" dataKey="당좌비율" stroke="#FD5108" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="유동비율" stroke="#FFAA72" strokeWidth={2} dot={false} />
@@ -313,7 +313,7 @@ export default function BsSummaryPage() {
                 <XAxis dataKey="month" tick={ratioXTick} tickLine={false} axisLine={false} interval={0} />
                 <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={44}
                   tickFormatter={v => v + "%"} />
-                <Tooltip formatter={(v: number) => v.toFixed(1) + "%"}
+                <Tooltip formatter={(v: any) => Number(v).toFixed(1) + "%"}
                   contentStyle={TOOLTIP_STYLE} />
                 <Line type="monotone" dataKey="부채비율" stroke="#A1A8B3" strokeWidth={2} dot={false} />
               </LineChart>
@@ -361,7 +361,7 @@ export default function BsSummaryPage() {
                   <XAxis dataKey="month" tick={actXTick} tickLine={false} axisLine={false} interval={0} />
                   <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={48}
                     tickFormatter={v => v + "일"} />
-                  <Tooltip formatter={(v: number) => v.toFixed(1) + "일"}
+                  <Tooltip formatter={(v: any) => Number(v).toFixed(1) + "일"}
                     contentStyle={TOOLTIP_STYLE} />
                   {avgRecvDays > 0 && (
                     <ReferenceLine y={avgRecvDays} stroke="#FD5108" strokeDasharray="4 2" strokeWidth={1}
@@ -411,7 +411,7 @@ export default function BsSummaryPage() {
                   <XAxis dataKey="month" tick={actXTick} tickLine={false} axisLine={false} interval={0} />
                   <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={48}
                     tickFormatter={v => v + "일"} />
-                  <Tooltip formatter={(v: number) => v.toFixed(1) + "일"}
+                  <Tooltip formatter={(v: any) => Number(v).toFixed(1) + "일"}
                     contentStyle={TOOLTIP_STYLE} />
                   {avgInvDays > 0 && (
                     <ReferenceLine y={avgInvDays} stroke="#FE7C39" strokeDasharray="4 2" strokeWidth={1}

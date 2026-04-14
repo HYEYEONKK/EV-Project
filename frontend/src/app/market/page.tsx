@@ -157,7 +157,7 @@ function InterestRateSection() {
                     />
                     <YAxis tickFormatter={v => v + "%"} tick={AXIS_STYLE} tickLine={false} axisLine={false}
                       width={44} domain={["auto", "auto"]} />
-                    <Tooltip formatter={(v: number) => v?.toFixed(2) + "%"} />
+                    <Tooltip formatter={(v: any) => v?.toFixed(2) + "%"} />
                     <Legend wrapperStyle={{ fontSize: 13, paddingLeft: 44, paddingTop: 4 }} />
                     <Line type="monotone" dataKey="CD(91일)"    stroke="#FD5108" strokeWidth={2} dot={false} />
                     <Line type="monotone" dataKey="국고채(3년)" stroke="#6B7280" strokeWidth={2} dot={false} />
@@ -332,7 +332,7 @@ function ExchangeRateSection() {
                       width={56} domain={["auto", "auto"]}
                     />
                     <Tooltip
-                      formatter={(v: number) => fmtFx(v)}
+                      formatter={(v: any) => fmtFx(v)}
                       contentStyle={TOOLTIP_STYLE}
                     />
                     <Legend wrapperStyle={{ fontSize: 13, paddingLeft: 56, paddingTop: 4 }} />

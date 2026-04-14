@@ -535,7 +535,7 @@ function AccountDeltaChart({ plA, plB }: { plA: PLData | undefined; plB: PLData 
               width={76}
             />
             <Tooltip
-              formatter={(v: number) => [formatKRW(v), "증감액"]}
+              formatter={(v: any) => [formatKRW(v), "증감액"]}
               contentStyle={TOOLTIP_STYLE}
             />
             <ReferenceLine x={0} stroke="#EEEFF1" />

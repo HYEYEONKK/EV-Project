@@ -101,7 +101,7 @@ export default function InterestRatePage() {
                     />
                     <YAxis tickFormatter={v => v + "%"} tick={AXIS_STYLE} tickLine={false} axisLine={false}
                       width={44} domain={["auto", "auto"]} />
-                    <Tooltip formatter={(v: number) => v?.toFixed(2) + "%"}
+                    <Tooltip formatter={(v: any) => v?.toFixed(2) + "%"}
                       contentStyle={TOOLTIP_STYLE} />
                     <Legend wrapperStyle={{ fontSize: 13, paddingLeft: 44, paddingTop: 4 }} />
                     <Line type="monotone" dataKey="CD(91일)"    stroke="#FD5108" strokeWidth={2} dot={false} />
