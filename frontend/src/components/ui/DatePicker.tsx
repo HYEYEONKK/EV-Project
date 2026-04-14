@@ -133,7 +133,7 @@ export default function DatePicker({ value, onChange, minDate, maxDate }: DatePi
 
       {open && (
         <div style={{
-          position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 400,
+          position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 400,
           backgroundColor: "#fff", border: "1px solid #DFE3E6",
           borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
           padding: "14px", width: viewMode === "ym" ? 240 : 252,
