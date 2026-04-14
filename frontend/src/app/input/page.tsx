@@ -139,28 +139,28 @@ export default function InputPage() {
 
           {/* Options */}
           <section style={{ backgroundColor: "#FFF5ED", border: "1px solid #FFCDA8", borderRadius: 12, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "flex", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 2fr", gap: 14 }}>
               <select value={baseMonth} onChange={e => setBaseMonth(e.target.value)} style={selectStyle}>
-                <option value="" disabled>기준월</option>
+                <option value="" disabled>기준월 *</option>
                 {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               <select value={closingMonth} onChange={e => setClosingMonth(e.target.value)} style={selectStyle}>
-                <option value="" disabled>결산월</option>
+                <option value="" disabled>결산월 *</option>
                 {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               <select value={language} onChange={e => setLanguage(e.target.value)} style={selectStyle}>
                 <option value="ko">한국어</option>
                 <option value="en">English</option>
               </select>
-              <select value={company} onChange={e => setCompany(e.target.value)} style={{ ...selectStyle, flex: 2 }}>
-                <option value="" disabled>회사명을 선택하시오</option>
+              <select value={company} onChange={e => setCompany(e.target.value)} style={selectStyle}>
+                <option value="" disabled>회사명을 선택하시오 *</option>
                 <option value="ABC">ABC</option>
                 <option value="DEF">DEF</option>
                 <option value="GHI">GHI</option>
               </select>
             </div>
-            <div style={{ display: "flex", gap: 14 }}>
-              <select value={extraOption} onChange={e => setExtraOption(e.target.value)} style={{ ...selectStyle, flex: "none", width: "calc(20% - 11.2px)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 2fr", gap: 14 }}>
+              <select value={extraOption} onChange={e => setExtraOption(e.target.value)} style={selectStyle}>
                 <option value="" disabled>추가 옵션을 선택하시오</option>
                 <option value="manufacturing">제조원가 보여주기</option>
                 <option value="cashflow">현금흐름표 보여주기</option>
