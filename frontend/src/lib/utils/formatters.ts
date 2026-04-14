@@ -2,9 +2,9 @@ export function formatKRW(value: number): string {
   if (!value && value !== 0) return "-";
   const abs = Math.abs(value);
   const sign = value < 0 ? "-" : "";
-  if (abs >= 1e12) return `${sign}${(abs / 1e12).toFixed(1)}조`;
-  if (abs >= 1e8) return `${sign}${(abs / 1e8).toFixed(1)}억`;
-  if (abs >= 1e4) return `${sign}${(abs / 1e4).toFixed(0)}만`;
+  if (abs >= 1e12) return `${sign}${(abs / 1e12).toLocaleString("ko-KR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}조`;
+  if (abs >= 1e8) return `${sign}${(abs / 1e8).toLocaleString("ko-KR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}억`;
+  if (abs >= 1e4) return `${sign}${(abs / 1e4).toLocaleString("ko-KR", { maximumFractionDigits: 0 })}만`;
   return `${sign}${abs.toLocaleString("ko-KR")}`;
 }
 
@@ -35,8 +35,9 @@ export function formatPctAbs(value: number, decimals = 1): string {
 
 export function chartAxisFormatter(value: number): string {
   const abs = Math.abs(value);
-  if (abs >= 1e12) return `${(value / 1e12).toFixed(1)}조`;
-  if (abs >= 1e8) return `${(value / 1e8).toFixed(0)}억`;
-  if (abs >= 1e4) return `${(value / 1e4).toFixed(0)}만`;
+  const sign = value < 0 ? "-" : "";
+  if (abs >= 1e12) return `${sign}${(abs / 1e12).toLocaleString("ko-KR", { maximumFractionDigits: 1 })}조`;
+  if (abs >= 1e8) return `${sign}${(abs / 1e8).toLocaleString("ko-KR", { maximumFractionDigits: 0 })}억`;
+  if (abs >= 1e4) return `${sign}${(abs / 1e4).toLocaleString("ko-KR", { maximumFractionDigits: 0 })}만`;
   return value.toLocaleString("ko-KR");
 }
