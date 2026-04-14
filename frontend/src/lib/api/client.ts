@@ -1,10 +1,48 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001/api/v1";
 
+/* ── Server wake-up state ── */
+let _serverReady = false;
+let _wakePromise: Promise<void> | null = null;
+
+export function isServerReady() {
+  return _serverReady;
+}
+
+/** Ping /health until the server responds (Render free tier cold start) */
+export function wakeUpServer(): Promise<void> {
+  if (_serverReady) return Promise.resolve();
+  if (_wakePromise) return _wakePromise;
+
+  const healthUrl = API_BASE.replace(/\/api\/v1$/, "/health");
+
+  _wakePromise = (async () => {
+    for (let i = 0; i < 40; i++) {
+      try {
+        const res = await fetch(healthUrl, { cache: "no-store" });
+        if (res.ok) {
+          _serverReady = true;
+          return;
+        }
+      } catch {
+        // server still waking up
+      }
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+    // Give up after ~200s, let normal requests try anyway
+    _serverReady = true;
+  })();
+
+  return _wakePromise;
+}
+
 export async function apiFetch<T>(
   path: string,
   params?: Record<string, unknown>
 ): Promise<T> {
+  // Wait for server to be ready before making API calls
+  await wakeUpServer();
+
   const url = new URL(`${API_BASE}${path}`);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
