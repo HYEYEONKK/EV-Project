@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { wakeUpServer } from "@/lib/api/client";
 
 /* ─────────────────────────────────────────────
    Input Data Page (PwC Design Guide)
@@ -38,8 +39,8 @@ export default function InputPage() {
 
     setLoading(true);
 
-    // Open dashboard immediately (DB already has pre-loaded data)
-    setTimeout(() => {
+    // Wake up Render server while showing loading, then navigate
+    wakeUpServer().then(() => {
       setLoading(false);
       const a = document.createElement("a");
       a.href = "/home";
@@ -48,7 +49,7 @@ export default function InputPage() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    }, 2000);
+    });
   };
 
   const sidebarItems = [
