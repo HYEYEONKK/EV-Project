@@ -139,38 +139,34 @@ export default function InputPage() {
           </p>
 
           {/* Options */}
-          <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 2fr", gap: 14 }}>
-              <select value={baseMonth} onChange={e => setBaseMonth(e.target.value)} style={requiredSelectStyle}>
-                <option value="" disabled>기준월 *</option>
-                {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-              <select value={closingMonth} onChange={e => setClosingMonth(e.target.value)} style={requiredSelectStyle}>
-                <option value="" disabled>결산월 *</option>
-                {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-              <select value={language} onChange={e => setLanguage(e.target.value)} style={requiredSelectStyle}>
-                <option value="" disabled>언어 선택 *</option>
-                <option value="ko">한국어</option>
-                <option value="en">English</option>
-              </select>
-              <select value={company} onChange={e => setCompany(e.target.value)} style={requiredSelectStyle}>
-                <option value="" disabled>회사명 선택 *</option>
-                <option value="ABC">ABC</option>
-                <option value="DEF">DEF</option>
-                <option value="GHI">GHI</option>
-              </select>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 2fr", gap: 14 }}>
-              <select value={extraOption} onChange={e => setExtraOption(e.target.value)} style={selectStyle}>
-                <option value="" disabled>추가 옵션 선택</option>
-                <option value="manufacturing">제조원가 보여주기</option>
-                <option value="cashflow">현금흐름표 보여주기</option>
-                <option value="division">사업부 추가</option>
-                <option value="bank">은행내역 추가</option>
-              </select>
-            </div>
-          </section>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 14 }}>
+            <select value={baseMonth} onChange={e => setBaseMonth(e.target.value)} style={requiredSelectStyle}>
+              <option value="" disabled>기준월 *</option>
+              {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            <select value={closingMonth} onChange={e => setClosingMonth(e.target.value)} style={requiredSelectStyle}>
+              <option value="" disabled>결산월 *</option>
+              {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            <select value={language} onChange={e => setLanguage(e.target.value)} style={requiredSelectStyle}>
+              <option value="" disabled>언어 선택 *</option>
+              <option value="ko">한국어</option>
+              <option value="en">English</option>
+            </select>
+            <select value={company} onChange={e => setCompany(e.target.value)} style={requiredSelectStyle}>
+              <option value="" disabled>회사명 선택 *</option>
+              <option value="ABC">ABC</option>
+              <option value="DEF">DEF</option>
+              <option value="GHI">GHI</option>
+            </select>
+            <select value={extraOption} onChange={e => setExtraOption(e.target.value)} style={selectStyle}>
+              <option value="" disabled>추가 옵션 선택</option>
+              <option value="manufacturing">제조원가 보여주기</option>
+              <option value="cashflow">현금흐름표 보여주기</option>
+              <option value="division">사업부 추가</option>
+              <option value="bank">은행내역 추가</option>
+            </select>
+          </div>
 
           {/* File Upload */}
           <section style={{ display: "flex", gap: 20, flex: 1, minHeight: 280 }}>
