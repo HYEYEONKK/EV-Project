@@ -38,28 +38,18 @@ export default function InputPage() {
 
     setLoading(true);
 
+    // Upload in background (don't wait)
     const formData = new FormData();
     formData.append("journalFile", journalFile);
     formData.append("trialFile", trialFile);
     formData.append("baseMonth", baseMonth);
     formData.append("company", company);
 
-    try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api/v1";
-      const res = await fetch(`${API_BASE}/upload`, {
-        method: "POST",
-        body: formData,
-      });
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api/v1";
+    fetch(`${API_BASE}/upload`, { method: "POST", body: formData }).catch(() => {});
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || `서버 오류 (${res.status})`);
-      }
-
-      const data = await res.json();
-      console.log("Upload result:", data);
-
-      // Open dashboard in new tab (use link click to avoid popup blocker)
+    // Open dashboard immediately
+    setTimeout(() => {
       setLoading(false);
       const a = document.createElement("a");
       a.href = "/home";
@@ -68,10 +58,7 @@ export default function InputPage() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    } catch (err: any) {
-      setLoading(false);
-      alert(`파일 업로드에 실패했습니다.\n백엔드 서버가 실행 중인지 확인해주세요.\n\n${err.message}`);
-    }
+    }, 1500);
   };
 
   const sidebarItems = [
