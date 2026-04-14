@@ -160,7 +160,7 @@ export default function InputPage() {
               </select>
             </div>
             <div style={{ display: "flex", gap: 14 }}>
-              <select value={extraOption} onChange={e => setExtraOption(e.target.value)} style={{ ...selectStyle, flex: "none", width: "calc(25% - 10.5px)" }}>
+              <select value={extraOption} onChange={e => setExtraOption(e.target.value)} style={{ ...selectStyle, flex: "none", width: "calc(20% - 11.2px)" }}>
                 <option value="" disabled>추가 옵션을 선택하시오</option>
                 <option value="manufacturing">제조원가 보여주기</option>
                 <option value="cashflow">현금흐름표 보여주기</option>
