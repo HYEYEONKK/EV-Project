@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import financial_statements, journal_entries, sales, budget, scenarios, chat, market_data, upload
+from app.routers import financial_statements, journal_entries, sales, budget, scenarios, chat, market_data, upload, auth
 
 app = FastAPI(
     title="EasyView API",
@@ -25,6 +25,7 @@ app.include_router(scenarios.router, prefix=PREFIX)
 app.include_router(chat.router, prefix=PREFIX)
 app.include_router(market_data.router, prefix=PREFIX)
 app.include_router(upload.router, prefix=PREFIX)
+app.include_router(auth.router, prefix=PREFIX)
 
 
 @app.get("/")

@@ -4,33 +4,24 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
 import Link from "next/link";
 
-type Step = "email" | "otp" | "profile";
-
 export default function SignupPage() {
   const router = useRouter();
-  const { sendOTP, verifyOTP, register, isAuthenticated, isEmailRegistered } = useAuthStore();
+  const { register, isAuthenticated } = useAuthStore();
 
-  const [step, setStep] = useState<Step>("email");
   const [email, setEmail]       = useState("");
-  const [otp, setOtp]           = useState(["", "", "", "", "", ""]);
   const [name, setName]         = useState("");
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [showPw, setShowPw]     = useState(false);
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
-  const [mockOTP, setMockOTP]   = useState<string | null>(null); // 데모용 OTP 표시
-  const [resendSec, setResendSec] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const otpRefs  = useRef<(HTMLInputElement | null)[]>([]);
 
-  /* 이미 로그인된 경우 */
   useEffect(() => {
     if (isAuthenticated) router.replace("/input");
   }, [isAuthenticated, router]);
 
-  /* 비디오 루프 */
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -39,105 +30,26 @@ export default function SignupPage() {
     return () => v.removeEventListener("timeupdate", h);
   }, []);
 
-  /* 재전송 카운트다운 */
-  useEffect(() => {
-    if (resendSec <= 0) return;
-    const t = setInterval(() => setResendSec((s) => s - 1), 1000);
-    return () => clearInterval(t);
-  }, [resendSec]);
-
-  /* ── Step 1: 이메일 제출 ─────────────────────────────────── */
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email) { setError("이메일을 입력해 주세요."); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("올바른 이메일 형식이 아닙니다."); return; }
-    if (isEmailRegistered(email)) { setError("이미 가입된 이메일입니다. 로그인 페이지를 이용해 주세요."); return; }
-    setLoading(true);
-    const res = await sendOTP(email);
-    setLoading(false);
-    if (res.success) {
-      setMockOTP(res.otp ?? null);
-      setResendSec(60);
-      setStep("otp");
-    } else {
-      setError(res.error ?? "오류가 발생했습니다.");
-    }
-  };
-
-  /* ── Step 2: OTP 인증 ────────────────────────────────────── */
-  const handleOTPInput = (idx: number, val: string) => {
-    if (!/^\d*$/.test(val)) return;
-    const next = [...otp];
-    next[idx] = val.slice(-1);
-    setOtp(next);
-    if (val && idx < 5) otpRefs.current[idx + 1]?.focus();
-  };
-  const handleOTPKeyDown = (idx: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[idx] && idx > 0) {
-      otpRefs.current[idx - 1]?.focus();
-    }
-  };
-  const handleOTPPaste = (e: React.ClipboardEvent) => {
-    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (text.length === 6) {
-      setOtp(text.split(""));
-      otpRefs.current[5]?.focus();
-    }
-  };
-
-  const handleOTPSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = otp.join("");
-    if (code.length < 6) { setError("6자리 인증 코드를 모두 입력해 주세요."); return; }
-    setError("");
-    setLoading(true);
-    const res = await verifyOTP(email, code);
-    setLoading(false);
-    if (res.success) {
-      setStep("profile");
-    } else {
-      setError(res.error ?? "인증 실패");
-    }
-  };
-
-  const handleResend = async () => {
-    if (resendSec > 0) return;
-    setLoading(true);
-    const res = await sendOTP(email);
-    setLoading(false);
-    if (res.success) {
-      setMockOTP(res.otp ?? null);
-      setResendSec(60);
-      setOtp(["", "", "", "", "", ""]);
-      setError("");
-    }
-  };
-
-  /* ── Step 3: 프로필 & 비밀번호 ───────────────────────────── */
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     if (!name) { setError("이름을 입력해 주세요."); return; }
     if (password.length < 8) { setError("비밀번호는 8자 이상이어야 합니다."); return; }
     if (password !== confirmPw) { setError("비밀번호가 일치하지 않습니다."); return; }
-    setError("");
     setLoading(true);
     const res = await register(email, password, name);
     setLoading(false);
     if (res.success) {
-      router.replace("/home");
+      router.replace("/input");
     } else {
       setError(res.error ?? "회원가입에 실패했습니다.");
     }
   };
 
-  /* ── 진행률 표시 ─────────────────────────────────────────── */
-  const stepIdx = step === "email" ? 0 : step === "otp" ? 1 : 2;
-  const STEPS = ["이메일 확인", "본인 인증", "계정 설정"];
-
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      {/* 배경 비디오 */}
       <video
         ref={videoRef}
         src="/bg.mp4"
@@ -146,7 +58,6 @@ export default function SignupPage() {
       />
       <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(255,255,255,0.45)", backdropFilter: "blur(2px)", zIndex: 1 }} />
 
-      {/* 카드 */}
       <div
         style={{
           position: "relative", zIndex: 2,
@@ -171,197 +82,68 @@ export default function SignupPage() {
           </span>
         </div>
 
-        {/* 스텝 인디케이터 */}
-        <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 32 }}>
-          {STEPS.map((label, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", flex: i < STEPS.length - 1 ? 1 : undefined }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: "50%",
-                  backgroundColor: i < stepIdx ? "#FD5108" : i === stepIdx ? "#FD5108" : "#EEEFF1",
-                  color: i <= stepIdx ? "#fff" : "#A1A8B3",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 12, fontWeight: 700,
-                  flexShrink: 0,
-                  transition: "background-color 0.2s",
-                }}>
-                  {i < stepIdx ? <CheckIcon /> : i + 1}
-                </div>
-                <span style={{ fontSize: 11, color: i <= stepIdx ? "#FD5108" : "#A1A8B3", fontWeight: i === stepIdx ? 600 : 400, whiteSpace: "nowrap" }}>
-                  {label}
-                </span>
-              </div>
-              {i < STEPS.length - 1 && (
-                <div style={{ flex: 1, height: 2, backgroundColor: i < stepIdx ? "#FD5108" : "#EEEFF1", margin: "0 8px", marginBottom: 20, transition: "background-color 0.2s" }} />
-              )}
-            </div>
-          ))}
-        </div>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E", marginBottom: 6, letterSpacing: "-0.3px" }}>회원가입</h1>
+        <p style={{ fontSize: 13, color: "#A1A8B3", marginBottom: 24 }}>아래 정보를 입력하면 가입이 완료됩니다.</p>
 
-        {/* ── Step 1: 이메일 ── */}
-        {step === "email" && (
-          <>
-            <h1 style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E", marginBottom: 6, letterSpacing: "-0.3px" }}>이메일 확인</h1>
-            <p style={{ fontSize: 13, color: "#A1A8B3", marginBottom: 24 }}>
-              가입할 이메일 주소를 입력하면 인증 코드를 보내드립니다.
-            </p>
-            <form onSubmit={handleEmailSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <label style={{ fontSize: 13, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>이메일</label>
-                <input
-                  type="email"
-                  placeholder="example@pwc.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoFocus
-                  style={inputStyle}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#FD5108")}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = "#DFE3E6")}
-                />
-              </div>
-              {error && <ErrorBox msg={error} />}
-              <SubmitBtn loading={loading} label="인증 코드 발송" />
-            </form>
-          </>
-        )}
-
-        {/* ── Step 2: OTP ── */}
-        {step === "otp" && (
-          <>
-            <h1 style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E", marginBottom: 6, letterSpacing: "-0.3px" }}>이메일 인증</h1>
-            <p style={{ fontSize: 13, color: "#A1A8B3", marginBottom: 6 }}>
-              <strong style={{ color: "#1A1A2E" }}>{email}</strong>으로 발송된<br />
-              6자리 인증 코드를 입력해 주세요.
-            </p>
-
-            {/* 데모용 OTP 힌트 */}
-            {mockOTP && (
-              <div style={{
-                backgroundColor: "#FFF5ED", border: "1px solid #FFAA72", borderRadius: 8,
-                padding: "10px 14px", marginBottom: 20, fontSize: 13, color: "#FD5108",
-                display: "flex", alignItems: "center", gap: 8,
-              }}>
-                <span>🔑</span>
-                <span><strong>데모 인증 코드:</strong> {mockOTP}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleOTPSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              {/* OTP 입력 박스 */}
-              <div style={{ display: "flex", gap: 10, justifyContent: "center" }} onPaste={handleOTPPaste}>
-                {otp.map((digit, i) => (
-                  <input
-                    key={i}
-                    ref={(el) => { otpRefs.current[i] = el; }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOTPInput(i, e.target.value)}
-                    onKeyDown={(e) => handleOTPKeyDown(i, e)}
-                    style={{
-                      width: 48, height: 56, textAlign: "center",
-                      fontSize: 22, fontWeight: 700, color: "#1A1A2E",
-                      border: `2px solid ${digit ? "#FD5108" : "#DFE3E6"}`,
-                      borderRadius: 10, outline: "none",
-                      caretColor: "#FD5108",
-                      transition: "border-color 0.15s",
-                    }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = "#FD5108")}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = digit ? "#FD5108" : "#DFE3E6")}
-                  />
-                ))}
-              </div>
-
-              {error && <ErrorBox msg={error} />}
-              <SubmitBtn loading={loading} label="인증 확인" />
-            </form>
-
-            {/* 재전송 */}
-            <div style={{ textAlign: "center", marginTop: 16, fontSize: 13, color: "#A1A8B3" }}>
-              코드를 받지 못하셨나요?{" "}
-              <button
-                onClick={handleResend}
-                disabled={resendSec > 0}
-                style={{
-                  background: "none", border: "none", cursor: resendSec > 0 ? "default" : "pointer",
-                  color: resendSec > 0 ? "#A1A8B3" : "#FD5108", fontWeight: 600, fontSize: 13, padding: 0,
-                }}
-              >
-                {resendSec > 0 ? `재전송 (${resendSec}s)` : "재전송"}
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>이메일</label>
+            <input
+              type="email" placeholder="example@pwc.com" value={email}
+              onChange={(e) => setEmail(e.target.value)} autoFocus style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#FD5108")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#DFE3E6")}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>이름</label>
+            <input
+              type="text" placeholder="홍길동" value={name}
+              onChange={(e) => setName(e.target.value)} style={inputStyle}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#FD5108")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#DFE3E6")}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>비밀번호</label>
+            <div style={{ position: "relative" }}>
+              <input
+                type={showPw ? "text" : "password"} placeholder="8자 이상 입력" value={password}
+                onChange={(e) => setPassword(e.target.value)} style={{ ...inputStyle, paddingRight: 44 }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#FD5108")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#DFE3E6")}
+              />
+              <button type="button" onClick={() => setShowPw((v) => !v)}
+                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#A1A8B3", padding: 0 }}>
+                {showPw ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
-          </>
-        )}
+            {password && (
+              <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: i < pwStrength(password) ? pwColor(password) : "#EEEFF1", transition: "background-color 0.2s" }} />
+                ))}
+                <span style={{ fontSize: 11, color: pwColor(password), marginLeft: 4 }}>{pwLabel(password)}</span>
+              </div>
+            )}
+          </div>
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>비밀번호 확인</label>
+            <input
+              type={showPw ? "text" : "password"} placeholder="비밀번호를 다시 입력" value={confirmPw}
+              onChange={(e) => setConfirmPw(e.target.value)}
+              style={{ ...inputStyle, borderColor: confirmPw && confirmPw !== password ? "#FF4747" : "#DFE3E6" }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = confirmPw && confirmPw !== password ? "#FF4747" : "#FD5108")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = confirmPw && confirmPw !== password ? "#FF4747" : "#DFE3E6")}
+            />
+            {confirmPw && confirmPw !== password && (
+              <p style={{ fontSize: 12, color: "#FF4747", marginTop: 4 }}>비밀번호가 일치하지 않습니다.</p>
+            )}
+          </div>
+          {error && <ErrorBox msg={error} />}
+          <SubmitBtn loading={loading} label="가입 완료" />
+        </form>
 
-        {/* ── Step 3: 이름 + 비밀번호 ── */}
-        {step === "profile" && (
-          <>
-            <h1 style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E", marginBottom: 6, letterSpacing: "-0.3px" }}>계정 설정</h1>
-            <p style={{ fontSize: 13, color: "#A1A8B3", marginBottom: 24 }}>이름과 비밀번호를 설정하면 가입이 완료됩니다.</p>
-            <form onSubmit={handleProfileSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <label style={{ fontSize: 13, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>이름</label>
-                <input
-                  type="text"
-                  placeholder="홍길동"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  autoFocus
-                  style={inputStyle}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "#FD5108")}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = "#DFE3E6")}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 13, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>비밀번호</label>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type={showPw ? "text" : "password"}
-                    placeholder="8자 이상 입력"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={{ ...inputStyle, paddingRight: 44 }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = "#FD5108")}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = "#DFE3E6")}
-                  />
-                  <button type="button" onClick={() => setShowPw((v) => !v)}
-                    style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#A1A8B3", padding: 0 }}>
-                    {showPw ? <EyeOffIcon /> : <EyeIcon />}
-                  </button>
-                </div>
-                {/* 비밀번호 강도 표시 */}
-                {password && (
-                  <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: i < pwStrength(password) ? pwColor(password) : "#EEEFF1", transition: "background-color 0.2s" }} />
-                    ))}
-                    <span style={{ fontSize: 11, color: pwColor(password), marginLeft: 4 }}>{pwLabel(password)}</span>
-                  </div>
-                )}
-              </div>
-              <div>
-                <label style={{ fontSize: 13, fontWeight: 500, color: "#374151", display: "block", marginBottom: 6 }}>비밀번호 확인</label>
-                <input
-                  type={showPw ? "text" : "password"}
-                  placeholder="비밀번호를 다시 입력"
-                  value={confirmPw}
-                  onChange={(e) => setConfirmPw(e.target.value)}
-                  style={{ ...inputStyle, borderColor: confirmPw && confirmPw !== password ? "#FF4747" : "#DFE3E6" }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = confirmPw && confirmPw !== password ? "#FF4747" : "#FD5108")}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = confirmPw && confirmPw !== password ? "#FF4747" : "#DFE3E6")}
-                />
-                {confirmPw && confirmPw !== password && (
-                  <p style={{ fontSize: 12, color: "#FF4747", marginTop: 4 }}>비밀번호가 일치하지 않습니다.</p>
-                )}
-              </div>
-              {error && <ErrorBox msg={error} />}
-              <SubmitBtn loading={loading} label="가입 완료" />
-            </form>
-          </>
-        )}
-
-        {/* 로그인 링크 */}
         <p style={{ textAlign: "center", fontSize: 14, color: "#374151", marginTop: 24 }}>
           이미 계정이 있으신가요?{" "}
           <Link href="/login" style={{ color: "#FD5108", fontWeight: 600, textDecoration: "none" }}
@@ -375,7 +157,6 @@ export default function SignupPage() {
   );
 }
 
-/* ── 공통 스타일/컴포넌트 ─────────────────────────────────────── */
 const inputStyle: React.CSSProperties = {
   width: "100%", boxSizing: "border-box",
   border: "1px solid #DFE3E6", borderRadius: 8,
@@ -395,8 +176,7 @@ function ErrorBox({ msg }: { msg: string }) {
 function SubmitBtn({ loading, label }: { loading: boolean; label: string }) {
   return (
     <button
-      type="submit"
-      disabled={loading}
+      type="submit" disabled={loading}
       style={{
         backgroundColor: loading ? "#FFAA72" : "#FD5108",
         color: "#fff", border: "none", borderRadius: 8,
@@ -412,13 +192,6 @@ function SubmitBtn({ loading, label }: { loading: boolean; label: string }) {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
 function EyeIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -435,7 +208,6 @@ function EyeOffIcon() {
   );
 }
 
-/* ── 비밀번호 강도 ─────────────────────────────────────────────── */
 function pwStrength(pw: string): number {
   let s = 0;
   if (pw.length >= 8) s++;
