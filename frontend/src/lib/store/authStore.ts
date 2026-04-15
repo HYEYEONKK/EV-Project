@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
         saveUsers(users);
         const user: User = { email, name, createdAt: newUser.createdAt };
         set({ user, isAuthenticated: true });
-        setCookie("ev_auth", "1", 4);
+        setCookie("ev_auth", "1", 1440);
         return { success: true };
       },
 
@@ -132,7 +132,7 @@ export const useAuthStore = create<AuthState>()(
         if (!found) return { success: false, error: "이메일 또는 비밀번호가 올바르지 않습니다." };
         const user: User = { email: found.email, name: found.name, createdAt: found.createdAt };
         set({ user, isAuthenticated: true });
-        setCookie("ev_auth", "1", 4);
+        setCookie("ev_auth", "1", 1440);
         return { success: true };
       },
 
