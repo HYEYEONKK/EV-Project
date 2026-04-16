@@ -322,8 +322,16 @@ def get_pl_monthly_by_account(params: dict) -> list:
                 "current_total": cur_total, "prior_total": pri_total,
                 "change_pct": chg, "monthly": monthly,
             })
-        # Sort: revenue first, then by abs(current_total) desc
-        result.sort(key=lambda x: (-int(x["branch"] == "수익"), -abs(x["current_total"])))
+        # PL 계정만 (수익/비용 branch만, 손익대체 등 제외)
+        result = [r for r in result if r["branch"] in ("수익", "비용")]
+
+        # category 추가
+        CAT_ORDER = {"매출액": 0, "매출원가": 1, "판관비": 2, "금융수익": 3, "금융비용": 4, "기타수익": 5, "기타비용": 6}
+        for item in result:
+            item["category"] = _classify_7cat(item["branch"], item["account"], item["current_total"])
+
+        # Sort: category order, then by abs(current_total) desc
+        result.sort(key=lambda x: (CAT_ORDER.get(x["category"], 99), -abs(x["current_total"])))
         return result
     finally:
         conn.close()
@@ -578,6 +586,105 @@ def get_pl_waterfall_monthly(params: dict) -> list:
                 "cogs":       cogs_total,
                 "sga":        sga_total,
                 "other":      other_total,
+                "net_income": net_income,
+            })
+        return result
+    finally:
+        conn.close()
+
+
+# ─── PL Waterfall Bridge (7-category) ───────────────────────
+
+FINANCE_INCOME_KW = ["이자수익", "외환차익"]
+FINANCE_EXPENSE_KW = ["이자비용", "외환차손", "외화환산"]
+
+
+def _classify_7cat(branch: str, cls1: str, net_amount: float) -> str:
+    """branch + classification1 → 7개 카테고리 분류"""
+    if branch == "수익":
+        c = cls1.strip()
+        for kw in FINANCE_INCOME_KW:
+            if kw in c:
+                return "금융수익"
+        return "매출액"
+    # branch == "비용"
+    cat = _classify_expense(cls1)
+    if cat == "매출원가":
+        return "매출원가"
+    if cat == "판매비와관리비":
+        return "판관비"
+    # 기타손익 → 금융/기타 세분화
+    c = cls1.strip()
+    for kw in FINANCE_INCOME_KW:
+        if kw in c:
+            return "금융수익"
+    for kw in FINANCE_EXPENSE_KW:
+        if kw in c:
+            return "금융비용"
+    if net_amount >= 0:
+        return "기타수익"
+    return "기타비용"
+
+
+def get_pl_waterfall_bridge(params: dict) -> list:
+    """월별 손익 Waterfall Bridge — 7개 카테고리 (매출액/매출원가/판관비/금융수익/금융비용/기타수익/기타비용)"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from")
+        date_to   = params.get("date_to")
+        args, clauses = ["PL"], ["entry_type=?"]
+        if date_from: clauses.append("date >= ?"); args.append(date_from)
+        if date_to:   clauses.append("date <= ?"); args.append(date_to)
+        where = "WHERE " + " AND ".join(clauses)
+
+        rows = conn.execute(f"""
+            SELECT strftime('%Y-%m', date) as month, branch, classification1,
+                   SUM(CASE WHEN debit_credit='C' THEN amount ELSE -amount END) as net_amount
+            FROM journal_entries {where}
+            GROUP BY month, branch, classification1
+            ORDER BY month
+        """, args).fetchall()
+
+        months: dict = {}
+        for r in rows:
+            m = r["month"]
+            if m not in months:
+                months[m] = {"매출액": 0, "매출원가": 0, "판관비": 0,
+                             "금융수익": 0, "금융비용": 0, "기타수익": 0, "기타비용": 0}
+            branch = r["branch"] or ""
+            cls1 = r["classification1"] or "기타"
+            net = r["net_amount"] or 0
+            cat = _classify_7cat(branch, cls1, net)
+
+            if cat == "매출액":
+                months[m]["매출액"] += net
+            elif cat == "매출원가":
+                months[m]["매출원가"] += abs(net)
+            elif cat == "판관비":
+                months[m]["판관비"] += abs(net)
+            elif cat == "금융수익":
+                months[m]["금융수익"] += abs(net)
+            elif cat == "금융비용":
+                months[m]["금융비용"] += abs(net)
+            elif cat == "기타수익":
+                months[m]["기타수익"] += abs(net) if net > 0 else 0
+            elif cat == "기타비용":
+                months[m]["기타비용"] += abs(net)
+
+        result = []
+        for m in sorted(months):
+            d = months[m]
+            net_income = (d["매출액"] + d["금융수익"] + d["기타수익"]
+                          - d["매출원가"] - d["판관비"] - d["금융비용"] - d["기타비용"])
+            result.append({
+                "month": m,
+                "매출액": d["매출액"],
+                "매출원가": d["매출원가"],
+                "판관비": d["판관비"],
+                "금융수익": d["금융수익"],
+                "금융비용": d["금융비용"],
+                "기타수익": d["기타수익"],
+                "기타비용": d["기타비용"],
                 "net_income": net_income,
             })
         return result

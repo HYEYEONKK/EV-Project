@@ -7,7 +7,8 @@ from sqlalchemy.orm import sessionmaker, DeclarativeBase
 SRC_DB = Path(__file__).parent.parent / "data" / "easyview.db"
 
 # Runtime DB (writable location)
-RUNTIME_DB = Path("/tmp/easyview.db")
+import tempfile
+RUNTIME_DB = Path(tempfile.gettempdir()) / "easyview.db"
 
 # On startup: copy source DB to writable location if not already there
 if SRC_DB.exists() and not RUNTIME_DB.exists():

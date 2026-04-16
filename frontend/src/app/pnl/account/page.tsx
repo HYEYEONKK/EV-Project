@@ -19,12 +19,25 @@ function priorRange(from: string, to: string) {
 function fmtPct(curr: number, prev: number): string {
   if (!prev) return "—";
   const p = ((curr - prev) / Math.abs(prev)) * 100;
-  return (p >= 0 ? "▲" : "▼") + Math.abs(p).toFixed(1) + "%";
+  const abs = Math.abs(p).toFixed(1);
+  return p < 0 ? `(${abs}%)` : `${abs}%`;
+}
+function fmtDelta(delta: number): string {
+  if (delta === 0) return "—";
+  const abs = formatKRW(Math.abs(delta));
+  return delta < 0 ? `(${abs})` : abs;
 }
 function deltaCol(curr: number, prev: number): string {
   if (!prev) return "#A1A8B3";
-  return curr >= prev ? "#16C784" : "#FF4747";
+  return curr >= prev ? "#DC2626" : "#2563EB"; // 증가=빨강, 감소=파랑
 }
+function deltaPctVal(curr: number, prev: number): number {
+  if (!prev) return 0;
+  return ((curr - prev) / Math.abs(prev)) * 100;
+}
+const BAR_POS = "rgba(220,38,38,0.25)";  // 연핑크
+const BAR_NEG = "rgba(37,99,235,0.25)";  // 연파랑
+
 
 /* ─── Tooltip ─── */
 function ChartTooltip({ active, payload, label }: any) {
@@ -335,8 +348,15 @@ export default function PlAccountPage() {
                       </td>
                       <td style={{ padding: "9px 16px", textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{formatKRW(h.curr)}</td>
                       <td style={{ padding: "9px 16px", textAlign: "right", fontVariantNumeric: "tabular-nums", color: "#A1A8B3", whiteSpace: "nowrap" }}>{h.prev !== 0 ? formatKRW(h.prev) : "—"}</td>
-                      <td style={{ padding: "9px 16px", textAlign: "right", fontVariantNumeric: "tabular-nums", color: deltaCol(h.curr, h.prev), whiteSpace: "nowrap" }}>{h.prev !== 0 ? (hDelta >= 0 ? "+" : "") + formatKRW(hDelta) : "—"}</td>
-                      <td style={{ padding: "9px 16px", textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", color: deltaCol(h.curr, h.prev), whiteSpace: "nowrap" }}>{fmtPct(h.curr, h.prev)}</td>
+                      <td style={{
+                        padding: "9px 16px", textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums",
+                        color: deltaCol(h.curr, h.prev), whiteSpace: "nowrap",
+                        background: h.prev !== 0 ? `linear-gradient(to ${hDelta >= 0 ? "right" : "left"}, ${hDelta >= 0 ? BAR_POS : BAR_NEG} ${Math.min(Math.abs(deltaPctVal(h.curr, h.prev)), 100)}%, transparent ${Math.min(Math.abs(deltaPctVal(h.curr, h.prev)), 100)}%)` : undefined,
+                      }}>{h.prev !== 0 ? fmtDelta(hDelta) : "—"}</td>
+                      <td style={{
+                        padding: "9px 16px", textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums",
+                        color: deltaCol(h.curr, h.prev), whiteSpace: "nowrap",
+                      }}>{fmtPct(h.curr, h.prev)}</td>
                     </tr>,
 
                     /* Children rows */
@@ -355,8 +375,15 @@ export default function PlAccountPage() {
                           </td>
                           <td style={{ padding: "7px 16px", textAlign: "right", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{formatKRW(r.curr)}</td>
                           <td style={{ padding: "7px 16px", textAlign: "right", fontVariantNumeric: "tabular-nums", color: "#A1A8B3", whiteSpace: "nowrap" }}>{r.prev !== 0 ? formatKRW(r.prev) : "—"}</td>
-                          <td style={{ padding: "7px 16px", textAlign: "right", fontVariantNumeric: "tabular-nums", color: deltaCol(r.curr, r.prev), whiteSpace: "nowrap" }}>{r.prev !== 0 ? (delta >= 0 ? "+" : "") + formatKRW(delta) : "—"}</td>
-                          <td style={{ padding: "7px 16px", textAlign: "right", fontWeight: 500, fontVariantNumeric: "tabular-nums", color: deltaCol(r.curr, r.prev), whiteSpace: "nowrap" }}>{fmtPct(r.curr, r.prev)}</td>
+                          <td style={{
+                            padding: "7px 16px", textAlign: "right", fontWeight: 500, fontVariantNumeric: "tabular-nums",
+                            color: deltaCol(r.curr, r.prev), whiteSpace: "nowrap",
+                            background: r.prev !== 0 ? `linear-gradient(to ${delta >= 0 ? "right" : "left"}, ${delta >= 0 ? BAR_POS : BAR_NEG} ${Math.min(Math.abs(deltaPctVal(r.curr, r.prev)), 100)}%, transparent ${Math.min(Math.abs(deltaPctVal(r.curr, r.prev)), 100)}%)` : undefined,
+                          }}>{r.prev !== 0 ? fmtDelta(delta) : "—"}</td>
+                          <td style={{
+                            padding: "7px 16px", textAlign: "right", fontWeight: 500, fontVariantNumeric: "tabular-nums",
+                            color: deltaCol(r.curr, r.prev), whiteSpace: "nowrap",
+                          }}>{fmtPct(r.curr, r.prev)}</td>
                         </tr>
                       );
                     }) : []),
