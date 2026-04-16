@@ -11,8 +11,12 @@ import {
 } from "recharts";
 import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors";
 
-/* Summary BI — Executive Dashboard */
+/*
+  Summary BI — Executive Dashboard
+  필터 시스템 연동, 예산 설정 + 전기/예산 토글
+*/
 
+// ─── Design Tokens ──────────────────────────────────────────
 const COLOR = {
   increase: "#C1292E",
   decrease: "#1D6BB5",
@@ -40,7 +44,7 @@ const TNUM: React.CSSProperties = {
   fontFeatureSettings: "'tnum' 1, 'zero' 1",
 };
 
-// Shimmer keyframes
+// ─── Shimmer keyframes (injected once) ─────────────────────
 const SHIMMER_ID = "__summary-bi-shimmer";
 function ensureShimmer() {
   if (typeof document === "undefined") return;
@@ -111,7 +115,7 @@ function fmtKRWParens(value: number): string {
   return value < 0 ? `(${formatted})` : formatted;
 }
 
-// BI Tag
+// ─── BI Tag ─────────────────────────────────────────────────
 function BiTag() {
   return (
     <span style={{
@@ -122,7 +126,7 @@ function BiTag() {
   );
 }
 
-// Section Tag
+// ─── Section Tag ────────────────────────────────────────────
 function SectionTag({ label, color }: { label: string; color: string }) {
   return (
     <span style={{
@@ -133,7 +137,7 @@ function SectionTag({ label, color }: { label: string; color: string }) {
   );
 }
 
-// Chart Card
+// ─── Chart Card ─────────────────────────────────────────────
 function ChartCard({ title, tag, subtitle, children, onClick, style: extraStyle, tableData, ariaLabel }: {
   title: string; tag?: "PL" | "BS"; subtitle?: string; children: React.ReactNode;
   onClick?: () => void; style?: React.CSSProperties;
@@ -226,7 +230,7 @@ function ChartCard({ title, tag, subtitle, children, onClick, style: extraStyle,
   );
 }
 
-// KPI Card
+// ─── KPI Card ───────────────────────────────────────────────
 function KpiCard({ label, value, changeText, changeCls, pyVal, compareLabel, borderColor, onClick }: {
   label: string; value: string; changeText: string; changeCls: string;
   pyVal: string; compareLabel: string; borderColor: string; onClick?: () => void;
@@ -273,7 +277,7 @@ function KpiCard({ label, value, changeText, changeCls, pyVal, compareLabel, bor
   );
 }
 
-// Aux KPI Strip
+// ─── Aux KPI Strip ──────────────────────────────────────────
 function AuxItem({ label, value, up }: { label: string; value: string; up?: boolean | null }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 12px" }}>
@@ -293,7 +297,7 @@ function AuxDivider() {
   return <div style={{ width: 1, height: 22, background: COLOR.border, alignSelf: "center" }} />;
 }
 
-// Budget (localStorage)
+// ─── Budget (localStorage) ──────────────────────────────────
 function loadBudget(): Record<string, Record<string, number>> | null {
   try {
     const raw = localStorage.getItem("abc_budget");
@@ -305,7 +309,7 @@ function saveBudget(data: Record<string, Record<string, number>>) {
   localStorage.setItem("abc_budget", JSON.stringify(data));
 }
 
-// Budget Modal
+// ─── Budget Modal ───────────────────────────────────────────
 function BudgetModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const months: string[] = [];
   for (let y = 2024; y <= 2025; y++)
@@ -414,7 +418,7 @@ function BudgetModal({ open, onClose }: { open: boolean; onClose: () => void }) 
   );
 }
 
-// Waterfall Helper
+// ─── Waterfall Helper ───────────────────────────────────────
 function buildWaterfallData(pl: {
   revenue: number; cogs: number; sga: number; grossProfit: number;
   operatingIncome: number; netIncome: number;
@@ -464,7 +468,19 @@ function buildWaterfallData(pl: {
   });
 }
 
-/* ────────────────────────────────────────── */
+// ─── Custom Waterfall Bar ───────────────────────────────────
+function WaterfallBar(props: any) {
+  const { x, y, width, height, payload } = props;
+  if (!payload) return null;
+  const barBase = payload.base;
+  const barTop = payload.top;
+  const yScale = props.yScale || props.background?.y;
+  return null; // handled via stacked bars below
+}
+
+// ═════════════════════════════════════════════════════════════
+//  MAIN PAGE
+// ═════════════════════════════════════════════════════════════
 
 export default function SummaryBiPage() {
   const { dateFrom, dateTo } = useFilterStore();
@@ -486,7 +502,7 @@ export default function SummaryBiPage() {
   const budget = useMemo(() => loadBudget(), [budgetModalOpen]);
   const hasBudget = !!budget && Object.keys(budget).length > 0;
 
-  // Data Queries
+  // ─── Data Queries ───
   const { data: plMonthly = [], isLoading: plLoading } = useQuery({
     queryKey: ["summary-bi-pl-profitability", dateFrom, dateTo],
     queryFn: () => api.summaryBi.plProfitability(params),
@@ -520,7 +536,7 @@ export default function SummaryBiPage() {
   const ccc = cccMonthly as CccMonthly[];
   const bs = bsSnapshot as BsSnapshot | undefined;
 
-  // Aggregated PL
+  // ─── Aggregated PL ───
   const plAgg = useMemo(() => {
     const a = { revenue: 0, cogs: 0, sga: 0, grossProfit: 0, operatingIncome: 0, netIncome: 0 };
     pl.forEach(m => {
@@ -530,7 +546,7 @@ export default function SummaryBiPage() {
     return a;
   }, [pl]);
 
-  // Prior year aggregated PL (shift -1 year)
+  // ─── Prior year aggregated PL (shift -1 year) ───
   const priorYear = useMemo(() => parseInt(dateTo.slice(0, 4)) - 1, [dateTo]);
 
   const { data: plPriorRaw = [] } = useQuery({
@@ -550,7 +566,7 @@ export default function SummaryBiPage() {
     return a;
   }, [plPrior]);
 
-  // Change computation
+  // ─── Change computation ───
   function fmtChange(cur: number, prev: number | null, isPercent = false) {
     if (!prev || prev === 0) return { text: "\u2014", cls: "neutral", pyVal: "\u2014" };
     if (isPercent) {
@@ -581,13 +597,13 @@ export default function SummaryBiPage() {
   const opmPrior = plPriorAgg.revenue ? (plPriorAgg.operatingIncome / plPriorAgg.revenue) * 100 : 0;
   const compareLabel = compareMode === "budget" && hasBudget ? "vs 예산" : "vs PY";
 
-  // BS derived values
+  // ─── BS derived values ───
   const bsCur = bs?.current ?? {};
   const bsOpen = bs?.opening ?? {};
   const curRatio = (bsCur.currentAssets && bsCur.currentLiabilities) ? bsCur.currentAssets / bsCur.currentLiabilities : 0;
   const deRatio = (bsCur.totalLiabilities && bsCur.totalEquity) ? (bsCur.totalLiabilities / bsCur.totalEquity) * 100 : 0;
 
-  // BS Variance TOP 7 (자본 제외)
+  // ─── BS Variance TOP 7 (자본 제외) ───
   const bsVarianceData = useMemo(() => {
     const delta = bsDelta as any[];
     return delta
@@ -600,7 +616,7 @@ export default function SummaryBiPage() {
       }));
   }, [bsDelta]);
 
-  // Revenue chart data
+  // ─── Revenue chart data ───
   const revenueChartData = useMemo(() => {
     return pl.map(m => {
       const priorM = plPrior.find(p => p.month.slice(5) === m.month.slice(5));
@@ -613,7 +629,7 @@ export default function SummaryBiPage() {
     });
   }, [pl, plPrior]);
 
-  // CCC chart data
+  // ─── CCC chart data ───
   const cccChartData = useMemo(() =>
     ccc.map(c => ({
       month: fmtM(c.month),
@@ -624,7 +640,7 @@ export default function SummaryBiPage() {
     }))
   , [ccc]);
 
-  // Profitability chart data
+  // ─── Profitability chart data ───
   const profitChartData = useMemo(() => {
     return pl.map(m => {
       const priorM = plPrior.find(p => p.month.slice(5) === m.month.slice(5));
@@ -640,7 +656,7 @@ export default function SummaryBiPage() {
     });
   }, [pl, plPrior]);
 
-  // BS Table rows
+  // ─── BS Table rows ───
   const bsTableRows = useMemo(() => {
     if (!bs) return [];
     const c = bs.current, o = bs.opening;
@@ -659,7 +675,7 @@ export default function SummaryBiPage() {
     ];
   }, [bs]);
 
-  // Waterfall data
+  // ─── Waterfall data ───
   const waterfallData = useMemo(() => {
     const wf = plWaterfall as any;
     if (!wf || !Array.isArray(wf) || wf.length === 0) {
@@ -684,7 +700,7 @@ export default function SummaryBiPage() {
     });
   }, [plWaterfall, plAgg]);
 
-  // Aux KPI — ROA/ROE with average denominator
+  // ─── Aux KPI — ROA/ROE with average denominator ───
   const avgAssets = ((bsOpen.totalAssets ?? 0) + (bsCur.totalAssets ?? 0)) / 2;
   const avgEquity = ((bsOpen.totalEquity ?? 0) + (bsCur.totalEquity ?? 0)) / 2;
   const monthCount = pl.length || 12;
@@ -698,7 +714,7 @@ export default function SummaryBiPage() {
   const roaPrior = bsOpen.totalAssets ? (plPriorAgg.netIncome / bsOpen.totalAssets) * 100 : null;
   const roePrior = bsOpen.totalEquity ? (plPriorAgg.netIncome / bsOpen.totalEquity) * 100 : null;
 
-  // Slide panel trend data
+  // ─── Slide panel trend data ───
   const panelTrendData = useMemo(() => {
     const fieldMap: Record<string, { cur: (m: PlProfitabilityMonthly) => number; label: string }> = {
       "매출액": { cur: m => m.revenue, label: "매출액" },
@@ -717,7 +733,7 @@ export default function SummaryBiPage() {
     });
   }, [panelKpi, pl, plPrior]);
 
-  // Date range label for aria
+  // ─── Date range label for aria ───
   const dateRangeLabel = useMemo(() => {
     const fy = dateFrom.slice(0, 4), fm = parseInt(dateFrom.slice(5, 7));
     const ty = dateTo.slice(0, 4), tm = parseInt(dateTo.slice(5, 7));
@@ -726,7 +742,7 @@ export default function SummaryBiPage() {
 
   const kpiLoading = plLoading || bsLoading;
 
-  // Tooltip customization
+  // ─── Tooltip customization ───
   const tooltipStyle: React.CSSProperties = {
     ...TOOLTIP_STYLE,
     background: "#fff",
