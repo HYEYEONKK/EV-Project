@@ -147,6 +147,26 @@ export const api = {
     activityMonthly: (p?: Record<string, unknown>) =>
       apiFetch<any>("/financial-statements/bs/activity-monthly", p),
   },
+  bsBi: {
+    dailyBalance: (p?: Record<string, unknown>) =>
+      apiFetch<BsDailyBalance[]>("/financial-statements/bs/daily-balance", p),
+    vendorComposition: (p?: Record<string, unknown>) =>
+      apiFetch<BsVendorComposition[]>("/financial-statements/bs/vendor-composition", p),
+    counterAccounts: (p?: Record<string, unknown>) =>
+      apiFetch<BsCounterAccount[]>("/financial-statements/bs/counter-accounts", p),
+    entries: (p?: Record<string, unknown>) =>
+      apiFetch<BsEntry[]>("/financial-statements/bs/entries", p),
+    detailTable: (p?: Record<string, unknown>) =>
+      apiFetch<BsDetailRow[]>("/financial-statements/bs/detail-table", p),
+    vendorDelta: (p?: Record<string, unknown>) =>
+      apiFetch<BsVendorDeltaItem[]>("/financial-statements/bs/vendor-delta", p),
+    accountsList: () =>
+      apiFetch<BsAccountItem[]>("/financial-statements/bs/accounts-list"),
+  },
+  cashFlowBi: {
+    comparison: (p?: Record<string, unknown>) =>
+      apiFetch<CashFlowComparison>("/financial-statements/cash-flow/comparison", p),
+  },
   scenarios: {
     summary: (scenarioId: number, p?: Record<string, unknown>) =>
       apiFetch<ScenarioMonthly[]>(`/scenarios/${scenarioId}/summary`, p),
@@ -347,6 +367,78 @@ export interface BsAccountDelta {
   opening: number;
   closing: number;
   delta: number;
+}
+
+// ─── BS BI Types ──────────────────────────────────────────
+
+export interface BsDailyBalance {
+  date: string;
+  balance: number;
+}
+
+export interface BsVendorComposition {
+  vendor: string;
+  amount: number;
+}
+
+export interface BsCounterAccount {
+  account: string;
+  debit_total: number;
+  credit_total: number;
+  count: number;
+}
+
+export interface BsEntry {
+  date: string;
+  je_number: string;
+  account: string;
+  vendor: string;
+  memo: string;
+  debit: number;
+  credit: number;
+}
+
+export interface BsDetailRow {
+  account: string;
+  branch: string;
+  division: string;
+  opening: number;
+  closing: number;
+  delta: number;
+  delta_pct: number;
+}
+
+export interface BsVendorDeltaItem {
+  vendor: string;
+  amount: number;
+}
+
+export interface BsAccountItem {
+  account: string;
+  branch: string;
+  division: string;
+}
+
+// ─── Cash Flow BI Types ──────────────────────────────────────
+
+export interface CashFlowComparisonItem {
+  account: string;
+  current: number;
+  prior: number;
+}
+
+export interface CashFlowComparisonSection {
+  items: CashFlowComparisonItem[];
+  current_total: number;
+  prior_total: number;
+}
+
+export interface CashFlowComparison {
+  operating: CashFlowComparisonSection;
+  investing: CashFlowComparisonSection;
+  financing: CashFlowComparisonSection;
+  current_net_change: number;
+  prior_net_change: number;
 }
 
 // ─── Scenario Types ────────────────────────────────────────

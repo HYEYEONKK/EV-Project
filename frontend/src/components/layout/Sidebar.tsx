@@ -14,6 +14,7 @@ const NAV = [
       { href: "/financial/balance-sheet", label: "재무상태표", icon: "/icons/balance.svg" },
       { href: "/financial/income-statement", label: "손익계산서", icon: "/icons/report.svg" },
       { href: "/financial/cash-flow", label: "현금흐름표", icon: "/icons/cashflow.svg" },
+      { href: "/financial/cash-flow-bi", label: "현금흐름표 (BI)", icon: "/icons/cashflow.svg" },
     ],
   },
   { href: "/sales", label: "매출 분석", icon: "/icons/barchart.svg" },

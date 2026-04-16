@@ -991,3 +991,376 @@ def get_cash_flow(params: dict) -> dict:
         }
     finally:
         conn.close()
+
+
+# ─── BS BI 추가 서비스 ──────────────────────────────────────────
+
+
+def get_bs_daily_balance(params: dict, account: str | None) -> list:
+    """일별 잔액 추이 — 특정 공시용계정(classification1)의 일별 잔액"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from", "2024-01-01")
+        date_to = params.get("date_to", "2025-12-31")
+
+        # TB 기초잔액 (해당 계정만)
+        tb_clause = ""
+        tb_args: list = []
+        if account:
+            tb_clause = "WHERE classification1 = ?"
+            tb_args = [account]
+
+        tb_rows = conn.execute(
+            f"SELECT account_code, balance FROM trial_balance {tb_clause}",
+            tb_args,
+        ).fetchall()
+        tb_opening = sum(r["balance"] or 0 for r in tb_rows)
+        tb_codes = [r["account_code"] for r in tb_rows]
+
+        if not tb_codes:
+            return []
+
+        placeholders = ",".join("?" * len(tb_codes))
+        rows = conn.execute(f"""
+            SELECT date,
+                   SUM(CASE WHEN debit_credit='D' THEN amount ELSE -amount END) as net
+            FROM journal_entries
+            WHERE entry_type='BS' AND date >= ? AND date <= ?
+              AND account_code IN ({placeholders})
+            GROUP BY date ORDER BY date
+        """, [date_from, date_to] + tb_codes).fetchall()
+
+        result = []
+        cum = tb_opening
+        for r in rows:
+            cum += r["net"] or 0
+            result.append({"date": r["date"], "balance": cum})
+        return result
+    finally:
+        conn.close()
+
+
+def get_bs_vendor_composition(params: dict, account: str | None, debit_credit: str | None) -> list:
+    """거래처 구성 — 특정 계정의 차변/대변 거래처별 금액"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from", "2024-01-01")
+        date_to = params.get("date_to", "2025-12-31")
+
+        args: list = []
+        clauses = ["entry_type='BS'", "date >= ?", "date <= ?"]
+        args.extend([date_from, date_to])
+
+        if account:
+            clauses.append("classification1 = ?")
+            args.append(account)
+        if debit_credit:
+            clauses.append("debit_credit = ?")
+            args.append(debit_credit)
+
+        where = "WHERE " + " AND ".join(clauses)
+        rows = conn.execute(f"""
+            SELECT COALESCE(department, '미상') as vendor,
+                   SUM(amount) as total
+            FROM journal_entries {where}
+            GROUP BY vendor
+            ORDER BY total DESC
+        """, args).fetchall()
+
+        return [{"vendor": r["vendor"], "amount": r["total"] or 0} for r in rows if r["total"]]
+    finally:
+        conn.close()
+
+
+def get_bs_counter_accounts(params: dict, account: str | None) -> list:
+    """상대계정 분석 — 특정 BS 계정 전표에서 반대편 계정 구성"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from", "2024-01-01")
+        date_to = params.get("date_to", "2025-12-31")
+
+        if not account:
+            return []
+
+        # 해당 계정이 포함된 전표번호 목록
+        je_rows = conn.execute("""
+            SELECT DISTINCT je_number FROM journal_entries
+            WHERE classification1 = ? AND date >= ? AND date <= ?
+        """, (account, date_from, date_to)).fetchall()
+        je_numbers = [r["je_number"] for r in je_rows]
+
+        if not je_numbers:
+            return []
+
+        placeholders = ",".join("?" * len(je_numbers))
+        # 같은 전표에서 다른 계정의 합계
+        rows = conn.execute(f"""
+            SELECT classification1 as account, debit_credit,
+                   SUM(amount) as total, COUNT(*) as cnt
+            FROM journal_entries
+            WHERE je_number IN ({placeholders})
+              AND classification1 != ?
+              AND date >= ? AND date <= ?
+            GROUP BY classification1, debit_credit
+            ORDER BY total DESC
+        """, je_numbers + [account, date_from, date_to]).fetchall()
+
+        # 계정별로 집계
+        acct_map: dict = {}
+        for r in rows:
+            acct = r["account"] or "기타"
+            if acct not in acct_map:
+                acct_map[acct] = {"account": acct, "debit_total": 0, "credit_total": 0, "count": 0}
+            if r["debit_credit"] == "D":
+                acct_map[acct]["debit_total"] += r["total"] or 0
+            else:
+                acct_map[acct]["credit_total"] += r["total"] or 0
+            acct_map[acct]["count"] += r["cnt"] or 0
+
+        result = list(acct_map.values())
+        result.sort(key=lambda x: x["debit_total"] + x["credit_total"], reverse=True)
+        return result[:30]
+    finally:
+        conn.close()
+
+
+def get_bs_entries(params: dict, account: str | None, debit_credit: str | None,
+                   vendor: str | None, limit: int = 500) -> list:
+    """전표 상세내역 — BS 계정 전표 조회"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from", "2024-01-01")
+        date_to = params.get("date_to", "2025-12-31")
+
+        args: list = []
+        clauses = ["entry_type='BS'", "date >= ?", "date <= ?"]
+        args.extend([date_from, date_to])
+
+        if account:
+            clauses.append("classification1 = ?")
+            args.append(account)
+        if debit_credit:
+            clauses.append("debit_credit = ?")
+            args.append(debit_credit)
+        if vendor:
+            clauses.append("department = ?")
+            args.append(vendor)
+
+        where = "WHERE " + " AND ".join(clauses)
+        rows = conn.execute(f"""
+            SELECT date, je_number, classification1 as account,
+                   COALESCE(department, '') as vendor,
+                   COALESCE(description, '') as memo,
+                   CASE WHEN debit_credit='D' THEN amount ELSE 0 END as debit,
+                   CASE WHEN debit_credit='C' THEN amount ELSE 0 END as credit
+            FROM journal_entries {where}
+            ORDER BY date DESC LIMIT ?
+        """, args + [limit]).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def get_bs_detail_table(params: dict, compare_base: str = "연초") -> list:
+    """재무항목 테이블 — 공시용계정별 기초/기말/증감"""
+    conn = get_conn()
+    try:
+        date_to = params.get("date_to") or "2025-12-31"
+        year = int(date_to[:4])
+        month = int(date_to[5:7])
+
+        if compare_base == "월초":
+            if month == 1:
+                base_date = f"{year - 1}-12-31"
+            else:
+                prev_last = calendar.monthrange(year, month - 1)[1]
+                base_date = f"{year}-{month - 1:02d}-{prev_last}"
+        else:  # 연초
+            base_date = f"{year - 1}-12-31"
+
+        tb = {r["account_code"]: {
+            "balance": r["balance"] or 0, "branch": r["branch"] or "",
+            "division": r["division"] or "", "classification1": r["classification1"] or ""
+        } for r in conn.execute(
+            "SELECT account_code, balance, branch, division, classification1 FROM trial_balance"
+        ).fetchall()}
+
+        # 기초 = TB + movements up to base_date
+        base_movements = {}
+        rows = conn.execute("""
+            SELECT account_code, SUM(CASE WHEN debit_credit='D' THEN amount ELSE -amount END) as net
+            FROM journal_entries WHERE entry_type='BS' AND date <= ?
+            GROUP BY account_code
+        """, (base_date,)).fetchall()
+        for r in rows:
+            base_movements[r["account_code"]] = r["net"] or 0
+
+        # 기말 = TB + movements up to date_to
+        end_movements = {}
+        rows = conn.execute("""
+            SELECT account_code, SUM(CASE WHEN debit_credit='D' THEN amount ELSE -amount END) as net
+            FROM journal_entries WHERE entry_type='BS' AND date <= ?
+            GROUP BY account_code
+        """, (date_to,)).fetchall()
+        for r in rows:
+            end_movements[r["account_code"]] = r["net"] or 0
+
+        # classification1별 집계
+        acct_map: dict = {}
+        for ac, info in tb.items():
+            cls1 = info["classification1"]
+            branch = info["branch"]
+            division = info["division"]
+            if not cls1 or not branch:
+                continue
+            tb_bal = info["balance"]
+            opening = tb_bal + base_movements.get(ac, 0)
+            closing = tb_bal + end_movements.get(ac, 0)
+
+            if cls1 not in acct_map:
+                acct_map[cls1] = {"account": cls1, "branch": branch, "division": division,
+                                  "opening": 0, "closing": 0}
+            acct_map[cls1]["opening"] += opening
+            acct_map[cls1]["closing"] += closing
+
+        result = []
+        for item in acct_map.values():
+            item["delta"] = item["closing"] - item["opening"]
+            item["delta_pct"] = round((item["delta"] / abs(item["opening"])) * 100, 1) if item["opening"] else 0
+            result.append(item)
+
+        result.sort(key=lambda x: (
+            0 if x["branch"] == "자산" else 1 if x["branch"] == "부채" else 2,
+            0 if "유동" in x["division"] else 1,
+            -abs(x["closing"])
+        ))
+        return result
+    finally:
+        conn.close()
+
+
+def get_bs_vendor_delta(params: dict, account: str | None) -> list:
+    """거래처별 증감 — 특정 계정의 거래처별 net flow"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from", "2024-01-01")
+        date_to = params.get("date_to", "2025-12-31")
+
+        args: list = []
+        clauses = ["entry_type='BS'", "date >= ?", "date <= ?"]
+        args.extend([date_from, date_to])
+
+        if account:
+            clauses.append("classification1 = ?")
+            args.append(account)
+
+        where = "WHERE " + " AND ".join(clauses)
+        rows = conn.execute(f"""
+            SELECT COALESCE(department, '미상') as vendor,
+                   SUM(CASE WHEN debit_credit='D' THEN amount ELSE -amount END) as net
+            FROM journal_entries {where}
+            GROUP BY vendor
+            ORDER BY ABS(net) DESC
+            LIMIT 20
+        """, args).fetchall()
+
+        return [{"vendor": r["vendor"], "amount": r["net"] or 0} for r in rows if r["net"]]
+    finally:
+        conn.close()
+
+
+def get_bs_accounts_list() -> list:
+    """BS 공시용계정 목록"""
+    conn = get_conn()
+    try:
+        rows = conn.execute("""
+            SELECT DISTINCT classification1 as account, branch, division
+            FROM trial_balance
+            WHERE branch IN ('자산', '부채')
+            ORDER BY branch, division, classification1
+        """).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+# ─── Cash Flow 비교 (당기/전기) ─────────────────────────────────
+
+def get_cash_flow_comparison(params: dict) -> dict:
+    """현금흐름 당기/전기 비교"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from", "2024-01-01")
+        date_to = params.get("date_to", "2025-12-31")
+        prior_from = _shift_year(date_from, -1)
+        prior_to = _shift_year(date_to, -1)
+
+        DIVISION_CF_MAP = {
+            "유동자산": "영업활동", "유동부채": "영업활동",
+            "비유동자산": "투자활동", "비유동부채": "재무활동",
+            "수익": "영업활동", "비용": "영업활동", "손익대체": "영업활동",
+        }
+
+        def fetch_cf(df, dt):
+            args, clauses = [], []
+            if df:
+                clauses.append("date >= ?"); args.append(df)
+            if dt:
+                clauses.append("date <= ?"); args.append(dt)
+            where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+            rows = conn.execute(f"""
+                SELECT division, classification1,
+                       SUM(CASE WHEN debit_credit='D' THEN amount ELSE -amount END) as net_flow
+                FROM journal_entries {where}
+                GROUP BY division, classification1
+            """, args).fetchall()
+            cf: dict[str, list] = {"영업활동": [], "투자활동": [], "재무활동": []}
+            for r in rows:
+                div = r["division"] or ""
+                cls1 = r["classification1"] or "기타"
+                flow = r["net_flow"] or 0
+                cat = DIVISION_CF_MAP.get(div, "영업활동")
+                cf[cat].append({"account": cls1, "amount": flow})
+            return cf
+
+        curr_cf = fetch_cf(date_from, date_to)
+        prior_cf = fetch_cf(prior_from, prior_to)
+
+        def total(items):
+            return sum(i["amount"] for i in items)
+
+        def merge_items(curr_items, prior_items):
+            """당기/전기 항목을 account 기준으로 합침"""
+            curr_map = {}
+            for it in curr_items:
+                curr_map[it["account"]] = it["amount"]
+            prior_map = {}
+            for it in prior_items:
+                prior_map[it["account"]] = it["amount"]
+            all_accounts = sorted(set(curr_map) | set(prior_map),
+                                  key=lambda a: abs(curr_map.get(a, 0)), reverse=True)
+            return [{"account": a,
+                      "current": curr_map.get(a, 0),
+                      "prior": prior_map.get(a, 0)} for a in all_accounts]
+
+        result = {}
+        for cat in ["영업활동", "투자활동", "재무활동"]:
+            items = merge_items(curr_cf[cat], prior_cf[cat])
+            result[cat] = {
+                "items": items,
+                "current_total": total(curr_cf[cat]),
+                "prior_total": total(prior_cf[cat]),
+            }
+
+        curr_net = sum(result[c]["current_total"] for c in result)
+        prior_net = sum(result[c]["prior_total"] for c in result)
+
+        return {
+            "operating": result["영업활동"],
+            "investing": result["투자활동"],
+            "financing": result["재무활동"],
+            "current_net_change": curr_net,
+            "prior_net_change": prior_net,
+        }
+    finally:
+        conn.close()

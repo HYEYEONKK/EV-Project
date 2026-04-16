@@ -28,6 +28,13 @@ interface FilterState {
   marketRateYear: string;
   marketExchangeYear: string;
   marketExchangeCurrency: string;
+  // BS BI filters
+  bsTrendAccount: string | null;
+  bsTrendDebitCredit: string | null;
+  bsTrendVendor: string | null;
+  bsAccountCompareBase: BSBase;
+  // Cash Flow BI filters
+  cashFlowCategory: string | null;
   // Actions
   setDateRange: (from: string, to: string) => void;
   setScenarioDateRange: (from: string, to: string) => void;
@@ -48,6 +55,11 @@ interface FilterState {
   setSummaryBaseYM: (v: string) => void;
   setSummaryMode: (v: AnalysisMode) => void;
   setSummaryBsBase: (v: BSBase) => void;
+  setBsTrendAccount: (v: string | null) => void;
+  setBsTrendDebitCredit: (v: string | null) => void;
+  setBsTrendVendor: (v: string | null) => void;
+  setBsAccountCompareBase: (v: BSBase) => void;
+  setCashFlowCategory: (v: string | null) => void;
   resetCrossFilters: () => void;
   resetAll: () => void;
 }
@@ -71,6 +83,11 @@ export const useFilterStore = create<FilterState>((set) => ({
   marketRateYear: String(new Date().getFullYear() - 1),
   marketExchangeYear: String(new Date().getFullYear() - 1),
   marketExchangeCurrency: "USD",
+  bsTrendAccount: null,
+  bsTrendDebitCredit: null,
+  bsTrendVendor: null,
+  bsAccountCompareBase: "연초",
+  cashFlowCategory: null,
 
   setDateRange: (from, to) => set({ dateFrom: from, dateTo: to }),
   setScenarioDateRange: (from, to) => set({ scenarioDateFrom: from, scenarioDateTo: to }),
@@ -87,6 +104,11 @@ export const useFilterStore = create<FilterState>((set) => ({
   setSummaryBaseYM: (v) => set({ summaryBaseYM: v }),
   setSummaryMode: (v) => set({ summaryMode: v }),
   setSummaryBsBase: (v) => set({ summaryBsBase: v }),
+  setBsTrendAccount: (v) => set({ bsTrendAccount: v }),
+  setBsTrendDebitCredit: (v) => set({ bsTrendDebitCredit: v }),
+  setBsTrendVendor: (v) => set({ bsTrendVendor: v }),
+  setBsAccountCompareBase: (v) => set({ bsAccountCompareBase: v }),
+  setCashFlowCategory: (v) => set({ cashFlowCategory: v }),
   resetCrossFilters: () =>
     set({
       activeMonth: null,

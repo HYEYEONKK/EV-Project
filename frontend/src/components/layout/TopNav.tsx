@@ -32,9 +32,12 @@ const NAV: NavSection[] = [
   {
     id: "bs", label: "재무상태분석", Icon: Database,
     children: [
-      { href: "/bs/summary", label: "BS 요약" },
-      { href: "/bs/trend",   label: "BS 추이분석" },
-      { href: "/bs/account", label: "BS 계정분석" },
+      { href: "/bs/summary",    label: "BS 요약" },
+      { href: "/bs/summary-bi", label: "BS 요약 (BI)" },
+      { href: "/bs/trend",      label: "BS 추이분석" },
+      { href: "/bs/trend-bi",   label: "BS 추이분석 (BI)" },
+      { href: "/bs/account",    label: "BS 계정분석" },
+      { href: "/bs/account-bi", label: "BS 계정분석 (BI)" },
     ],
   },
   {
@@ -429,7 +432,7 @@ export default function TopNav() {
         {(activeSection?.children || pathname === "/summary") && (
           <div className="flex items-center h-full pr-6 pl-4 shrink-0">
             {pathname === "/summary" && <SummaryFilterBar />}
-            {(pathname.startsWith("/pnl") || pathname.startsWith("/bs") || pathname.startsWith("/voucher")) && (
+            {(pathname.startsWith("/pnl") || pathname.startsWith("/bs") || pathname.startsWith("/voucher") || pathname.startsWith("/financial")) && (
               <DateRangeFilterBar />
             )}
             {pathname.startsWith("/scenario") && (

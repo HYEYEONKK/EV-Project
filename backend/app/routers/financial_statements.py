@@ -132,3 +132,78 @@ def bs_activity_monthly(
     date_to: Optional[str] = Query(None),
 ):
     return svc.get_bs_activity_monthly(_params(date_from, date_to))
+
+
+# ─── BS BI 추가 엔드포인트 ───────────────────────────────────
+
+@router.get("/bs/daily-balance")
+def bs_daily_balance(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    account: Optional[str] = Query(None, description="공시용계정 (classification1)"),
+):
+    return svc.get_bs_daily_balance(_params(date_from, date_to), account)
+
+
+@router.get("/bs/vendor-composition")
+def bs_vendor_composition(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    account: Optional[str] = Query(None, description="공시용계정"),
+    debit_credit: Optional[str] = Query(None, description="D | C"),
+):
+    return svc.get_bs_vendor_composition(_params(date_from, date_to), account, debit_credit)
+
+
+@router.get("/bs/counter-accounts")
+def bs_counter_accounts(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    account: Optional[str] = Query(None, description="공시용계정"),
+):
+    return svc.get_bs_counter_accounts(_params(date_from, date_to), account)
+
+
+@router.get("/bs/entries")
+def bs_entries(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    account: Optional[str] = Query(None, description="공시용계정"),
+    debit_credit: Optional[str] = Query(None, description="D | C"),
+    vendor: Optional[str] = Query(None),
+    limit: int = Query(500),
+):
+    return svc.get_bs_entries(_params(date_from, date_to), account, debit_credit, vendor, limit)
+
+
+@router.get("/bs/detail-table")
+def bs_detail_table(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    compare_base: str = Query("연초", description="연초 | 월초"),
+):
+    return svc.get_bs_detail_table(_params(date_from, date_to), compare_base)
+
+
+@router.get("/bs/vendor-delta")
+def bs_vendor_delta(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    account: Optional[str] = Query(None, description="공시용계정"),
+):
+    return svc.get_bs_vendor_delta(_params(date_from, date_to), account)
+
+
+@router.get("/bs/accounts-list")
+def bs_accounts_list():
+    return svc.get_bs_accounts_list()
+
+
+# ─── Cash Flow BI 엔드포인트 ─────────────────────────────────
+
+@router.get("/cash-flow/comparison")
+def cash_flow_comparison(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_cash_flow_comparison(_params(date_from, date_to))
