@@ -17,7 +17,13 @@ type NavLeaf = { href: string; label: string };
 type NavSection = { id: string; label: string; Icon: LucideIcon; href?: string; children?: NavLeaf[] };
 
 const NAV: NavSection[] = [
-  { id: "summary", label: "Summary", Icon: Home, href: "/summary" },
+  {
+    id: "summary", label: "Summary", Icon: Home,
+    children: [
+      { href: "/summary",    label: "Summary" },
+      { href: "/summary-bi", label: "Summary (BI)" },
+    ],
+  },
   {
     id: "pnl", label: "손익분석", Icon: BarChart2,
     children: [
@@ -431,7 +437,7 @@ export default function TopNav() {
         {/* 우측 필터 */}
         {(activeSection?.children || pathname === "/summary") && (
           <div className="flex items-center h-full pr-6 pl-4 shrink-0">
-            {pathname === "/summary" && <SummaryFilterBar />}
+            {(pathname === "/summary" || pathname === "/summary-bi") && <SummaryFilterBar />}
             {(pathname.startsWith("/pnl") || pathname.startsWith("/bs") || pathname.startsWith("/voucher") || pathname.startsWith("/financial")) && (
               <DateRangeFilterBar />
             )}

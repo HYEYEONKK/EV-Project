@@ -169,6 +169,14 @@ export const api = {
     comparison: (p?: Record<string, unknown>) =>
       apiFetch<CashFlowComparison>("/financial-statements/cash-flow/comparison", p),
   },
+  summaryBi: {
+    cccMonthly: (p?: Record<string, unknown>) =>
+      apiFetch<CccMonthly[]>("/financial-statements/summary/ccc-monthly", p),
+    bsSnapshot: (p?: Record<string, unknown>) =>
+      apiFetch<BsSnapshot>("/financial-statements/summary/bs-snapshot", p),
+    plProfitability: (p?: Record<string, unknown>) =>
+      apiFetch<PlProfitabilityMonthly[]>("/financial-statements/summary/pl-profitability", p),
+  },
   scenarios: {
     summary: (scenarioId: number, p?: Record<string, unknown>) =>
       apiFetch<ScenarioMonthly[]>(`/scenarios/${scenarioId}/summary`, p),
@@ -420,6 +428,39 @@ export interface BsAccountItem {
   account: string;
   branch: string;
   division: string;
+}
+
+// ─── Summary BI Types ────────────────────────────────────────
+
+export interface CccMonthly {
+  month: string;
+  dso: number;
+  dio: number;
+  dpo: number;
+  ccc: number;
+  매출채권: number;
+  재고자산: number;
+  매입채무: number;
+  revenue: number;
+  cogs: number;
+}
+
+export interface BsSnapshot {
+  current: Record<string, number>;
+  opening: Record<string, number>;
+}
+
+export interface PlProfitabilityMonthly {
+  month: string;
+  revenue: number;
+  cogs: number;
+  sga: number;
+  grossProfit: number;
+  operatingIncome: number;
+  netIncome: number;
+  gpm: number;
+  opm: number;
+  npm: number;
 }
 
 // ─── Cash Flow BI Types ──────────────────────────────────────

@@ -1393,6 +1393,217 @@ def get_bs_accounts_list() -> list:
 
 # ─── Cash Flow 비교 (당기/전기) ─────────────────────────────────
 
+def get_ccc_monthly(params: dict) -> list:
+    """월별 CCC(Cash Conversion Cycle): DSO + DIO - DPO"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from", "2024-01-01")
+        date_to = params.get("date_to", "2025-12-31")
+
+        tb = {r["account_code"]: {
+            "balance": r["balance"] or 0, "branch": r["branch"] or "",
+            "division": r["division"] or "", "classification1": r["classification1"] or ""
+        } for r in conn.execute(
+            "SELECT account_code, balance, branch, division, classification1 FROM trial_balance"
+        ).fetchall()}
+
+        je_bs = conn.execute("""
+            SELECT account_code, strftime('%Y-%m', date) as month,
+                   SUM(CASE WHEN debit_credit='D' THEN amount ELSE -amount END) as net
+            FROM journal_entries WHERE entry_type='BS' AND date >= ? AND date <= ?
+            GROUP BY account_code, month
+        """, (date_from, date_to)).fetchall()
+
+        acct_monthly: dict = {}
+        all_months: set = set()
+        for r in je_bs:
+            acct_monthly.setdefault(r["account_code"], {})[r["month"]] = r["net"] or 0
+            all_months.add(r["month"])
+
+        je_pl = conn.execute("""
+            SELECT strftime('%Y-%m', date) as month, classification1, branch,
+                   SUM(CASE WHEN debit_credit='C' THEN amount ELSE -amount END) as net
+            FROM journal_entries WHERE entry_type='PL' AND date >= ? AND date <= ?
+            GROUP BY month, classification1, branch
+        """, (date_from, date_to)).fetchall()
+
+        monthly_pl: dict = {}
+        for r in je_pl:
+            m = r["month"]
+            monthly_pl.setdefault(m, {"revenue": 0.0, "cogs": 0.0})
+            net = r["net"] or 0
+            if r["branch"] == "수익":
+                monthly_pl[m]["revenue"] += net
+            elif r["branch"] == "비용":
+                if _classify_expense(r["classification1"] or "") == "매출원가":
+                    monthly_pl[m]["cogs"] += abs(net)
+
+        RECV_KEYWORDS = ["외상매출금", "받을어음"]
+        INV_EXACT = {"제품", "원재료", "재공품", "반제품", "상품", "저장품"}
+        AP_KEYWORDS = ["외상매입금", "매입채무", "지급어음"]
+
+        def _is_inv(cls1: str) -> bool:
+            if "충당금" in cls1:
+                return False
+            return cls1.split("(")[0].strip() in INV_EXACT
+
+        def _is_ap(cls1: str) -> bool:
+            return any(k in cls1 for k in AP_KEYWORDS) and "충당금" not in cls1
+
+        result = []
+        for month in sorted(all_months):
+            recv, inv, ap = 0.0, 0.0, 0.0
+            for ac, info in tb.items():
+                cls1 = info["classification1"]
+                cum = sum(v for m, v in acct_monthly.get(ac, {}).items() if m <= month)
+                bal = info["balance"] + cum
+
+                if info["branch"] == "자산":
+                    if any(k in cls1 for k in RECV_KEYWORDS) and "충당금" not in cls1:
+                        recv += bal
+                    if _is_inv(cls1):
+                        inv += bal
+                if info["branch"] == "부채":
+                    if _is_ap(cls1):
+                        ap += abs(bal)
+
+            yr, mo = int(month[:4]), int(month[5:7])
+            days = calendar.monthrange(yr, mo)[1]
+            pl = monthly_pl.get(month, {})
+            daily_rev = pl.get("revenue", 0) / days if days else 0
+            daily_cogs = pl.get("cogs", 0) / days if days else 0
+
+            dso = round(recv / daily_rev, 1) if daily_rev else 0
+            dio = round(inv / daily_cogs, 1) if daily_cogs else 0
+            dpo = round(ap / daily_cogs, 1) if daily_cogs else 0
+            ccc = round(dso + dio - dpo, 1)
+
+            result.append({
+                "month": month,
+                "dso": dso, "dio": dio, "dpo": dpo, "ccc": ccc,
+                "매출채권": recv, "재고자산": inv, "매입채무": ap,
+                "revenue": pl.get("revenue", 0), "cogs": pl.get("cogs", 0),
+            })
+        return result
+    finally:
+        conn.close()
+
+
+def get_bs_snapshot(params: dict) -> dict:
+    """BS 스냅샷 — 기말/기초 잔액 + 개별 계정 잔액 (Summary BI용)"""
+    conn = get_conn()
+    try:
+        date_to = params.get("date_to") or "2025-12-31"
+        date_from = params.get("date_from") or "2024-01-01"
+        year = int(date_to[:4])
+        base_date = f"{year - 1}-12-31"
+
+        tb = {r["account_code"]: {
+            "balance": r["balance"] or 0, "branch": r["branch"] or "",
+            "division": r["division"] or "", "classification1": r["classification1"] or ""
+        } for r in conn.execute(
+            "SELECT account_code, balance, branch, division, classification1 FROM trial_balance"
+        ).fetchall()}
+
+        def compute_at(up_to):
+            rows = conn.execute("""
+                SELECT account_code, SUM(CASE WHEN debit_credit='D' THEN amount ELSE -amount END) as net
+                FROM journal_entries WHERE entry_type='BS' AND date <= ?
+                GROUP BY account_code
+            """, (up_to,)).fetchall()
+            movements = {r["account_code"]: r["net"] or 0 for r in rows}
+
+            totals = {"currentAssets": 0, "nonCurrentAssets": 0,
+                      "currentLiabilities": 0, "nonCurrentLiabilities": 0}
+            accounts = {}
+            for ac, info in tb.items():
+                branch, division, cls1 = info["branch"], info["division"], info["classification1"]
+                if not branch:
+                    continue
+                bal = info["balance"] + movements.get(ac, 0)
+                if cls1:
+                    accounts[cls1] = accounts.get(cls1, 0) + bal
+                if branch == "자산":
+                    if "비유동" in division:
+                        totals["nonCurrentAssets"] += bal
+                    else:
+                        totals["currentAssets"] += bal
+                elif branch == "부채":
+                    if "비유동" in division:
+                        totals["nonCurrentLiabilities"] += bal
+                    else:
+                        totals["currentLiabilities"] += bal
+
+            totals["totalAssets"] = totals["currentAssets"] + totals["nonCurrentAssets"]
+            totals["totalLiabilities"] = totals["currentLiabilities"] + totals["nonCurrentLiabilities"]
+            totals["totalEquity"] = totals["totalAssets"] - totals["totalLiabilities"]
+            return {**totals, **accounts}
+
+        current = compute_at(date_to)
+        opening = compute_at(base_date)
+
+        return {"current": current, "opening": opening}
+    finally:
+        conn.close()
+
+
+def get_pl_profitability_monthly(params: dict) -> list:
+    """월별 수익성 비율 (당기/전기) — Summary BI용"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from", "2024-01-01")
+        date_to = params.get("date_to", "2025-12-31")
+
+        rows = conn.execute("""
+            SELECT strftime('%Y-%m', date) as month, branch, classification1,
+                   SUM(CASE WHEN debit_credit='C' THEN amount ELSE -amount END) as net_amount
+            FROM journal_entries WHERE entry_type='PL' AND date >= ? AND date <= ?
+            GROUP BY month, branch, classification1
+        """, (date_from, date_to)).fetchall()
+
+        monthly: dict = {}
+        for r in rows:
+            m = r["month"]
+            if m not in monthly:
+                monthly[m] = {"revenue": 0, "cogs": 0, "sga": 0, "other": 0}
+            net = r["net_amount"] or 0
+            branch = r["branch"] or ""
+            cls1 = r["classification1"] or "기타"
+            if branch == "수익":
+                monthly[m]["revenue"] += net
+            elif branch == "비용":
+                cat = _classify_expense(cls1)
+                if cat == "매출원가":
+                    monthly[m]["cogs"] += abs(net)
+                elif cat == "판매비와관리비":
+                    monthly[m]["sga"] += abs(net)
+                else:
+                    monthly[m]["other"] += -abs(net)
+
+        result = []
+        for m in sorted(monthly):
+            d = monthly[m]
+            rev = d["revenue"]
+            gp = rev - d["cogs"]
+            op = gp - d["sga"]
+            ni = op + d["other"]
+            result.append({
+                "month": m,
+                "revenue": rev,
+                "cogs": d["cogs"],
+                "sga": d["sga"],
+                "grossProfit": gp,
+                "operatingIncome": op,
+                "netIncome": ni,
+                "gpm": round(gp / rev * 100, 1) if rev else 0,
+                "opm": round(op / rev * 100, 1) if rev else 0,
+                "npm": round(ni / rev * 100, 1) if rev else 0,
+            })
+        return result
+    finally:
+        conn.close()
+
+
 def get_cash_flow_comparison(params: dict) -> dict:
     """현금흐름 당기/전기 비교"""
     conn = get_conn()

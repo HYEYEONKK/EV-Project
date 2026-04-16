@@ -215,3 +215,29 @@ def cash_flow_comparison(
     date_to: Optional[str] = Query(None),
 ):
     return svc.get_cash_flow_comparison(_params(date_from, date_to))
+
+
+# ─── Summary BI 엔드포인트 ────────────────────────────────────
+
+@router.get("/summary/ccc-monthly")
+def summary_ccc_monthly(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_ccc_monthly(_params(date_from, date_to))
+
+
+@router.get("/summary/bs-snapshot")
+def summary_bs_snapshot(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_bs_snapshot(_params(date_from, date_to))
+
+
+@router.get("/summary/pl-profitability")
+def summary_pl_profitability(
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+):
+    return svc.get_pl_profitability_monthly(_params(date_from, date_to))
