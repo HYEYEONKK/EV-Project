@@ -20,10 +20,14 @@ import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors"
   - 슬라이서: 공시용계정, 기표Side, 거래처, 관리계정
 */
 
-const POS_COLOR = "#16C784";
-const NEG_COLOR = "#FD5108";
-const PANEL_CLS = "bg-white rounded-lg border overflow-hidden card-hover";
-const PANEL_STYLE: React.CSSProperties = { borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" };
+const POS_COLOR = "#C1292E";
+const NEG_COLOR = "#1D6BB5";
+const PANEL_CLS = "bg-white border overflow-hidden";
+const PANEL_STYLE: React.CSSProperties = {
+  borderColor: "#DFE3E6", borderRadius: 8,
+  boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)",
+  transition: "box-shadow 0.2s ease, transform 0.2s ease",
+};
 
 function BiTag() {
   return (
@@ -38,7 +42,7 @@ function BiTag() {
 function ChartHeader({ title }: { title: string }) {
   return (
     <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
-      <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E" }}>{title}</span>
+      <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1D23" }}>{title}</span>
     </div>
   );
 }
@@ -68,11 +72,11 @@ function VendorBar({ title, data, color }: { title: string; data: BsVendorCompos
   return (
     <div className={PANEL_CLS} style={PANEL_STYLE}>
       <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
-        <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E" }}>{title}</span>
-        <span style={{ fontSize: 12, color: "#A1A8B3" }}>합계: {formatKRW(total)}</span>
+        <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1D23" }}>{title}</span>
+        <span style={{ fontSize: 12, color: "#7A8290" }}>합계: {formatKRW(total)}</span>
       </div>
       {chartData.length === 0 ? (
-        <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "#A1A8B3", fontSize: 13 }}>
+        <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "#7A8290", fontSize: 13 }}>
           계정을 선택하세요
         </div>
       ) : (
@@ -80,7 +84,7 @@ function VendorBar({ title, data, color }: { title: string; data: BsVendorCompos
           <BarChart data={chartData} layout="vertical" margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
             <XAxis type="number" tickFormatter={chartAxisFormatter} tick={AXIS_STYLE} tickLine={false} axisLine={false} />
-            <YAxis type="category" dataKey="vendor" tick={{ fontSize: 10, fill: "#A1A8B3" }} tickLine={false} axisLine={false} width={120} />
+            <YAxis type="category" dataKey="vendor" tick={{ fontSize: 11, fill: "#7A8290" }} tickLine={false} axisLine={false} width={120} />
             <Tooltip formatter={(v: any) => formatKRW(Number(v))} contentStyle={TOOLTIP_STYLE} />
             <Bar dataKey="amount" name="금액" radius={[0, 3, 3, 0]} barSize={10} fill={color} />
           </BarChart>
@@ -150,7 +154,7 @@ export default function BsTrendBiPage() {
   const dailyXTick = useMemo(() => {
     return function XTick({ x, y, payload, index }: any) {
       if (index % Math.max(1, Math.floor(dailyChartData.length / 12)) !== 0) return <g />;
-      return <text x={x} y={y + 10} textAnchor="middle" fill="#A1A8B3" fontSize={9}>{payload.value}</text>;
+      return <text x={x} y={y + 10} textAnchor="middle" fill="#7A8290" fontSize={11}>{payload.value}</text>;
     };
   }, [dailyChartData.length]);
 
@@ -167,12 +171,12 @@ export default function BsTrendBiPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       {/* 페이지 타이틀 */}
       <div className="flex items-center gap-2">
-        <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E" }}>BS 추이분석</span>
+        <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1D23" }}>BS 추이분석</span>
         <BiTag />
-        <span style={{ fontSize: 12, color: "#A1A8B3", marginLeft: 4 }}>Power BI 레이아웃</span>
+        <span style={{ fontSize: 12, color: "#7A8290", marginLeft: 4 }}>Power BI 레이아웃</span>
       </div>
 
       {/* 슬라이서 바 */}
@@ -180,13 +184,13 @@ export default function BsTrendBiPage() {
         <div className="flex flex-wrap gap-3 items-center">
           {/* 공시용계정 선택 */}
           <div className="flex items-center gap-2">
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", whiteSpace: "nowrap" }}>공시용계정</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1D23", whiteSpace: "nowrap" }}>공시용계정</span>
             <select
               value={bsTrendAccount ?? ""}
               onChange={e => setBsTrendAccount(e.target.value || null)}
               style={{
                 fontSize: 12, padding: "4px 8px", borderRadius: 6, border: "1px solid #DFE3E6",
-                color: "#374151", minWidth: 160, backgroundColor: "#fff",
+                color: "#4A5056", minWidth: 160, backgroundColor: "#fff",
               }}
             >
               <option value="">전체 (선택하세요)</option>
@@ -198,7 +202,7 @@ export default function BsTrendBiPage() {
 
           {/* 기표 Side */}
           <div style={{ width: 1, height: 20, backgroundColor: "#EEEFF1" }} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E" }}>기표 Side</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1D23" }}>기표 Side</span>
           <div className="flex gap-1">
             <FilterPill label="전체" active={!bsTrendDebitCredit} onClick={() => setBsTrendDebitCredit(null)} />
             <FilterPill label="차변(D)" active={bsTrendDebitCredit === "D"} onClick={() => setBsTrendDebitCredit(bsTrendDebitCredit === "D" ? null : "D")} />
@@ -209,13 +213,13 @@ export default function BsTrendBiPage() {
           {vendorList.length > 0 && (
             <>
               <div style={{ width: 1, height: 20, backgroundColor: "#EEEFF1" }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E" }}>거래처</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1D23" }}>거래처</span>
               <select
                 value={bsTrendVendor ?? ""}
                 onChange={e => setBsTrendVendor(e.target.value || null)}
                 style={{
                   fontSize: 12, padding: "4px 8px", borderRadius: 6, border: "1px solid #DFE3E6",
-                  color: "#374151", minWidth: 140,
+                  color: "#4A5056", minWidth: 140,
                 }}
               >
                 <option value="">전체</option>
@@ -228,20 +232,20 @@ export default function BsTrendBiPage() {
 
       {!bsTrendAccount ? (
         <div className={PANEL_CLS} style={{ ...PANEL_STYLE, padding: "60px 0", textAlign: "center" }}>
-          <div style={{ fontSize: 14, color: "#A1A8B3" }}>공시용계정을 선택하면 상세 분석이 표시됩니다</div>
+          <div style={{ fontSize: 14, color: "#7A8290" }}>공시용계정을 선택하면 상세 분석이 표시됩니다</div>
         </div>
       ) : (
         <>
           {/* 일별 잔액 추이 — PBI areaChart */}
           <div className={PANEL_CLS} style={PANEL_STYLE}>
             <ChartHeader title={`일별 잔액 추이 — ${bsTrendAccount}`} />
-            <div style={{ padding: "6px 8px 8px" }}>
+            <div style={{ padding: "12px 24px 24px" }}>
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={dailyChartData} margin={{ top: 6, right: 16, bottom: 0, left: 0 }}>
                   <defs>
                     <linearGradient id="gradDaily" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#FD5108" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#FD5108" stopOpacity={0.03} />
+                      <stop offset="5%" stopColor="#E04A00" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#E04A00" stopOpacity={0.03} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
@@ -249,7 +253,7 @@ export default function BsTrendBiPage() {
                   <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={72}
                     tickFormatter={v => formatKRW(v)} />
                   <Tooltip formatter={(v: any) => formatKRW(Number(v))} contentStyle={TOOLTIP_STYLE} />
-                  <Area type="monotone" dataKey="balance" stroke="#FD5108" strokeWidth={1.5}
+                  <Area type="monotone" dataKey="balance" stroke="#E04A00" strokeWidth={1.5}
                     fill="url(#gradDaily)" dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
@@ -258,7 +262,7 @@ export default function BsTrendBiPage() {
 
           {/* 거래처 구성 (차변/대변) — PBI treemap → BarChart 대안 */}
           <div className="grid grid-cols-2 gap-4">
-            <VendorBar title="거래처 구성 (차변)" data={vendorDebit as BsVendorComposition[]} color="#FD5108" />
+            <VendorBar title="거래처 구성 (차변)" data={vendorDebit as BsVendorComposition[]} color="#E04A00" />
             <VendorBar title="거래처 구성 (대변)" data={vendorCredit as BsVendorComposition[]} color="#54565A" />
           </div>
 
@@ -269,22 +273,22 @@ export default function BsTrendBiPage() {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                 <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
                   <tr style={{ backgroundColor: "#F5F7F8" }}>
-                    <th style={{ padding: "10px 14px", textAlign: "left", fontWeight: 600, color: "#A1A8B3" }}>상대계정</th>
-                    <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#A1A8B3" }}>차변 합계</th>
-                    <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#A1A8B3" }}>대변 합계</th>
-                    <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#A1A8B3" }}>건수</th>
+                    <th style={{ padding: "10px 14px", textAlign: "left", fontWeight: 600, color: "#7A8290" }}>상대계정</th>
+                    <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#7A8290" }}>차변 합계</th>
+                    <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#7A8290" }}>대변 합계</th>
+                    <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#7A8290" }}>건수</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(counterAccounts as BsCounterAccount[]).length === 0 ? (
-                    <tr><td colSpan={4} style={{ padding: 24, textAlign: "center", color: "#A1A8B3" }}>데이터 없음</td></tr>
+                    <tr><td colSpan={4} style={{ padding: 24, textAlign: "center", color: "#7A8290" }}>데이터 없음</td></tr>
                   ) : (counterAccounts as BsCounterAccount[]).map((ca, i) => (
                     <tr key={i} style={{ borderTop: "1px solid #EEEFF1" }}
-                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#FAFBFC"}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#FFE8D4"}
                       onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = ""}>
-                      <td style={{ padding: "7px 14px", color: "#1A1A2E", fontWeight: 500 }}>{ca.account}</td>
-                      <td style={{ padding: "7px 14px", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{ca.debit_total.toLocaleString("ko-KR")}</td>
-                      <td style={{ padding: "7px 14px", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{ca.credit_total.toLocaleString("ko-KR")}</td>
+                      <td style={{ padding: "7px 14px", color: "#1A1D23", fontWeight: 500 }}>{ca.account}</td>
+                      <td style={{ padding: "7px 14px", textAlign: "right", fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>{ca.debit_total.toLocaleString("ko-KR")}</td>
+                      <td style={{ padding: "7px 14px", textAlign: "right", fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>{ca.credit_total.toLocaleString("ko-KR")}</td>
                       <td style={{ padding: "7px 14px", textAlign: "right", color: "#6B7280" }}>{ca.count}</td>
                     </tr>
                   ))}
@@ -296,11 +300,11 @@ export default function BsTrendBiPage() {
           {/* 전표 상세내역 — PBI tableEx */}
           <div className={PANEL_CLS} style={PANEL_STYLE}>
             <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
-              <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E" }}>전표 상세내역</span>
+              <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1D23" }}>전표 상세내역</span>
               <button onClick={handleCsvEntries}
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 500,
-                  color: "#A1A8B3", background: "none", border: "1px solid #DFE3E6", borderRadius: 7,
+                  color: "#7A8290", background: "none", border: "1px solid #DFE3E6", borderRadius: 7,
                   padding: "4px 10px", cursor: "pointer",
                 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -312,26 +316,26 @@ export default function BsTrendBiPage() {
                 <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
                   <tr style={{ backgroundColor: "#F5F7F8" }}>
                     {["일자", "전표번호", "계정과목", "거래처", "적요", "차변", "대변"].map(h => (
-                      <th key={h} style={{ padding: "8px 10px", fontWeight: 600, color: "#A1A8B3", textAlign: h === "차변" || h === "대변" ? "right" : "left", whiteSpace: "nowrap" }}>{h}</th>
+                      <th key={h} style={{ padding: "8px 10px", fontWeight: 600, color: "#7A8290", textAlign: h === "차변" || h === "대변" ? "right" : "left", whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {(entries as BsEntry[]).length === 0 ? (
-                    <tr><td colSpan={7} style={{ padding: 24, textAlign: "center", color: "#A1A8B3" }}>데이터 없음</td></tr>
+                    <tr><td colSpan={7} style={{ padding: 24, textAlign: "center", color: "#7A8290" }}>데이터 없음</td></tr>
                   ) : (entries as BsEntry[]).map((e, i) => (
                     <tr key={i} style={{ borderTop: "1px solid #EEEFF1" }}
-                      onMouseEnter={ev => (ev.currentTarget as HTMLElement).style.backgroundColor = "#FAFBFC"}
+                      onMouseEnter={ev => (ev.currentTarget as HTMLElement).style.backgroundColor = "#FFE8D4"}
                       onMouseLeave={ev => (ev.currentTarget as HTMLElement).style.backgroundColor = ""}>
                       <td style={{ padding: "6px 10px", whiteSpace: "nowrap" }}>{e.date}</td>
                       <td style={{ padding: "6px 10px", color: "#FD5108", fontWeight: 500 }}>{e.je_number}</td>
                       <td style={{ padding: "6px 10px" }}>{e.account}</td>
                       <td style={{ padding: "6px 10px" }}>{e.vendor}</td>
                       <td style={{ padding: "6px 10px", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.memo}</td>
-                      <td style={{ padding: "6px 10px", textAlign: "right", color: e.debit > 0 ? POS_COLOR : "#374151", fontVariantNumeric: "tabular-nums" }}>
+                      <td style={{ padding: "6px 10px", textAlign: "right", color: e.debit > 0 ? POS_COLOR : "#374151", fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
                         {e.debit > 0 ? e.debit.toLocaleString("ko-KR") : ""}
                       </td>
-                      <td style={{ padding: "6px 10px", textAlign: "right", color: e.credit > 0 ? NEG_COLOR : "#374151", fontVariantNumeric: "tabular-nums" }}>
+                      <td style={{ padding: "6px 10px", textAlign: "right", color: e.credit > 0 ? NEG_COLOR : "#374151", fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
                         {e.credit > 0 ? e.credit.toLocaleString("ko-KR") : ""}
                       </td>
                     </tr>

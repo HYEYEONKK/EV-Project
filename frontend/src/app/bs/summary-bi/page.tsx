@@ -15,12 +15,12 @@ import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors"
 */
 
 const fmtM = (v: string) => v.slice(2, 4) + "." + v.slice(5);
-const LABEL_STYLE: React.CSSProperties = { fontSize: 13, fontWeight: 400, color: "#A1A8B3" };
+const LABEL_STYLE: React.CSSProperties = { fontSize: 13, fontWeight: 400, color: "#7A8290" };
 
 function SectionLabel({ title }: { title: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-      <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", whiteSpace: "nowrap" }}>{title}</span>
+      <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1D23", whiteSpace: "nowrap" }}>{title}</span>
       <div style={{ flex: 1, height: 1, backgroundColor: "#EEEFF1" }} />
     </div>
   );
@@ -40,8 +40,8 @@ function PctTag({ v }: { v: number | null }) {
   if (v == null) return null;
   const up = v >= 0;
   return (
-    <span style={{ fontSize: 11, fontWeight: 600, color: up ? "#16C784" : "#FF4747" }}>
-      {up ? "▲" : "▼"}{Math.abs(v).toFixed(1)}%
+    <span style={{ fontSize: 11, fontWeight: 600, color: up ? "#C1292E" : "#1D6BB5", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
+      {up ? "↑" : "↓"}{Math.abs(v).toFixed(1)}%
     </span>
   );
 }
@@ -70,12 +70,18 @@ function BsKpiCard({ label, data, color, icon }: {
   label: string; data: any; color: string; icon: string;
 }) {
   return (
-    <div className="bg-white rounded-lg border p-5 card-hover"
-      style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)", minWidth: 200 }}>
+    <div className="bg-white border card-hover"
+      style={{
+        borderColor: "#DFE3E6", borderRadius: 12, padding: 24, minWidth: 200,
+        boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)",
+        transition: "box-shadow 0.2s ease, transform 0.2s ease",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 500, color, marginBottom: 4 }}>{label}</div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: "#000", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: "#1A1D23", letterSpacing: "-0.5px", lineHeight: 1.1, fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
             {formatKRW(data?.current ?? 0)}
           </div>
         </div>
@@ -100,20 +106,24 @@ function makeXTick(dataLen: number) {
     const isLast = index === dataLen - 1;
     if (!isLast && index % 3 !== 0) return <g />;
     return (
-      <text x={x} y={y + 10} textAnchor="middle" fill="#A1A8B3" fontSize={10}>
+      <text x={x} y={y + 10} textAnchor="middle" fill="#7A8290" fontSize={11}>
         {payload.value}
       </text>
     );
   };
 }
 
-const PANEL_CLS = "bg-white rounded-lg border overflow-hidden card-hover";
-const PANEL_STYLE = { borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" };
+const PANEL_CLS = "bg-white border overflow-hidden";
+const PANEL_STYLE: React.CSSProperties = {
+  borderColor: "#DFE3E6", borderRadius: 8,
+  boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)",
+  transition: "box-shadow 0.2s ease, transform 0.2s ease",
+};
 
 function ChartHeader({ title }: { title: string }) {
   return (
     <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
-      <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E" }}>{title}</span>
+      <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1D23" }}>{title}</span>
     </div>
   );
 }
@@ -196,7 +206,7 @@ export default function BsSummaryBiPage() {
   const assetBranches = [...new Set(monthly.filter((r: any) => r.branch === "자산").map((r: any) => r.division || "자산"))] as string[];
   const liabBranches = [...new Set(monthly.filter((r: any) => r.branch === "부채").map((r: any) => r.division || "부채"))] as string[];
 
-  const ASSET_COLORS: Record<string, string> = { "유동자산": "#FD5108", "비유동자산": "#FFAA72" };
+  const ASSET_COLORS: Record<string, string> = { "유동자산": "#E04A00", "비유동자산": "#FFAA72" };
   const LIAB_COLORS: Record<string, string> = { "유동부채": "#54565A", "비유동부채": "#CBD1D6" };
 
   const ratioData = (ratios as any[]).map((r: any) => ({ ...r, month: fmtM(r.month) }));
@@ -209,18 +219,18 @@ export default function BsSummaryBiPage() {
   const avgInvDays = actSummary["재고자산회전일수"] ?? 0;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       {/* 페이지 타이틀 */}
       <div className="flex items-center gap-2">
-        <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E" }}>BS 요약</span>
+        <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1D23" }}>BS 요약</span>
         <BiTag />
-        <span style={{ fontSize: 12, color: "#A1A8B3", marginLeft: 4 }}>Power BI 레이아웃</span>
+        <span style={{ fontSize: 12, color: "#7A8290", marginLeft: 4 }}>Power BI 레이아웃</span>
       </div>
 
       {/* Section 1: KPI 카드 (가로 3개) — PBI cardVisual */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-5">
         <BsKpiCard label="자산" data={kpi?.["자산"]} color="#FD5108" icon="asset-and-wealth.svg" />
-        <BsKpiCard label="부채" data={kpi?.["부채"]} color="#A1A8B3" icon="bank.svg" />
+        <BsKpiCard label="부채" data={kpi?.["부채"]} color="#7A8290" icon="bank.svg" />
         <BsKpiCard label="자본" data={kpi?.["자본"]} color="#FFAA72" icon="investment.svg" />
       </div>
 
@@ -229,21 +239,21 @@ export default function BsSummaryBiPage() {
       <div className="grid grid-cols-3 gap-4">
         <div className={PANEL_CLS} style={PANEL_STYLE}>
           <ChartHeader title="자산추이" />
-          <div style={{ padding: "6px 8px 8px" }}>
-            <InlineLegend items={assetBranches.map(b => ({ label: b, color: ASSET_COLORS[b] ?? "#FD5108" }))} />
+          <div style={{ padding: "12px 24px 24px" }}>
+            <InlineLegend items={assetBranches.map(b => ({ label: b, color: ASSET_COLORS[b] ?? "#E04A00" }))} />
             <BsTrendChart data={assetData} branches={assetBranches} colors={ASSET_COLORS} height={160} />
           </div>
         </div>
         <div className={PANEL_CLS} style={PANEL_STYLE}>
           <ChartHeader title="부채추이" />
-          <div style={{ padding: "6px 8px 8px" }}>
-            <InlineLegend items={liabBranches.map(b => ({ label: b, color: LIAB_COLORS[b] ?? "#A1A8B3" }))} />
+          <div style={{ padding: "12px 24px 24px" }}>
+            <InlineLegend items={liabBranches.map(b => ({ label: b, color: LIAB_COLORS[b] ?? "#7A8290" }))} />
             <BsTrendChart data={liabData} branches={liabBranches} colors={LIAB_COLORS} height={160} />
           </div>
         </div>
         <div className={PANEL_CLS} style={PANEL_STYLE}>
           <ChartHeader title="자본추이" />
-          <div style={{ padding: "6px 8px 8px" }}>
+          <div style={{ padding: "12px 24px 24px" }}>
             <InlineLegend items={[{ label: "자본", color: "#FFAA72" }]} />
             <ResponsiveContainer width="100%" height={160}>
               <AreaChart data={equityData} margin={{ top: 6, right: 16, bottom: 0, left: 0 }}>
@@ -271,9 +281,9 @@ export default function BsSummaryBiPage() {
       <div className="grid grid-cols-2 gap-4">
         <div className={PANEL_CLS} style={PANEL_STYLE}>
           <ChartHeader title="당좌비율, 유동비율 추이" />
-          <div style={{ padding: "6px 8px 8px" }}>
+          <div style={{ padding: "12px 24px 24px" }}>
             <InlineLegend items={[
-              { label: "당좌비율", color: "#FD5108" },
+              { label: "당좌비율", color: "#E04A00" },
               { label: "유동비율", color: "#FFAA72" },
             ]} />
             <ResponsiveContainer width="100%" height={195}>
@@ -283,7 +293,7 @@ export default function BsSummaryBiPage() {
                 <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={44}
                   tickFormatter={v => v + "%"} />
                 <Tooltip formatter={(v: any) => Number(v).toFixed(1) + "%"} contentStyle={TOOLTIP_STYLE} />
-                <Line type="monotone" dataKey="당좌비율" stroke="#FD5108" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="당좌비율" stroke="#E04A00" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="유동비율" stroke="#FFAA72" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -291,8 +301,8 @@ export default function BsSummaryBiPage() {
         </div>
         <div className={PANEL_CLS} style={PANEL_STYLE}>
           <ChartHeader title="부채비율 추이" />
-          <div style={{ padding: "6px 8px 8px" }}>
-            <InlineLegend items={[{ label: "부채비율", color: "#A1A8B3" }]} />
+          <div style={{ padding: "12px 24px 24px" }}>
+            <InlineLegend items={[{ label: "부채비율", color: "#7A8290" }]} />
             <ResponsiveContainer width="100%" height={195}>
               <LineChart data={ratioData} margin={{ top: 6, right: 16, bottom: 0, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
@@ -300,7 +310,7 @@ export default function BsSummaryBiPage() {
                 <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} width={44}
                   tickFormatter={v => v + "%"} />
                 <Tooltip formatter={(v: any) => Number(v).toFixed(1) + "%"} contentStyle={TOOLTIP_STYLE} />
-                <Line type="monotone" dataKey="부채비율" stroke="#A1A8B3" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="부채비율" stroke="#7A8290" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -312,17 +322,17 @@ export default function BsSummaryBiPage() {
       <div className="grid grid-cols-2 gap-4">
         <div className={PANEL_CLS} style={PANEL_STYLE}>
           <ChartHeader title="매출채권 회전일수 추이" />
-          <div className="p-5">
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#000", marginBottom: 4 }}>
+          <div style={{ padding: 24 }}>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#1A1D23", marginBottom: 4, letterSpacing: "-0.5px", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
               {avgRecvDays.toFixed(1)}<span style={{ fontSize: 16, fontWeight: 400 }}>일</span>
             </div>
-            <InlineLegend items={[{ label: "매출채권회전일수", color: "#FD5108" }]} />
+            <InlineLegend items={[{ label: "매출채권회전일수", color: "#E04A00" }]} />
             <ResponsiveContainer width="100%" height={160}>
               <AreaChart data={activityMonthly} margin={{ top: 6, right: 16, bottom: 0, left: 0 }}>
                 <defs>
                   <linearGradient id="gradbiRecv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FD5108" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#FD5108" stopOpacity={0.03} />
+                    <stop offset="5%" stopColor="#E04A00" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#E04A00" stopOpacity={0.03} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
@@ -331,9 +341,9 @@ export default function BsSummaryBiPage() {
                   tickFormatter={v => v + "일"} />
                 <Tooltip formatter={(v: any) => Number(v).toFixed(1) + "일"} contentStyle={TOOLTIP_STYLE} />
                 {avgRecvDays > 0 && (
-                  <ReferenceLine y={avgRecvDays} stroke="#FD5108" strokeDasharray="4 2" strokeWidth={1} />
+                  <ReferenceLine y={avgRecvDays} stroke="#E04A00" strokeDasharray="4 2" strokeWidth={1} />
                 )}
-                <Area type="monotone" dataKey="매출채권회전일수" stroke="#FD5108" strokeWidth={2}
+                <Area type="monotone" dataKey="매출채권회전일수" stroke="#E04A00" strokeWidth={2}
                   fill="url(#gradbiRecv)" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
@@ -341,8 +351,8 @@ export default function BsSummaryBiPage() {
         </div>
         <div className={PANEL_CLS} style={PANEL_STYLE}>
           <ChartHeader title="재고자산 회전일수 추이" />
-          <div className="p-5">
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#000", marginBottom: 4 }}>
+          <div style={{ padding: 24 }}>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#1A1D23", marginBottom: 4, letterSpacing: "-0.5px", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
               {avgInvDays.toFixed(1)}<span style={{ fontSize: 16, fontWeight: 400 }}>일</span>
             </div>
             <InlineLegend items={[{ label: "재고자산회전일수", color: "#FE7C39" }]} />

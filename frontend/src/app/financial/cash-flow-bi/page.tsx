@@ -21,13 +21,17 @@ import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors"
 */
 
 const CF_COLORS: Record<string, string> = {
-  "영업활동": "#FD5108",
+  "영업활동": "#E04A00",
   "투자활동": "#54565A",
   "재무활동": "#FFAA72",
 };
 
-const PANEL_CLS = "bg-white rounded-lg border overflow-hidden card-hover";
-const PANEL_STYLE: React.CSSProperties = { borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" };
+const PANEL_CLS = "bg-white border overflow-hidden";
+const PANEL_STYLE: React.CSSProperties = {
+  borderColor: "#DFE3E6", borderRadius: 8,
+  boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)",
+  transition: "box-shadow 0.2s ease, transform 0.2s ease",
+};
 
 function BiTag() {
   return (
@@ -42,7 +46,7 @@ function BiTag() {
 function ChartHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
     <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
-      <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E" }}>{title}</span>
+      <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1D23" }}>{title}</span>
       {right}
     </div>
   );
@@ -69,15 +73,22 @@ function CfKpiCard({ label, current, prior, color }: {
   const delta = current - prior;
   const deltaPct = prior !== 0 ? (delta / Math.abs(prior)) * 100 : 0;
   return (
-    <div className="bg-white rounded-lg border p-4 card-hover" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
-      <p className="text-sm font-medium" style={{ color: "#A1A8B3" }}>{label}</p>
-      <p className="text-2xl font-bold mt-1" style={{ color: current >= 0 ? "#16C784" : "#FF4747" }}>
+    <div className="bg-white border"
+      style={{
+        borderColor: "#DFE3E6", borderRadius: 12, padding: 24,
+        boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)",
+        transition: "box-shadow 0.2s ease, transform 0.2s ease",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+      <p className="text-sm font-medium" style={{ color: "#7A8290" }}>{label}</p>
+      <p style={{ fontSize: 28, fontWeight: 700, marginTop: 4, color: current >= 0 ? "#C1292E" : "#1D6BB5", letterSpacing: "-0.5px", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
         {formatKRW(current)}
       </p>
       <div className="flex items-center gap-3 mt-2" style={{ fontSize: 12 }}>
-        <span style={{ color: "#A1A8B3" }}>전기: {formatKRW(prior)}</span>
-        <span style={{ fontWeight: 600, color: delta >= 0 ? "#16C784" : "#FF4747" }}>
-          {delta >= 0 ? "▲" : "▼"}{Math.abs(deltaPct).toFixed(1)}%
+        <span style={{ color: "#7A8290", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>전기: {formatKRW(prior)}</span>
+        <span style={{ fontWeight: 600, color: delta >= 0 ? "#C1292E" : "#1D6BB5", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
+          {delta >= 0 ? "↑" : "↓"}{Math.abs(deltaPct).toFixed(1)}%
         </span>
       </div>
     </div>
@@ -153,16 +164,16 @@ export default function CashFlowBiPage() {
   };
 
   if (isLoading || !cf) {
-    return <div style={{ padding: 60, textAlign: "center", color: "#A1A8B3" }}>불러오는 중...</div>;
+    return <div style={{ padding: 60, textAlign: "center", color: "#7A8290" }}>불러오는 중...</div>;
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       {/* 페이지 타이틀 */}
       <div className="flex items-center gap-2">
-        <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1A2E" }}>현금흐름표</span>
+        <span style={{ fontSize: 20, fontWeight: 700, color: "#1A1D23" }}>현금흐름표</span>
         <BiTag />
-        <span style={{ fontSize: 12, color: "#A1A8B3", marginLeft: 4 }}>Power BI 레이아웃 (당기/전기 비교)</span>
+        <span style={{ fontSize: 12, color: "#7A8290", marginLeft: 4 }}>Power BI 레이아웃 (당기/전기 비교)</span>
       </div>
 
       {/* KPI 카드 (4개) */}
@@ -170,7 +181,7 @@ export default function CashFlowBiPage() {
         <CfKpiCard label="영업활동" current={cf.operating.current_total} prior={cf.operating.prior_total} color={CF_COLORS["영업활동"]} />
         <CfKpiCard label="투자활동" current={cf.investing.current_total} prior={cf.investing.prior_total} color={CF_COLORS["투자활동"]} />
         <CfKpiCard label="재무활동" current={cf.financing.current_total} prior={cf.financing.prior_total} color={CF_COLORS["재무활동"]} />
-        <CfKpiCard label="순 현금 변동" current={cf.current_net_change} prior={cf.prior_net_change} color="#1A1A2E" />
+        <CfKpiCard label="순 현금 변동" current={cf.current_net_change} prior={cf.prior_net_change} color="#1A1D23" />
       </div>
 
       {/* CF구분 슬라이서 + 도넛차트 */}
@@ -192,11 +203,11 @@ export default function CashFlowBiPage() {
                 dataKey="value" nameKey="name" paddingAngle={2}>
                 {donutData.map((d, i) => (
                   <Cell key={i} fill={CF_COLORS[d.name] ?? "#DFE3E6"}
-                    stroke={cashFlowCategory === d.name ? "#1A1A2E" : "none"} strokeWidth={2} />
+                    stroke={cashFlowCategory === d.name ? "#1A1D23" : "none"} strokeWidth={2} />
                 ))}
               </Pie>
               <Tooltip formatter={(v: any) => formatKRW(Number(v))} contentStyle={TOOLTIP_STYLE} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12, paddingBottom: 8 }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -209,15 +220,15 @@ export default function CashFlowBiPage() {
               <BarChart data={comparisonChartData} layout="vertical" margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
                 <XAxis type="number" tickFormatter={chartAxisFormatter} tick={AXIS_STYLE} tickLine={false} axisLine={false} />
-                <YAxis type="category" dataKey="account" tick={{ fontSize: 10, fill: "#A1A8B3" }} tickLine={false} axisLine={false} width={120} />
+                <YAxis type="category" dataKey="account" tick={{ fontSize: 11, fill: "#7A8290" }} tickLine={false} axisLine={false} width={120} />
                 <Tooltip formatter={(v: any) => formatKRW(Number(v))} contentStyle={TOOLTIP_STYLE} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="당기" fill="#FD5108" barSize={8} radius={[0, 3, 3, 0]} />
+                <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12, paddingBottom: 8 }} />
+                <Bar dataKey="당기" fill="#E04A00" barSize={8} radius={[0, 3, 3, 0]} />
                 <Bar dataKey="전기" fill="#CBD1D6" barSize={8} radius={[0, 3, 3, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div style={{ height: 280, display: "flex", alignItems: "center", justifyContent: "center", color: "#A1A8B3", fontSize: 13 }}>
+            <div style={{ height: 280, display: "flex", alignItems: "center", justifyContent: "center", color: "#7A8290", fontSize: 13 }}>
               데이터 없음
             </div>
           )}
@@ -229,7 +240,7 @@ export default function CashFlowBiPage() {
         <ChartHeader title="현금흐름표 (당기/전기 비교)" right={
           <button onClick={handleCsv} style={{
             display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 500,
-            color: "#A1A8B3", background: "none", border: "1px solid #DFE3E6", borderRadius: 7,
+            color: "#7A8290", background: "none", border: "1px solid #DFE3E6", borderRadius: 7,
             padding: "4px 10px", cursor: "pointer",
           }}>CSV</button>
         } />
@@ -237,10 +248,10 @@ export default function CashFlowBiPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
               <tr style={{ backgroundColor: "#F5F7F8" }}>
-                <th style={{ padding: "10px 14px", textAlign: "left", fontWeight: 600, color: "#A1A8B3" }}>항목</th>
+                <th style={{ padding: "10px 14px", textAlign: "left", fontWeight: 600, color: "#7A8290" }}>항목</th>
                 <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#FD5108" }}>금액(당기)</th>
-                <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#A1A8B3" }}>금액(전기)</th>
-                <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#A1A8B3" }}>증감</th>
+                <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#7A8290" }}>금액(전기)</th>
+                <th style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#7A8290" }}>증감</th>
               </tr>
             </thead>
             <tbody>
@@ -251,15 +262,15 @@ export default function CashFlowBiPage() {
                     <td style={{ padding: "8px 14px", fontWeight: 700, color: CF_COLORS[section.cat] }}>
                       {si === 0 ? "I" : si === 1 ? "II" : "III"}. {section.cat} 현금흐름
                     </td>
-                    <td style={{ padding: "8px 14px", textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+                    <td style={{ padding: "8px 14px", textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
                       {formatKRW(section.current_total)}
                     </td>
-                    <td style={{ padding: "8px 14px", textAlign: "right", fontWeight: 600, color: "#6B7280", fontVariantNumeric: "tabular-nums" }}>
+                    <td style={{ padding: "8px 14px", textAlign: "right", fontWeight: 600, color: "#6B7280", fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
                       {formatKRW(section.prior_total)}
                     </td>
                     <td style={{
-                      padding: "8px 14px", textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums",
-                      color: (section.current_total - section.prior_total) >= 0 ? "#16C784" : "#FF4747"
+                      padding: "8px 14px", textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1",
+                      color: (section.current_total - section.prior_total) >= 0 ? "#C1292E" : "#1D6BB5"
                     }}>
                       {formatKRW(section.current_total - section.prior_total)}
                     </td>
@@ -269,18 +280,18 @@ export default function CashFlowBiPage() {
                     const delta = item.current - item.prior;
                     return (
                       <tr key={i} style={{ borderTop: "1px solid #EEEFF1" }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#FAFBFC"}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.backgroundColor = "#FFE8D4"}
                         onMouseLeave={e => (e.currentTarget as HTMLElement).style.backgroundColor = ""}>
-                        <td style={{ padding: "6px 14px 6px 28px", color: "#374151" }}>{item.account}</td>
-                        <td style={{ padding: "6px 14px", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                        <td style={{ padding: "6px 14px 6px 28px", color: "#4A5056" }}>{item.account}</td>
+                        <td style={{ padding: "6px 14px", textAlign: "right", fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
                           {formatKRW(item.current)}
                         </td>
-                        <td style={{ padding: "6px 14px", textAlign: "right", color: "#6B7280", fontVariantNumeric: "tabular-nums" }}>
+                        <td style={{ padding: "6px 14px", textAlign: "right", color: "#6B7280", fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
                           {formatKRW(item.prior)}
                         </td>
                         <td style={{
-                          padding: "6px 14px", textAlign: "right", fontVariantNumeric: "tabular-nums",
-                          color: delta >= 0 ? "#16C784" : "#FF4747",
+                          padding: "6px 14px", textAlign: "right", fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1",
+                          color: delta >= 0 ? "#C1292E" : "#1D6BB5",
                         }}>
                           {formatKRW(delta)}
                         </td>
@@ -292,15 +303,15 @@ export default function CashFlowBiPage() {
               {/* 순증감 */}
               <tr style={{ borderTop: "2px solid #FD5108", backgroundColor: "#FFF5ED" }}>
                 <td style={{ padding: "10px 14px", fontWeight: 700, color: "#FD5108" }}>현금 순증감</td>
-                <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+                <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
                   {formatKRW(cf.current_net_change)}
                 </td>
-                <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#6B7280", fontVariantNumeric: "tabular-nums" }}>
+                <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600, color: "#6B7280", fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" }}>
                   {formatKRW(cf.prior_net_change)}
                 </td>
                 <td style={{
-                  padding: "10px 14px", textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums",
-                  color: (cf.current_net_change - cf.prior_net_change) >= 0 ? "#16C784" : "#FF4747",
+                  padding: "10px 14px", textAlign: "right", fontWeight: 700, fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1",
+                  color: (cf.current_net_change - cf.prior_net_change) >= 0 ? "#C1292E" : "#1D6BB5",
                 }}>
                   {formatKRW(cf.current_net_change - cf.prior_net_change)}
                 </td>

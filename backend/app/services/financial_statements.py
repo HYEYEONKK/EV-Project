@@ -595,8 +595,9 @@ def get_pl_waterfall_monthly(params: dict) -> list:
 
 # ─── PL Waterfall Bridge (7-category) ───────────────────────
 
-FINANCE_INCOME_KW = ["이자수익", "외환차익"]
-FINANCE_EXPENSE_KW = ["이자비용", "외환차손", "외화환산"]
+FINANCE_INCOME_KW = ["이자수익", "외환차익", "외화환산이익", "파생상품평가이익", "당기손익인식금융자산"]
+FINANCE_EXPENSE_KW = ["이자비용", "외환차손", "외화환산손실", "파생상품평가손실"]
+TAX_KW = ["법인세"]
 
 
 def _classify_7cat(branch: str, cls1: str, net_amount: float) -> str:
@@ -627,7 +628,11 @@ def _classify_7cat(branch: str, cls1: str, net_amount: float) -> str:
 
 
 def get_pl_waterfall_bridge(params: dict) -> list:
-    """월별 손익 Waterfall Bridge — 7개 카테고리 (매출액/매출원가/판관비/금융수익/금융비용/기타수익/기타비용)"""
+    """손익 Waterfall Bridge — 매출액→매출총이익→영업이익→당기순이익 단계별 분해.
+
+    Uses classification1 keywords to separate financial vs other non-operating
+    income/expense. Tax is identified by '법인세' keyword.
+    """
     conn = get_conn()
     try:
         date_from = params.get("date_from")
@@ -638,56 +643,71 @@ def get_pl_waterfall_bridge(params: dict) -> list:
         where = "WHERE " + " AND ".join(clauses)
 
         rows = conn.execute(f"""
-            SELECT strftime('%Y-%m', date) as month, branch, classification1,
+            SELECT branch, classification1,
                    SUM(CASE WHEN debit_credit='C' THEN amount ELSE -amount END) as net_amount
             FROM journal_entries {where}
-            GROUP BY month, branch, classification1
-            ORDER BY month
+            GROUP BY branch, classification1
         """, args).fetchall()
 
-        months: dict = {}
+        revenue = 0.0
+        cogs = 0.0
+        sga = 0.0
+        financial_income = 0.0
+        financial_expense = 0.0
+        other_income = 0.0
+        other_expense = 0.0
+        income_tax = 0.0
+
         for r in rows:
-            m = r["month"]
-            if m not in months:
-                months[m] = {"매출액": 0, "매출원가": 0, "판관비": 0,
-                             "금융수익": 0, "금융비용": 0, "기타수익": 0, "기타비용": 0}
             branch = r["branch"] or ""
             cls1 = r["classification1"] or "기타"
             net = r["net_amount"] or 0
-            cat = _classify_7cat(branch, cls1, net)
 
-            if cat == "매출액":
-                months[m]["매출액"] += net
-            elif cat == "매출원가":
-                months[m]["매출원가"] += abs(net)
-            elif cat == "판관비":
-                months[m]["판관비"] += abs(net)
-            elif cat == "금융수익":
-                months[m]["금융수익"] += abs(net)
-            elif cat == "금융비용":
-                months[m]["금융비용"] += abs(net)
-            elif cat == "기타수익":
-                months[m]["기타수익"] += abs(net) if net > 0 else 0
-            elif cat == "기타비용":
-                months[m]["기타비용"] += abs(net)
+            if branch == "수익":
+                # Check if this revenue item is actually financial income
+                c = cls1.strip()
+                if any(kw in c for kw in FINANCE_INCOME_KW):
+                    financial_income += net
+                else:
+                    revenue += net
+            elif branch == "비용":
+                expense_amount = abs(net)
+                cat = _classify_expense(cls1)
+                if cat == "매출원가":
+                    cogs += expense_amount
+                elif cat == "판매비와관리비":
+                    sga += expense_amount
+                else:
+                    # 기타손익 → sub-classify into financial / tax / other
+                    c = cls1.strip()
+                    if any(kw in c for kw in TAX_KW):
+                        income_tax += expense_amount
+                    elif any(kw in c for kw in FINANCE_INCOME_KW):
+                        financial_income += expense_amount
+                    elif any(kw in c for kw in FINANCE_EXPENSE_KW):
+                        financial_expense += expense_amount
+                    elif net >= 0:
+                        other_income += expense_amount
+                    else:
+                        other_expense += expense_amount
 
-        result = []
-        for m in sorted(months):
-            d = months[m]
-            net_income = (d["매출액"] + d["금융수익"] + d["기타수익"]
-                          - d["매출원가"] - d["판관비"] - d["금융비용"] - d["기타비용"])
-            result.append({
-                "month": m,
-                "매출액": d["매출액"],
-                "매출원가": d["매출원가"],
-                "판관비": d["판관비"],
-                "금융수익": d["금융수익"],
-                "금융비용": d["금융비용"],
-                "기타수익": d["기타수익"],
-                "기타비용": d["기타비용"],
-                "net_income": net_income,
-            })
-        return result
+        gross_profit = revenue - cogs
+        operating_income = gross_profit - sga
+        financial_net = financial_income - financial_expense
+        other_net = other_income - other_expense
+        net_income = operating_income + financial_net + other_net - income_tax
+
+        return [
+            {"name": "매출액",     "value": revenue,          "type": "total"},
+            {"name": "매출원가",   "value": -cogs,            "type": "decrease"},
+            {"name": "매출총이익", "value": gross_profit,      "type": "subtotal"},
+            {"name": "판관비",     "value": -sga,             "type": "decrease"},
+            {"name": "영업이익",   "value": operating_income,  "type": "subtotal"},
+            {"name": "금융순손익", "value": financial_net,      "type": "increase" if financial_net >= 0 else "decrease"},
+            {"name": "기타순손익", "value": other_net,          "type": "increase" if other_net >= 0 else "decrease"},
+            {"name": "법인세",     "value": -income_tax,       "type": "decrease"},
+            {"name": "당기순이익", "value": net_income,         "type": "total"},
+        ]
     finally:
         conn.close()
 
@@ -1394,7 +1414,12 @@ def get_bs_accounts_list() -> list:
 # ─── Cash Flow 비교 (당기/전기) ─────────────────────────────────
 
 def get_ccc_monthly(params: dict) -> list:
-    """월별 CCC(Cash Conversion Cycle): DSO + DIO - DPO"""
+    """월별 CCC(Cash Conversion Cycle): DSO + DIO - DPO
+
+    NOTE: DPO uses daily COGS as proxy for daily purchases since purchase
+    data is not available. In practice, DPO = AP / daily purchases is more
+    accurate.
+    """
     conn = get_conn()
     try:
         date_from = params.get("date_from", "2024-01-01")
@@ -1475,6 +1500,7 @@ def get_ccc_monthly(params: dict) -> list:
 
             dso = round(recv / daily_rev, 1) if daily_rev else 0
             dio = round(inv / daily_cogs, 1) if daily_cogs else 0
+            # DPO ideally uses daily purchases, but we use daily COGS as proxy
             dpo = round(ap / daily_cogs, 1) if daily_cogs else 0
             ccc = round(dso + dio - dpo, 1)
 
