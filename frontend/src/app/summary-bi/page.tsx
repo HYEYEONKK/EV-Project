@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { api, PlProfitabilityMonthly, CccMonthly, BsSnapshot } from "@/lib/api/client";
@@ -43,6 +43,55 @@ const TNUM: React.CSSProperties = {
   fontVariantNumeric: "tabular-nums",
   fontFeatureSettings: "'tnum' 1, 'zero' 1",
 };
+
+// ─── Shimmer keyframes (injected once) ─────────────────────
+const SHIMMER_ID = "__summary-bi-shimmer";
+function ensureShimmer() {
+  if (typeof document === "undefined") return;
+  if (document.getElementById(SHIMMER_ID)) return;
+  const style = document.createElement("style");
+  style.id = SHIMMER_ID;
+  style.textContent = `@keyframes sbShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}`;
+  document.head.appendChild(style);
+}
+
+function Skeleton({ width, height, style: s }: { width?: string | number; height?: string | number; style?: React.CSSProperties }) {
+  ensureShimmer();
+  return (
+    <div style={{
+      width: width ?? "100%", height: height ?? 28, borderRadius: 4,
+      background: `linear-gradient(90deg, ${COLOR.borderLight} 25%, #e8eaed 50%, ${COLOR.borderLight} 75%)`,
+      backgroundSize: "200% 100%",
+      animation: "sbShimmer 1.5s ease-in-out infinite",
+      ...s,
+    }} />
+  );
+}
+
+function SkeletonKpiCard() {
+  return (
+    <div style={{
+      background: "#fff", borderRadius: 12, border: `1px solid ${COLOR.border}`,
+      borderLeft: `4px solid ${COLOR.borderLight}`, boxShadow: SHADOW_MD, padding: "20px 24px 16px",
+    }}>
+      <Skeleton width={60} height={12} style={{ marginBottom: 8 }} />
+      <Skeleton width={120} height={28} style={{ marginBottom: 10 }} />
+      <Skeleton width={90} height={12} />
+    </div>
+  );
+}
+
+function SkeletonChart() {
+  ensureShimmer();
+  return (
+    <div style={{
+      width: "100%", height: 260, borderRadius: 6,
+      background: `linear-gradient(90deg, ${COLOR.borderLight} 25%, #e8eaed 50%, ${COLOR.borderLight} 75%)`,
+      backgroundSize: "200% 100%",
+      animation: "sbShimmer 1.5s ease-in-out infinite",
+    }} />
+  );
+}
 
 const fmtM = (v: string) => parseInt(v.split("-")[1]) + "월";
 const fmtAx = (v: number) => {
@@ -89,11 +138,18 @@ function SectionTag({ label, color }: { label: string; color: string }) {
 }
 
 // ─── Chart Card ─────────────────────────────────────────────
-function ChartCard({ title, tag, subtitle, children, onClick, style: extraStyle }: {
+function ChartCard({ title, tag, subtitle, children, onClick, style: extraStyle, tableData, ariaLabel }: {
   title: string; tag?: "PL" | "BS"; subtitle?: string; children: React.ReactNode;
   onClick?: () => void; style?: React.CSSProperties;
+  tableData?: Record<string, string | number>[];
+  ariaLabel?: string;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [showTable, setShowTable] = useState(false);
+
+  const tableView = showTable && tableData && tableData.length > 0;
+  const cols = tableData && tableData.length > 0 ? Object.keys(tableData[0]) : [];
+
   return (
     <div
       style={{
@@ -115,12 +171,61 @@ function ChartCard({ title, tag, subtitle, children, onClick, style: extraStyle 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {tag && <SectionTag label={tag} color={tag === "PL" ? COLOR.chart1 : COLOR.chart2} />}
           <span style={{ fontSize: 16, fontWeight: 600, color: COLOR.textPrimary }}>{title}</span>
+          <div style={{ flex: 1 }} />
+          {tableData && tableData.length > 0 && (
+            <button
+              onClick={e => { e.stopPropagation(); setShowTable(v => !v); }}
+              style={{
+                background: "none", border: "none", cursor: "pointer", padding: "2px 6px",
+                fontSize: 11, color: COLOR.textTertiary, display: "flex", alignItems: "center", gap: 3,
+              }}
+              title={showTable ? "차트 보기" : "표로 보기"}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" />
+                <line x1="9" y1="3" x2="9" y2="21" /><line x1="15" y1="3" x2="15" y2="21" />
+              </svg>
+              {showTable ? "차트" : "표로 보기"}
+            </button>
+          )}
         </div>
         {subtitle && (
           <div style={{ fontSize: 12, color: COLOR.textTertiary, marginTop: 6, lineHeight: 1.4 }}>{subtitle}</div>
         )}
       </div>
-      <div style={{ padding: "4px 24px 24px" }}>{children}</div>
+      <div style={{ padding: "4px 24px 24px" }} role={ariaLabel ? "img" : undefined} aria-label={ariaLabel}>
+        {tableView ? (
+          <div style={{ overflowX: "auto", maxHeight: 280 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <thead>
+                <tr>
+                  {cols.map(c => (
+                    <th key={c} style={{
+                      padding: "8px 10px", textAlign: c === cols[0] ? "left" : "right",
+                      fontSize: 11, fontWeight: 600, color: COLOR.textSecondary,
+                      background: COLOR.surfacePage, border: `1px solid ${COLOR.borderLight}`,
+                    }}>{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {tableData!.map((row, ri) => (
+                  <tr key={ri}>
+                    {cols.map((c, ci) => (
+                      <td key={c} style={{
+                        padding: "6px 10px", textAlign: ci === 0 ? "left" : "right",
+                        border: `1px solid ${COLOR.borderLight}`, color: COLOR.textPrimary,
+                        ...TNUM,
+                      }}>{typeof row[c] === "number" ? (row[c] as number).toLocaleString("ko-KR") : row[c]}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : children}
+      </div>
     </div>
   );
 }
@@ -383,11 +488,22 @@ export default function SummaryBiPage() {
 
   const [compareMode, setCompareMode] = useState<"py" | "budget">("py");
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelKpi, setPanelKpi] = useState<string>("");
+  const [highlightMonth, setHighlightMonth] = useState<string | null>(null);
+
+  // Close slide panel on Escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setPanelOpen(false); };
+    if (panelOpen) { document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }
+  }, [panelOpen]);
+
+  const openPanel = useCallback((kpi: string) => { setPanelKpi(kpi); setPanelOpen(true); }, []);
   const budget = useMemo(() => loadBudget(), [budgetModalOpen]);
   const hasBudget = !!budget && Object.keys(budget).length > 0;
 
   // ─── Data Queries ───
-  const { data: plMonthly = [] } = useQuery({
+  const { data: plMonthly = [], isLoading: plLoading } = useQuery({
     queryKey: ["summary-bi-pl-profitability", dateFrom, dateTo],
     queryFn: () => api.summaryBi.plProfitability(params),
   });
@@ -395,7 +511,7 @@ export default function SummaryBiPage() {
     queryKey: ["summary-bi-pl-kpi", dateFrom, dateTo],
     queryFn: () => api.financialStatements.plKpiMonthly(params),
   });
-  const { data: bsSnapshot } = useQuery({
+  const { data: bsSnapshot, isLoading: bsLoading } = useQuery({
     queryKey: ["summary-bi-bs-snapshot", dateFrom, dateTo],
     queryFn: () => api.summaryBi.bsSnapshot(params),
   });
@@ -598,6 +714,34 @@ export default function SummaryBiPage() {
   const roaPrior = bsOpen.totalAssets ? (plPriorAgg.netIncome / bsOpen.totalAssets) * 100 : null;
   const roePrior = bsOpen.totalEquity ? (plPriorAgg.netIncome / bsOpen.totalEquity) * 100 : null;
 
+  // ─── Slide panel trend data ───
+  const panelTrendData = useMemo(() => {
+    const fieldMap: Record<string, { cur: (m: PlProfitabilityMonthly) => number; label: string }> = {
+      "매출액": { cur: m => m.revenue, label: "매출액" },
+      "영업이익": { cur: m => m.operatingIncome, label: "영업이익" },
+      "영업이익률": { cur: m => m.opm, label: "영업이익률" },
+      "당기순이익": { cur: m => m.netIncome, label: "당기순이익" },
+    };
+    const cfg = fieldMap[panelKpi];
+    if (!cfg) return [];
+    return pl.map(m => {
+      const priorM = plPrior.find(p => p.month.slice(5) === m.month.slice(5));
+      const cur = cfg.cur(m);
+      const prev = priorM ? cfg.cur(priorM) : null;
+      const chg = prev && prev !== 0 ? ((cur - prev) / Math.abs(prev)) * 100 : null;
+      return { month: fmtM(m.month), 당기: cur, 전기: prev, "증감%": chg };
+    });
+  }, [panelKpi, pl, plPrior]);
+
+  // ─── Date range label for aria ───
+  const dateRangeLabel = useMemo(() => {
+    const fy = dateFrom.slice(0, 4), fm = parseInt(dateFrom.slice(5, 7));
+    const ty = dateTo.slice(0, 4), tm = parseInt(dateTo.slice(5, 7));
+    return `${fy}년 ${fm}월부터 ${ty}년 ${tm}월까지`;
+  }, [dateFrom, dateTo]);
+
+  const kpiLoading = plLoading || bsLoading;
+
   // ─── Tooltip customization ───
   const tooltipStyle: React.CSSProperties = {
     ...TOOLTIP_STYLE,
@@ -665,30 +809,36 @@ export default function SummaryBiPage() {
             letterSpacing: 1.5, color: COLOR.chart1, marginBottom: 10, paddingLeft: 4,
           }}>P&L Performance</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {kpiLoading ? <><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /></> : (<>
             <KpiCard
               label="매출액" value={formatKRW(plAgg.revenue)}
               {...fmtChange(plAgg.revenue, plPriorAgg.revenue)}
               compareLabel={compareLabel}
               borderColor={getStatusColor(plAgg.revenue, plPriorAgg.revenue)}
+              onClick={() => openPanel("매출액")}
             />
             <KpiCard
               label="영업이익" value={formatKRW(plAgg.operatingIncome)}
               {...fmtChange(plAgg.operatingIncome, plPriorAgg.operatingIncome)}
               compareLabel={compareLabel}
               borderColor={getStatusColor(plAgg.operatingIncome, plPriorAgg.operatingIncome)}
+              onClick={() => openPanel("영업이익")}
             />
             <KpiCard
               label="영업이익률" value={opm.toFixed(1) + "%"}
               {...fmtChange(opm, opmPrior, true)}
               compareLabel={compareLabel}
               borderColor={opm >= opmPrior ? COLOR.increase : COLOR.decrease}
+              onClick={() => openPanel("영업이익률")}
             />
             <KpiCard
               label="당기순이익" value={formatKRW(plAgg.netIncome)}
               {...fmtChange(plAgg.netIncome, plPriorAgg.netIncome)}
               compareLabel={compareLabel}
               borderColor={getStatusColor(plAgg.netIncome, plPriorAgg.netIncome)}
+              onClick={() => openPanel("당기순이익")}
             />
+            </>)}
           </div>
         </div>
         <div>
@@ -697,11 +847,13 @@ export default function SummaryBiPage() {
             letterSpacing: 1.5, color: COLOR.chart2, marginBottom: 10, paddingLeft: 4,
           }}>Balance Sheet Health</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {kpiLoading ? <><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /></> : (<>
             <KpiCard
               label="총자산" value={formatKRW(bsCur.totalAssets ?? 0)}
               {...fmtChange(bsCur.totalAssets ?? 0, bsOpen.totalAssets)}
               compareLabel="vs PY"
               borderColor={getStatusColor(bsCur.totalAssets ?? 0, bsOpen.totalAssets ?? 0)}
+              onClick={() => openPanel("총자산")}
             />
             <KpiCard
               label="현금 포지션"
@@ -725,6 +877,7 @@ export default function SummaryBiPage() {
               compareLabel="vs PY"
               borderColor={deRatio < 100 ? COLOR.chart3 : COLOR.increase}
             />
+            </>)}
           </div>
         </div>
       </div>
@@ -744,9 +897,34 @@ export default function SummaryBiPage() {
         <AuxItem label="NWC" value={fmtKRWParens(nwc)} up={null} />
       </div>
 
+      {/* ═══ Cross-filter chip ═══ */}
+      {highlightMonth && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            fontSize: 12, fontWeight: 600, color: COLOR.chart1,
+            background: COLOR.chart1 + "12", borderRadius: 16, padding: "4px 12px",
+          }}>
+            월: {highlightMonth}
+            <button
+              onClick={() => setHighlightMonth(null)}
+              style={{
+                background: "none", border: "none", cursor: "pointer", padding: 0,
+                fontSize: 14, lineHeight: 1, color: COLOR.chart1, fontWeight: 700,
+              }}
+            >&times;</button>
+          </span>
+        </div>
+      )}
+
       {/* ═══ CHART ROW 1: 매출추이 | BS 재무상태표 ═══ */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        <ChartCard title="매출 및 영업이익 추이" tag="PL" subtitle="월별 매출(Bar) + 전기(반투명) + 영업이익률(Line)">
+        <ChartCard
+          title="매출 및 영업이익 추이" tag="PL" subtitle="월별 매출(Bar) + 전기(반투명) + 영업이익률(Line)"
+          tableData={revenueChartData}
+          ariaLabel={`${dateRangeLabel} 월별 매출액 및 영업이익률 추이 차트`}
+        >
+          {plLoading ? <SkeletonChart /> : (
           <ResponsiveContainer width="100%" height={260}>
             <ComposedChart data={revenueChartData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
@@ -755,14 +933,29 @@ export default function SummaryBiPage() {
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: COLOR.textTertiary }} tickLine={false} axisLine={false} width={40} tickFormatter={v => v + "%"} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} verticalAlign="top" align="right" />
-              <Bar yAxisId="left" dataKey="매출액" fill={COLOR.chart1} radius={[3, 3, 0, 0]} barSize={16} />
-              <Bar yAxisId="left" dataKey="전기" fill={COLOR.greyMedium + "60"} radius={[3, 3, 0, 0]} barSize={16} />
+              <Bar
+                yAxisId="left" dataKey="매출액" fill={COLOR.chart1} radius={[3, 3, 0, 0]} barSize={16}
+                onClick={(_d: any, idx: number) => {
+                  const m = revenueChartData[idx]?.month as string;
+                  setHighlightMonth((prev: string | null) => prev === m ? null : m);
+                }}
+              >
+                {revenueChartData.map((d: any, i: number) => (
+                  <Cell key={i} fill={COLOR.chart1} opacity={highlightMonth && d.month !== highlightMonth ? 0.25 : 1} cursor="pointer" />
+                ))}
+              </Bar>
+              <Bar yAxisId="left" dataKey="전기" fill={COLOR.greyMedium + "60"} radius={[3, 3, 0, 0]} barSize={16}>
+                {revenueChartData.map((d: any, i: number) => (
+                  <Cell key={i} fill={COLOR.greyMedium + "60"} opacity={highlightMonth && d.month !== highlightMonth ? 0.25 : 1} />
+                ))}
+              </Bar>
               <Line yAxisId="right" type="monotone" dataKey="OPM%" stroke={COLOR.chart3} strokeWidth={2} dot={{ r: 3, fill: COLOR.chart3 }} />
             </ComposedChart>
           </ResponsiveContainer>
+          )}
         </ChartCard>
 
-        <ChartCard title="재무상태표" tag="BS" subtitle="기말 vs 기초 잔액 비교">
+        <ChartCard title="재무상태표" tag="BS" subtitle="기말 vs 기초 잔액 비교" ariaLabel={`${dateRangeLabel} 재무상태표 기말 기초 비교`}>
           <div style={{ overflowY: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
@@ -808,7 +1001,12 @@ export default function SummaryBiPage() {
 
       {/* ═══ CHART ROW 2: Waterfall | BS 주요 증감 ═══ */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        <ChartCard title="손익 구조 Waterfall" tag="PL" subtitle="매출 → 원가 → 판관비 → 금융순손익 → 기타순손익 → 법인세 → 순이익">
+        <ChartCard
+          title="손익 구조 Waterfall" tag="PL" subtitle="매출 → 원가 → 판관비 → 금융순손익 → 기타순손익 → 법인세 → 순이익"
+          tableData={waterfallData.map(d => ({ 항목: d.name, 금액: d.value }))}
+          ariaLabel={`${dateRangeLabel} 손익 구조 워터폴 차트`}
+        >
+          {plLoading ? <SkeletonChart /> : (
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={waterfallData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
@@ -829,9 +1027,15 @@ export default function SummaryBiPage() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          )}
         </ChartCard>
 
-        <ChartCard title="주요 증감 항목" tag="BS" subtitle="기초 대비 기말 변동 TOP 7 (자본 제외)">
+        <ChartCard
+          title="주요 증감 항목" tag="BS" subtitle="기초 대비 기말 변동 TOP 7 (자본 제외)"
+          tableData={bsVarianceData.map(d => ({ 계정: d.account, 증감: d.delta }))}
+          ariaLabel={`${dateRangeLabel} 재무상태표 주요 증감 항목 차트`}
+        >
+          {bsLoading ? <SkeletonChart /> : (
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={bsVarianceData} layout="vertical" margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} horizontal={false} />
@@ -845,14 +1049,26 @@ export default function SummaryBiPage() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          )}
         </ChartCard>
       </div>
 
       {/* ═══ CHART ROW 3: 수익성 | CCC ═══ */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        <ChartCard title="수익성 비율 추이" tag="PL" subtitle="매출총이익률 / 영업이익률 / 순이익률 (점선 = 전기)">
+        <ChartCard
+          title="수익성 비율 추이" tag="PL" subtitle="매출총이익률 / 영업이익률 / 순이익률 (점선 = 전기)"
+          tableData={profitChartData.map((d: any) => ({ 월: d.month, 매출총이익률: d.매출총이익률, 영업이익률: d.영업이익률, 순이익률: d.순이익률 }))}
+          ariaLabel={`${dateRangeLabel} 수익성 비율 추이 차트`}
+        >
+          {plLoading ? <SkeletonChart /> : (
           <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={profitChartData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+            <LineChart
+              data={highlightMonth ? profitChartData.map((d: any) => ({
+                ...d,
+                _dim: d.month !== highlightMonth,
+              })) : profitChartData}
+              margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: COLOR.textTertiary }} tickLine={false} axisLine={false} />
               <YAxis tick={{ fontSize: 11, fill: COLOR.textTertiary }} tickLine={false} axisLine={false} width={40} tickFormatter={v => v + "%"} />
@@ -866,9 +1082,15 @@ export default function SummaryBiPage() {
               <Line type="monotone" dataKey="순이익률(전기)" stroke={COLOR.chart4 + "50"} strokeWidth={1.5} strokeDasharray="5 3" dot={{ r: 2, fill: COLOR.chart4 + "50" }} connectNulls />
             </LineChart>
           </ResponsiveContainer>
+          )}
         </ChartCard>
 
-        <ChartCard title="운전자본 효율 (CCC)" tag="BS" subtitle="DSO + DIO - DPO = CCC(일) / 낮을수록 효율적">
+        <ChartCard
+          title="운전자본 효율 (CCC)" tag="BS" subtitle="DSO + DIO - DPO = CCC(일) / 낮을수록 효율적"
+          tableData={cccChartData.map((d: any) => ({ 월: d.month, DSO: d.DSO, DIO: d.DIO, DPO: Math.abs(d.DPO), CCC: d.CCC }))}
+          ariaLabel={`${dateRangeLabel} 운전자본 효율 CCC 차트`}
+        >
+          {bsLoading ? <SkeletonChart /> : (
           <ResponsiveContainer width="100%" height={260}>
             <ComposedChart data={cccChartData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }} stackOffset="sign">
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
@@ -877,14 +1099,95 @@ export default function SummaryBiPage() {
               <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => Math.abs(Number(v)).toFixed(0) + "일"} />
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 4 }} verticalAlign="top" align="right" />
               <ReferenceLine y={0} stroke={COLOR.textTertiary + "40"} />
-              <Bar dataKey="DSO" stackId="s" fill={COLOR.chart2} name="DSO (매출채권)" />
-              <Bar dataKey="DIO" stackId="s" fill={COLOR.chart1} name="DIO (재고)" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="DPO" stackId="s" fill={COLOR.decrease + "80"} name="DPO (매입채무)" radius={[0, 0, 3, 3]} />
+              <Bar dataKey="DSO" stackId="s" fill={COLOR.chart2} name="DSO (매출채권)">
+                {cccChartData.map((d: any, i: number) => (
+                  <Cell key={i} fill={COLOR.chart2} opacity={highlightMonth && d.month !== highlightMonth ? 0.25 : 1} />
+                ))}
+              </Bar>
+              <Bar dataKey="DIO" stackId="s" fill={COLOR.chart1} name="DIO (재고)" radius={[3, 3, 0, 0]}>
+                {cccChartData.map((d: any, i: number) => (
+                  <Cell key={i} fill={COLOR.chart1} opacity={highlightMonth && d.month !== highlightMonth ? 0.25 : 1} />
+                ))}
+              </Bar>
+              <Bar dataKey="DPO" stackId="s" fill={COLOR.decrease + "80"} name="DPO (매입채무)" radius={[0, 0, 3, 3]}>
+                {cccChartData.map((d: any, i: number) => (
+                  <Cell key={i} fill={COLOR.decrease + "80"} opacity={highlightMonth && d.month !== highlightMonth ? 0.25 : 1} />
+                ))}
+              </Bar>
               <Line type="monotone" dataKey="CCC" stroke={COLOR.chart4} strokeWidth={2.5} dot={{ r: 3, fill: COLOR.chart4 }} name="CCC" />
             </ComposedChart>
           </ResponsiveContainer>
+          )}
         </ChartCard>
       </div>
+
+      {/* ═══ Slide Panel Drilldown ═══ */}
+      {panelOpen && (
+        <>
+          <div
+            onClick={() => setPanelOpen(false)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 200,
+              background: "rgba(0,0,0,0.3)", transition: "opacity 0.2s ease",
+            }}
+          />
+          <div style={{
+            position: "fixed", top: 0, right: 0, bottom: 0, width: "42%", zIndex: 201,
+            background: "#fff", boxShadow: SHADOW_LG, display: "flex", flexDirection: "column",
+            transform: "translateX(0)", transition: "transform 0.25s ease",
+          }}>
+            <div style={{
+              padding: "20px 24px", borderBottom: `1px solid ${COLOR.border}`,
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+            }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: COLOR.textPrimary, margin: 0 }}>
+                {panelKpi} 월별 추이
+              </h3>
+              <button
+                onClick={() => setPanelOpen(false)}
+                style={{
+                  background: "none", border: "none", fontSize: 22, cursor: "pointer",
+                  color: COLOR.textSecondary, lineHeight: 1, padding: 4,
+                }}
+              >&times;</button>
+            </div>
+            <div style={{ padding: 24, overflowY: "auto", flex: 1 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: `2px solid ${COLOR.border}` }}>
+                    <th style={{ padding: "10px 12px", textAlign: "left", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>월</th>
+                    <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>당기</th>
+                    <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>전기</th>
+                    <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>증감%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {panelTrendData.map((row, i) => {
+                    const isPercent = panelKpi === "영업이익률";
+                    const fmtVal = (v: number | null) => {
+                      if (v === null || v === undefined) return "\u2014";
+                      return isPercent ? v.toFixed(1) + "%" : formatKRW(v);
+                    };
+                    const chgColor = row["증감%"] !== null
+                      ? ((row["증감%"] as number) >= 0 ? COLOR.increase : COLOR.decrease)
+                      : COLOR.neutral;
+                    return (
+                      <tr key={i} style={{ borderBottom: `1px solid ${COLOR.borderLight}` }}>
+                        <td style={{ padding: "8px 12px", fontWeight: 500, color: COLOR.textPrimary }}>{row.month}</td>
+                        <td style={{ padding: "8px 12px", textAlign: "right", color: COLOR.textPrimary, ...TNUM }}>{fmtVal(row.당기)}</td>
+                        <td style={{ padding: "8px 12px", textAlign: "right", color: COLOR.textSecondary, ...TNUM }}>{fmtVal(row.전기)}</td>
+                        <td style={{ padding: "8px 12px", textAlign: "right", fontWeight: 600, color: chgColor, ...TNUM }}>
+                          {row["증감%"] !== null ? ((row["증감%"] as number) >= 0 ? "+" : "") + (row["증감%"] as number).toFixed(1) + "%" : "\u2014"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
