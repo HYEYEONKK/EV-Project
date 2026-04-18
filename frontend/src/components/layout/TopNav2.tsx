@@ -1,6 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
 import { LogIn, LogOut } from "lucide-react";
@@ -40,19 +40,12 @@ const TABS = [
   },
 ];
 
-function isTabActive(tab: typeof TABS[number], pathname: string) {
-  if (tab.id === "data") return pathname === "/home2";
-  return pathname === tab.href || pathname.startsWith(tab.href + "/");
-}
-
 export default function TopNav2() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuthStore();
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
-  const navRef = useRef<HTMLDivElement>(null);
   const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* 드롭다운 영역 밖으로 나가면 닫기 */
   const handleMouseEnterTab = (id: string) => {
     if (leaveTimer.current) { clearTimeout(leaveTimer.current); leaveTimer.current = null; }
     setHoveredTab(id);
@@ -64,13 +57,14 @@ export default function TopNav2() {
   return (
     <>
       <nav
-        ref={navRef}
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between"
+        className="fixed top-0 left-0 right-0 z-50"
         style={{
           height: 56,
           background: "#fff",
           borderBottom: "1px solid #e0e0e0",
           padding: "0 24px",
+          display: "flex",
+          alignItems: "center",
         }}
       >
         {/* ── Left: Logo ── */}
@@ -79,15 +73,8 @@ export default function TopNav2() {
           className="flex items-center shrink-0"
           style={{ height: "100%", textDecoration: "none", gap: 14 }}
         >
-          <img
-            src="/pwc-logo.svg"
-            alt="PwC"
-            style={{ height: 28, width: "auto", display: "block" }}
-          />
-          <span
-            className="select-none"
-            style={{ display: "inline-flex", alignItems: "baseline", gap: 0, whiteSpace: "nowrap", fontFamily: "var(--font-plus-jakarta), sans-serif" }}
-          >
+          <img src="/pwc-logo.svg" alt="PwC" style={{ height: 28, width: "auto", display: "block" }} />
+          <span className="select-none" style={{ display: "inline-flex", alignItems: "baseline", whiteSpace: "nowrap", fontFamily: "var(--font-plus-jakarta), sans-serif" }}>
             <span style={{ fontSize: 18, fontWeight: 700, color: "#2d2d2d", letterSpacing: "-0.3px" }}>Easy View</span>
             <span style={{ display: "inline-flex", alignItems: "center", marginLeft: 1, position: "relative", top: "-7px" }}>
               <svg width="11" height="11" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,74 +84,67 @@ export default function TopNav2() {
           </span>
         </Link>
 
+        {/* ── 가운데 빈공간 ── */}
+        <div style={{ flex: 1 }} />
+
         {/* ── Center-Right: Section tabs ── */}
-        <div
-          className="flex items-center h-full"
-          style={{ gap: 0 }}
-          onMouseLeave={handleMouseLeave}
-        >
-          {TABS.map((tab) => {
-            const active = isTabActive(tab, pathname);
-            const isHovered = hoveredTab === tab.id;
-            return (
-              <div
-                key={tab.id}
-                className="relative h-full"
-                onMouseEnter={() => handleMouseEnterTab(tab.id)}
+        {TABS.map((tab) => {
+          const isHovered = hoveredTab === tab.id;
+          return (
+            <div
+              key={tab.id}
+              className="h-full"
+              style={{ display: "flex", alignItems: "center" }}
+              onMouseEnter={() => handleMouseEnterTab(tab.id)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Link
+                href={tab.href}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  height: "100%",
+                  padding: "0 44px",
+                  fontSize: 15,
+                  fontWeight: isHovered ? 600 : 400,
+                  color: isHovered ? "#FD5108" : "#6B7280",
+                  textDecoration: "none",
+                  transition: "color 0.15s, font-weight 0.15s",
+                  letterSpacing: "-0.2px",
+                }}
               >
-                <Link
-                  href={tab.href}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    height: "100%",
-                    padding: "0 44px",
-                    fontSize: 15,
-                    fontWeight: active || isHovered ? 600 : 400,
-                    color: active ? "#FD5108" : isHovered ? "#1A1A2E" : "#6B7280",
-                    textDecoration: "none",
-                    transition: "color 0.15s",
-                    letterSpacing: "-0.2px",
-                  }}
-                >
-                  <span style={{
-                    borderBottom: active ? "2px solid #FD5108" : "2px solid transparent",
-                    paddingBottom: 4,
-                  }}>
-                    {tab.label}
-                  </span>
-                </Link>
-              </div>
-            );
-          })}
-        </div>
+                <span style={{
+                  borderBottom: isHovered ? "2px solid #FD5108" : "2px solid transparent",
+                  paddingBottom: 4,
+                  transition: "border-color 0.15s",
+                }}>
+                  {tab.label}
+                </span>
+              </Link>
+            </div>
+          );
+        })}
+
+        {/* ── 가운데~오른쪽 빈공간 ── */}
+        <div style={{ flex: 1 }} />
 
         {/* ── Far Right: Login/User ── */}
         <div className="flex items-center shrink-0" style={{ gap: 12 }}>
           {isAuthenticated && user ? (
             <>
-              <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>
-                {user.name}
-              </span>
+              <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>{user.name}</span>
               <button
                 onClick={logout}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "#fff",
-                  background: "#FD5108",
-                  border: "none",
-                  borderRadius: 4,
-                  padding: "7px 18px",
-                  cursor: "pointer",
-                  transition: "background 0.15s",
+                  display: "flex", alignItems: "center", gap: 6,
+                  fontSize: 13, fontWeight: 600, color: "#6B7280",
+                  background: "none", border: "1px solid #DFE3E6", borderRadius: 6,
+                  padding: "6px 14px", cursor: "pointer", transition: "all 0.15s",
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#E04500"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#FD5108"; }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#FD5108"; (e.currentTarget as HTMLElement).style.color = "#FD5108"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#DFE3E6"; (e.currentTarget as HTMLElement).style.color = "#6B7280"; }}
               >
+                <LogOut size={14} />
                 로그아웃
               </button>
             </>
@@ -172,29 +152,22 @@ export default function TopNav2() {
             <Link
               href="/login"
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#fff",
-                background: "#FD5108",
-                border: "none",
-                borderRadius: 4,
-                padding: "7px 18px",
-                textDecoration: "none",
-                transition: "background 0.15s",
+                display: "flex", alignItems: "center", gap: 6,
+                fontSize: 13, fontWeight: 600, color: "#6B7280",
+                background: "none", border: "1px solid #DFE3E6", borderRadius: 6,
+                padding: "6px 14px", textDecoration: "none", transition: "all 0.15s",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#E04500"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "#FD5108"; }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#FD5108"; (e.currentTarget as HTMLElement).style.color = "#FD5108"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#DFE3E6"; (e.currentTarget as HTMLElement).style.color = "#6B7280"; }}
             >
-              Log In
+              <LogIn size={14} />
+              로그인
             </Link>
           )}
         </div>
       </nav>
 
-      {/* ── Dropdown panel — PwC 스타일: 모든 섹션 동시 표시, 각 탭 아래 정렬 ── */}
+      {/* ── Dropdown panel ── */}
       {hoveredTab && (
         <div
           className="fixed left-0 right-0 z-40"
@@ -207,45 +180,51 @@ export default function TopNav2() {
           onMouseEnter={() => handleMouseEnterTab(hoveredTab)}
           onMouseLeave={handleMouseLeave}
         >
-          {/* 탭과 동일한 flex 구조로 정렬 */}
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <div className="flex" style={{ gap: 0 }}>
-              {TABS.map((t) => {
-                const isActiveColumn = t.id === hoveredTab;
-                return (
-                  <div
-                    key={t.id}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: "20px 44px",
-                      minWidth: 160,
-                    }}
-                  >
-                    {t.children.map((child, idx) => (
-                      <Link
-                        key={child.label}
-                        href={child.href}
-                        style={{
-                          fontSize: 14,
-                          color: isActiveColumn && idx === 0 ? "#FD5108" : isActiveColumn ? "#1A1A2E" : "#888",
-                          fontWeight: isActiveColumn ? 500 : 400,
-                          textDecoration: "none",
-                          transition: "color 0.15s",
-                          whiteSpace: "nowrap",
-                        }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#FD5108"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = isActiveColumn && idx === 0 ? "#FD5108" : isActiveColumn ? "#1A1A2E" : "#888"; }}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
+          {/* nav와 완전히 동일한 레이아웃 구조 */}
+          <div style={{ display: "flex", alignItems: "flex-start", padding: "0 24px" }}>
+            {/* 로고 영역과 동일한 너비 확보 */}
+            <div className="shrink-0" style={{ width: 180 }} />
+            <div style={{ flex: 1 }} />
+
+            {/* 각 탭과 동일한 padding으로 정렬 */}
+            {TABS.map((t) => {
+              const isActiveColumn = t.id === hoveredTab;
+              return (
+                <div
+                  key={t.id}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "20px 44px",
+                  }}
+                >
+                  {t.children.map((child, idx) => (
+                    <Link
+                      key={child.label}
+                      href={child.href}
+                      style={{
+                        fontSize: 14,
+                        color: isActiveColumn && idx === 0 ? "#FD5108" : "#1A1A2E",
+                        fontWeight: 400,
+                        textDecoration: "none",
+                        transition: "color 0.15s",
+                        whiteSpace: "nowrap",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#FD5108"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = isActiveColumn && idx === 0 ? "#FD5108" : "#1A1A2E"; }}
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              );
+            })}
+
+            <div style={{ flex: 1 }} />
+            {/* 로그인 영역과 동일한 너비 확보 */}
+            <div className="shrink-0" style={{ width: 100 }} />
           </div>
         </div>
       )}
