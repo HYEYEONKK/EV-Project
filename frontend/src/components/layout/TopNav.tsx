@@ -134,7 +134,7 @@ export default function TopNav() {
   /* ── /home 스크롤 감지: 히어로 영역 벗어나면 nav 불투명으로 전환 ── */
   const [homeScrolled, setHomeScrolled] = useState(false);
   useEffect(() => {
-    if (pathname !== "/home") { setHomeScrolled(false); return; }
+    if (pathname !== "/home" && pathname !== "/home2") { setHomeScrolled(false); return; }
     const onScroll = () => setHomeScrolled(window.scrollY > window.innerHeight * 0.75);
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -180,7 +180,7 @@ export default function TopNav() {
       {/* ══════════ Top nav bar (56px) ══════════ */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 flex items-center"
-        style={pathname === "/home" ? {
+        style={pathname === "/home" || pathname === "/home2" ? {
           height: 56,
           background: homeScrolled ? "#fff" : "transparent",
           borderBottom: homeScrolled ? "1px solid #e8e8e8" : "1px solid transparent",
@@ -383,7 +383,7 @@ export default function TopNav() {
       {/* ══════════ Sub-tab bar (44px) ══════════ */}
       <div
         className="fixed left-0 right-0 z-40 bg-white flex items-center"
-        style={{ top: 56, height: pathname === "/home" ? 0 : 44, borderBottom: pathname === "/home" ? "none" : "1px solid #EEEFF1" }}
+        style={{ top: 56, height: pathname === "/home" || pathname === "/home2" ? 0 : 44, borderBottom: pathname === "/home" || pathname === "/home2" ? "none" : "1px solid #EEEFF1" }}
       >
         {activeSection?.children ? (
           <>
