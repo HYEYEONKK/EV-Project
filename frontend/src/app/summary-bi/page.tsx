@@ -568,6 +568,10 @@ export default function SummaryBiPage() {
     queryKey: ["summary-bi-bs-delta", dateFrom, dateTo],
     queryFn: () => api.bsTrend.accountDelta(params),
   });
+  const { data: bsMonthlyRaw = [] } = useQuery({
+    queryKey: ["summary-bi-bs-monthly", dateFrom, dateTo],
+    queryFn: () => api.bsTrend.monthly(params),
+  });
   const { data: plWaterfall = [] } = useQuery({
     queryKey: ["summary-bi-waterfall", dateFrom, dateTo],
     queryFn: () => api.financialStatements.plWaterfallMonthly(params),
@@ -762,22 +766,27 @@ export default function SummaryBiPage() {
 
   // ─── Slide panel trend data ───
   const panelTrendData = useMemo(() => {
-    const fieldMap: Record<string, { cur: (m: PlProfitabilityMonthly) => number; label: string }> = {
-      "매출액": { cur: m => m.revenue, label: "매출액" },
-      "영업이익": { cur: m => m.operatingIncome, label: "영업이익" },
-      "영업이익률": { cur: m => m.opm, label: "영업이익률" },
-      "당기순이익": { cur: m => m.netIncome, label: "당기순이익" },
+    const fieldMap: Record<string, { cur: (m: PlProfitabilityMonthly) => number; isRate: boolean }> = {
+      "매출액": { cur: m => m.revenue, isRate: false },
+      "영업이익": { cur: m => m.operatingIncome, isRate: false },
+      "영업이익률": { cur: m => m.opm, isRate: true },
+      "당기순이익": { cur: m => m.netIncome, isRate: false },
     };
     const cfg = fieldMap[panelKpi];
     if (!cfg) return [];
-    return pl.map(m => {
-      const priorM = plPrior.find(p => p.month.slice(5) === m.month.slice(5));
+    // 당기 연도만 사용
+    return plCurrent.map(m => {
+      const mm = m.month.slice(5); // "01", "02", ...
+      const priorM = plPrior.find(p => p.month.slice(5) === mm);
       const cur = cfg.cur(m);
       const prev = priorM ? cfg.cur(priorM) : null;
-      const chg = prev && prev !== 0 ? ((cur - prev) / Math.abs(prev)) * 100 : null;
+      let chg: number | null = null;
+      if (prev !== null && prev !== 0) {
+        chg = cfg.isRate ? (cur - prev) : ((cur - prev) / Math.abs(prev)) * 100;
+      }
       return { month: fmtM(m.month), 당기: cur, 전기: prev, "증감%": chg };
     });
-  }, [panelKpi, pl, plPrior]);
+  }, [panelKpi, plCurrent, plPrior]);
 
   // ─── Exception Alerts ───
   const alertsData = [
@@ -801,6 +810,34 @@ export default function SummaryBiPage() {
   const sparkOp = useMemo(() => pl.map(m => m.operatingIncome), [pl]);
   const sparkOpm = useMemo(() => pl.map(m => m.opm), [pl]);
   const sparkNi = useMemo(() => pl.map(m => m.netIncome), [pl]);
+
+  // BS sparkline: 월별 총자산/유동비율/부채비율 등
+  const bsMonthly = bsMonthlyRaw as any[];
+  const bsSparkData = useMemo(() => {
+    const monthSet = [...new Set(bsMonthly.map((r: any) => r.month))].sort();
+    const totalAssets: number[] = [];
+    const curRatios: number[] = [];
+    const deRatios: number[] = [];
+    monthSet.forEach(m => {
+      const rows = bsMonthly.filter((r: any) => r.month === m);
+      let ca = 0, nca = 0, cl = 0, ncl = 0;
+      rows.forEach((r: any) => {
+        const bal = Math.abs(r.balance);
+        const div = r.division || "";
+        const br = r.branch || "";
+        if (br.includes("자산") || div.includes("자산")) {
+          if (div.includes("비유동")) nca += bal; else ca += bal;
+        }
+        if (br.includes("부채") || div.includes("부채")) {
+          if (div.includes("비유동")) ncl += bal; else cl += bal;
+        }
+      });
+      totalAssets.push(ca + nca);
+      curRatios.push(cl > 0 ? ca / cl : 0);
+      deRatios.push((ca + nca - cl - ncl) > 0 ? ((cl + ncl) / (ca + nca - cl - ncl)) * 100 : 0);
+    });
+    return { totalAssets, curRatios, deRatios };
+  }, [bsMonthly]);
 
   const kpiLoading = plLoading || bsLoading;
 
@@ -856,7 +893,7 @@ export default function SummaryBiPage() {
             compareLabel="vs 전기"
             borderColor={getStatusColor(bsCur.totalAssets ?? 0, bsOpen.totalAssets ?? 0)}
             onClick={() => openPanel("총자산")}
-            sparkColor={COLOR.chart2}
+            sparkData={bsSparkData.totalAssets} sparkColor={COLOR.chart2}
           />
           <KpiCard
             label="현금 포지션"
@@ -874,14 +911,14 @@ export default function SummaryBiPage() {
             {...fmtChange(curRatio, bsOpen.currentAssets && bsOpen.currentLiabilities ? bsOpen.currentAssets / bsOpen.currentLiabilities : null)}
             compareLabel="vs 전기"
             borderColor={curRatio >= 1.5 ? COLOR.chart3 : COLOR.increase}
-            sparkColor={COLOR.chart2}
+            sparkData={bsSparkData.curRatios} sparkColor={COLOR.chart2}
           />
           <KpiCard
             label="부채비율" value={deRatio.toFixed(1) + "%"}
             {...fmtChange(deRatio, bsOpen.totalLiabilities && bsOpen.totalEquity ? (bsOpen.totalLiabilities / bsOpen.totalEquity) * 100 : null, true)}
             compareLabel="vs 전기"
             borderColor={deRatio < 100 ? COLOR.chart3 : COLOR.increase}
-            sparkColor={COLOR.chart2}
+            sparkData={bsSparkData.deRatios} sparkColor={COLOR.chart2}
           />
         </>)}
       </div>
