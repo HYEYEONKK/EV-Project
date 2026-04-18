@@ -230,26 +230,53 @@ function ChartCard({ title, tag, subtitle, children, onClick, style: extraStyle,
   );
 }
 
-// ─── KPI Card ───────────────────────────────────────────────
-function KpiCard({ label, value, changeText, changeCls, pyVal, compareLabel, borderColor, onClick }: {
+// ─── KPI Card (backup HTML 구조 재현) ────────────────────────
+function KpiCard({ label, value, changeText, changeCls, pyVal, compareLabel, borderColor, onClick, sparkData, sparkColor }: {
   label: string; value: string; changeText: string; changeCls: string;
   pyVal: string; compareLabel: string; borderColor: string; onClick?: () => void;
+  sparkData?: number[]; sparkColor?: string;
 }) {
   const [hovered, setHovered] = useState(false);
   const changeColor = changeCls === "positive" ? COLOR.increase : changeCls === "negative" ? COLOR.decrease : COLOR.neutral;
   const arrow = changeCls === "positive" ? "↑" : changeCls === "negative" ? "↓" : "";
-  const changeBg = changeCls === "positive" ? "#FDECEA" : changeCls === "negative" ? "#EBF3FB" : "#F0F2F4";
+
+  // SVG sparkline
+  const sparkSvg = useMemo(() => {
+    if (!sparkData || sparkData.length < 2) return null;
+    const w = 120, h = 48, pad = 4;
+    const min = Math.min(...sparkData), max = Math.max(...sparkData);
+    const range = max - min || 1;
+    const pts = sparkData.map((v, i) => {
+      const x = pad + i * ((w - pad * 2) / (sparkData.length - 1));
+      const y = pad + (1 - (v - min) / range) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const last = sparkData[sparkData.length - 1];
+    const lx = pad + (sparkData.length - 1) * ((w - pad * 2) / (sparkData.length - 1));
+    const ly = pad + (1 - (last - min) / range) * (h - pad * 2);
+    const areaPath = `M${pts[0]} ${pts.join(" L")} L${lx.toFixed(1)},${h - pad} L${pad},${h - pad} Z`;
+    const sc = sparkColor || COLOR.chart1;
+    return (
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ width: 120, height: 48, flexShrink: 0, opacity: hovered ? 1 : 0.7, transition: "opacity 0.15s" }}>
+        <path d={areaPath} fill={sc} opacity={0.08} />
+        <polyline points={pts.join(" ")} fill="none" stroke={sc} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
+        <circle cx={lx.toFixed(1)} cy={ly.toFixed(1)} r={2.5} fill={sc} />
+      </svg>
+    );
+  }, [sparkData, sparkColor, hovered]);
 
   return (
     <div
       style={{
         background: "#fff",
         borderRadius: 12,
-        border: `1px solid ${hovered ? COLOR.borderLight : "transparent"}`,
-        boxShadow: hovered ? SHADOW_LG : SHADOW_SM,
-        transform: hovered ? "translateY(-2px)" : "none",
-        transition: "all 0.18s ease",
-        padding: "22px 24px 18px",
+        borderLeft: `4px solid ${borderColor}`,
+        border: `1px solid transparent`,
+        borderLeftColor: borderColor,
+        boxShadow: hovered ? SHADOW_LG : SHADOW_MD,
+        transform: hovered ? "translateY(-1px)" : "none",
+        transition: "all 0.2s ease",
+        padding: "16px 18px 14px",
         cursor: onClick ? "pointer" : undefined,
         position: "relative",
       }}
@@ -257,28 +284,28 @@ function KpiCard({ label, value, changeText, changeCls, pyVal, compareLabel, bor
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div style={{
-        display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14,
-      }}>
-        <span style={{ fontSize: 13, color: COLOR.textTertiary, fontWeight: 500, letterSpacing: "0.1px" }}>{label}</span>
-        {onClick && (
-          <span style={{
-            fontSize: 11, color: COLOR.textTertiary, opacity: hovered ? 1 : 0,
-            transition: "opacity 0.15s",
-          }}>상세 ›</span>
-        )}
-      </div>
-      <div style={{
-        fontSize: 30, fontWeight: 700, letterSpacing: "-0.5px", lineHeight: 1,
-        color: COLOR.textPrimary, marginBottom: 14, ...TNUM,
-      }}>{value}</div>
-      <div style={{
-        display: "inline-flex", alignItems: "center", gap: 5,
-        padding: "4px 10px", borderRadius: 6, background: changeBg,
-      }}>
-        {arrow && <span style={{ fontSize: 12, fontWeight: 700, color: changeColor }}>{arrow}</span>}
-        <span style={{ fontSize: 12, fontWeight: 600, color: changeColor, ...TNUM }}>{changeText}</span>
-        <span style={{ fontSize: 11, color: COLOR.textTertiary, marginLeft: 2 }}>{compareLabel}</span>
+      {onClick && (
+        <span style={{
+          position: "absolute", top: 8, right: 10, fontSize: 11, fontWeight: 500,
+          color: COLOR.chart1, background: "#FFF5ED", padding: "2px 8px", borderRadius: 4,
+          opacity: hovered ? 1 : 0, transition: "opacity 0.2s",
+        }}>상세 ›</span>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 11, color: COLOR.textSecondary, fontWeight: 500, marginBottom: 4 }}>{label}</div>
+          <div style={{
+            fontSize: 26, fontWeight: 700, letterSpacing: "-0.5px", lineHeight: 1.1, marginBottom: 6,
+            color: COLOR.textPrimary, ...TNUM,
+          }}>{value}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: changeColor, display: "flex", alignItems: "center", gap: 4 }}>
+            {arrow && <span>{arrow}</span>}
+            <span style={TNUM}>{changeText}</span>
+            <span style={{ fontSize: 10, color: COLOR.textTertiary, fontWeight: 400, marginLeft: 4 }}>{compareLabel}</span>
+            <span style={{ fontSize: 10, color: COLOR.textTertiary, fontWeight: 400, ...TNUM }}>({pyVal})</span>
+          </div>
+        </div>
+        {sparkSvg}
       </div>
     </div>
   );
@@ -769,6 +796,12 @@ export default function SummaryBiPage() {
     return `${fy}년 ${fm}월부터 ${ty}년 ${tm}월까지`;
   }, [dateFrom, dateTo]);
 
+  // ─── Sparkline data (전체 기간 월별 값) ───
+  const sparkRevenue = useMemo(() => pl.map(m => m.revenue), [pl]);
+  const sparkOp = useMemo(() => pl.map(m => m.operatingIncome), [pl]);
+  const sparkOpm = useMemo(() => pl.map(m => m.opm), [pl]);
+  const sparkNi = useMemo(() => pl.map(m => m.netIncome), [pl]);
+
   const kpiLoading = plLoading || bsLoading;
 
   // ─── Tooltip customization ───
@@ -791,6 +824,7 @@ export default function SummaryBiPage() {
             compareLabel={compareLabel}
             borderColor={getStatusColor(plAgg.revenue, plPriorAgg.revenue)}
             onClick={() => openPanel("매출액")}
+            sparkData={sparkRevenue} sparkColor={COLOR.chart1}
           />
           <KpiCard
             label="영업이익" value={formatKRW(plAgg.operatingIncome)}
@@ -798,6 +832,7 @@ export default function SummaryBiPage() {
             compareLabel={compareLabel}
             borderColor={getStatusColor(plAgg.operatingIncome, plPriorAgg.operatingIncome)}
             onClick={() => openPanel("영업이익")}
+            sparkData={sparkOp} sparkColor={COLOR.chart1}
           />
           <KpiCard
             label="영업이익률" value={opm.toFixed(1) + "%"}
@@ -805,6 +840,7 @@ export default function SummaryBiPage() {
             compareLabel={compareLabel}
             borderColor={opm >= opmPrior ? COLOR.increase : COLOR.decrease}
             onClick={() => openPanel("영업이익률")}
+            sparkData={sparkOpm} sparkColor={COLOR.chart1}
           />
           <KpiCard
             label="당기순이익" value={formatKRW(plAgg.netIncome)}
@@ -812,13 +848,15 @@ export default function SummaryBiPage() {
             compareLabel={compareLabel}
             borderColor={getStatusColor(plAgg.netIncome, plPriorAgg.netIncome)}
             onClick={() => openPanel("당기순이익")}
+            sparkData={sparkNi} sparkColor={COLOR.chart1}
           />
           <KpiCard
             label="총자산" value={formatKRW(bsCur.totalAssets ?? 0)}
             {...fmtChange(bsCur.totalAssets ?? 0, bsOpen.totalAssets)}
-            compareLabel="vs PY"
+            compareLabel="vs 전기"
             borderColor={getStatusColor(bsCur.totalAssets ?? 0, bsOpen.totalAssets ?? 0)}
             onClick={() => openPanel("총자산")}
+            sparkColor={COLOR.chart2}
           />
           <KpiCard
             label="현금 포지션"
@@ -827,20 +865,23 @@ export default function SummaryBiPage() {
               (bsCur["현금및현금성자산"] ?? 0) + (bsCur["단기금융상품"] ?? 0),
               (bsOpen["현금및현금성자산"] ?? 0) + (bsOpen["단기금융상품"] ?? 0),
             )}
-            compareLabel="vs PY"
+            compareLabel="vs 전기"
             borderColor={COLOR.chart3}
+            sparkColor={COLOR.chart2}
           />
           <KpiCard
             label="유동비율" value={curRatio.toFixed(2) + "x"}
             {...fmtChange(curRatio, bsOpen.currentAssets && bsOpen.currentLiabilities ? bsOpen.currentAssets / bsOpen.currentLiabilities : null)}
-            compareLabel="vs PY"
+            compareLabel="vs 전기"
             borderColor={curRatio >= 1.5 ? COLOR.chart3 : COLOR.increase}
+            sparkColor={COLOR.chart2}
           />
           <KpiCard
             label="부채비율" value={deRatio.toFixed(1) + "%"}
             {...fmtChange(deRatio, bsOpen.totalLiabilities && bsOpen.totalEquity ? (bsOpen.totalLiabilities / bsOpen.totalEquity) * 100 : null, true)}
-            compareLabel="vs PY"
+            compareLabel="vs 전기"
             borderColor={deRatio < 100 ? COLOR.chart3 : COLOR.increase}
+            sparkColor={COLOR.chart2}
           />
         </>)}
       </div>
