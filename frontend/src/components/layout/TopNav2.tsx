@@ -120,12 +120,16 @@ export default function TopNav2() {
                     fontWeight: active || isHovered ? 600 : 400,
                     color: active ? "#FD5108" : isHovered ? "#1A1A2E" : "#6B7280",
                     textDecoration: "none",
-                    borderBottom: active ? "2px solid #FD5108" : "2px solid transparent",
                     transition: "color 0.15s",
                     letterSpacing: "-0.2px",
                   }}
                 >
-                  {tab.label}
+                  <span style={{
+                    borderBottom: active ? "2px solid #FD5108" : "2px solid transparent",
+                    paddingBottom: 4,
+                  }}>
+                    {tab.label}
+                  </span>
                 </Link>
               </div>
             );
