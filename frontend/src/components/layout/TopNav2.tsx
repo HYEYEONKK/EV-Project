@@ -68,7 +68,7 @@ export default function TopNav2() {
                 display: "flex",
                 alignItems: "center",
                 height: "100%",
-                padding: "0 28px",
+                padding: "0 44px",
                 fontSize: 15,
                 fontWeight: active ? 700 : 500,
                 color: active ? "#FD5108" : "#6B7280",
