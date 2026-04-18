@@ -582,21 +582,21 @@ export default function SummaryBiPage() {
 
   // ─── Change computation ───
   function fmtChange(cur: number, prev: number | null, isPercent = false) {
-    if (!prev || prev === 0) return { text: "\u2014", cls: "neutral", pyVal: "\u2014" };
+    if (!prev || prev === 0) return { changeText: "\u2014", changeCls: "neutral", pyVal: "\u2014" };
     if (isPercent) {
       const diff = cur - prev;
       const sign = diff >= 0 ? "+" : "\u2212";
       return {
-        text: `${sign}${Math.abs(diff).toFixed(1)}pp`,
-        cls: diff > 0 ? "positive" : diff < 0 ? "negative" : "neutral",
+        changeText: `${sign}${Math.abs(diff).toFixed(1)}pp`,
+        changeCls: diff > 0 ? "positive" : diff < 0 ? "negative" : "neutral",
         pyVal: prev.toFixed(1) + "%",
       };
     }
     const pct = ((cur - prev) / Math.abs(prev)) * 100;
     const sign = pct >= 0 ? "+" : "\u2212";
     return {
-      text: `${sign}${Math.abs(pct).toFixed(1)}%`,
-      cls: pct > 0 ? "positive" : pct < 0 ? "negative" : "neutral",
+      changeText: `${sign}${Math.abs(pct).toFixed(1)}%`,
+      changeCls: pct > 0 ? "positive" : pct < 0 ? "negative" : "neutral",
       pyVal: formatKRW(prev),
     };
   }
@@ -1110,6 +1110,17 @@ export default function SummaryBiPage() {
                 display: "flex", alignItems: "center", gap: 12,
                 padding: "12px 16px", borderRadius: 8,
                 borderLeft: `3px solid ${borderColor}`, background: bgColor,
+                cursor: "pointer", transition: "box-shadow 0.15s ease",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.boxShadow = SHADOW_MD;
+                const hint = (e.currentTarget as HTMLElement).querySelector(".alert-hint") as HTMLElement;
+                if (hint) hint.style.opacity = "1";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                const hint = (e.currentTarget as HTMLElement).querySelector(".alert-hint") as HTMLElement;
+                if (hint) hint.style.opacity = "0";
               }}>
                 <span style={{
                   fontSize: 10, fontWeight: 700, color: "#fff", background: labelBg,
@@ -1122,6 +1133,11 @@ export default function SummaryBiPage() {
                 <span style={{ fontSize: 13, fontWeight: 600, color: COLOR.textPrimary, whiteSpace: "nowrap", ...TNUM }}>
                   {alert.amount}
                 </span>
+                <span className="alert-hint" style={{
+                  fontSize: 11, fontWeight: 500, color: COLOR.chart1,
+                  background: "#FFF5ED", padding: "3px 10px", borderRadius: 4,
+                  opacity: 0, transition: "opacity 0.15s", whiteSpace: "nowrap", flexShrink: 0,
+                }}>상세 보기 ›</span>
               </div>
             );
           })}
