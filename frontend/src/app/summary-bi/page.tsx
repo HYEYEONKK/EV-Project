@@ -238,40 +238,47 @@ function KpiCard({ label, value, changeText, changeCls, pyVal, compareLabel, bor
   const [hovered, setHovered] = useState(false);
   const changeColor = changeCls === "positive" ? COLOR.increase : changeCls === "negative" ? COLOR.decrease : COLOR.neutral;
   const arrow = changeCls === "positive" ? "↑" : changeCls === "negative" ? "↓" : "";
+  const changeBg = changeCls === "positive" ? "#FDECEA" : changeCls === "negative" ? "#EBF3FB" : "#F0F2F4";
 
   return (
     <div
       style={{
         background: "#fff",
         borderRadius: 12,
-        border: `1px solid ${COLOR.border}`,
-        borderLeft: `4px solid ${borderColor}`,
-        boxShadow: hovered ? SHADOW_LG : SHADOW_MD,
+        border: `1px solid ${hovered ? COLOR.borderLight : "transparent"}`,
+        boxShadow: hovered ? SHADOW_LG : SHADOW_SM,
         transform: hovered ? "translateY(-2px)" : "none",
-        transition: "box-shadow 0.2s ease, transform 0.2s ease",
-        padding: "20px 24px 16px",
+        transition: "all 0.18s ease",
+        padding: "22px 24px 18px",
         cursor: onClick ? "pointer" : undefined,
+        position: "relative",
       }}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div style={{ fontSize: 12, color: COLOR.textSecondary, fontWeight: 500, marginBottom: 8 }}>{label}</div>
       <div style={{
-        fontSize: 28, fontWeight: 700, letterSpacing: "-0.5px", lineHeight: 1.1, marginBottom: 10,
-        color: COLOR.textPrimary, ...TNUM,
-      }}>{value}</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
-        {arrow && (
-          <span style={{ fontSize: 13, fontWeight: 700, color: changeColor }}>{arrow}</span>
+        display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14,
+      }}>
+        <span style={{ fontSize: 13, color: COLOR.textTertiary, fontWeight: 500, letterSpacing: "0.1px" }}>{label}</span>
+        {onClick && (
+          <span style={{
+            fontSize: 11, color: COLOR.textTertiary, opacity: hovered ? 1 : 0,
+            transition: "opacity 0.15s",
+          }}>상세 ›</span>
         )}
-        <span style={{ fontSize: 13, fontWeight: 600, color: changeColor, ...TNUM }}>{changeText}</span>
-        <span style={{ fontSize: 11, color: COLOR.textTertiary, fontWeight: 400, marginLeft: 4 }}>
-          {compareLabel}
-        </span>
-        <span style={{ fontSize: 11, color: COLOR.textTertiary, fontWeight: 400, ...TNUM }}>
-          ({pyVal})
-        </span>
+      </div>
+      <div style={{
+        fontSize: 30, fontWeight: 700, letterSpacing: "-0.5px", lineHeight: 1,
+        color: COLOR.textPrimary, marginBottom: 14, ...TNUM,
+      }}>{value}</div>
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 5,
+        padding: "4px 10px", borderRadius: 6, background: changeBg,
+      }}>
+        {arrow && <span style={{ fontSize: 12, fontWeight: 700, color: changeColor }}>{arrow}</span>}
+        <span style={{ fontSize: 12, fontWeight: 600, color: changeColor, ...TNUM }}>{changeText}</span>
+        <span style={{ fontSize: 11, color: COLOR.textTertiary, marginLeft: 2 }}>{compareLabel}</span>
       </div>
     </div>
   );
@@ -753,133 +760,107 @@ export default function SummaryBiPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <BudgetModal open={budgetModalOpen} onClose={() => setBudgetModalOpen(false)} />
 
-      {/* ─── Title + Budget / Compare Toggle ─── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <span style={{ fontSize: 22, fontWeight: 700, color: COLOR.textPrimary, letterSpacing: "-0.3px" }}>
-            Executive Summary
-          </span>
-          <BiTag />
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {hasBudget && (
-            <div style={{
-              display: "flex", background: COLOR.surfacePage,
-              borderRadius: 8, padding: 3, gap: 2, border: `1px solid ${COLOR.borderLight}`,
-            }}>
-              {(["py", "budget"] as const).map(mode => (
-                <button
-                  key={mode}
-                  onClick={() => setCompareMode(mode)}
-                  style={{
-                    padding: "5px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600,
-                    border: "none", cursor: "pointer",
-                    background: compareMode === mode ? COLOR.uiOrange : "transparent",
-                    color: compareMode === mode ? "#fff" : COLOR.textSecondary,
-                    transition: "all 0.15s ease",
-                  }}
-                >{mode === "py" ? "전기" : "예산"}</button>
-              ))}
-            </div>
-          )}
-          <button
-            onClick={() => setBudgetModalOpen(true)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8,
-              fontSize: 12, fontWeight: 600, cursor: "pointer",
-              border: `1px solid ${hasBudget ? COLOR.uiOrange : COLOR.border}`,
-              background: hasBudget ? COLOR.uiOrange : "#fff",
-              color: hasBudget ? "#fff" : COLOR.textSecondary,
-              transition: "all 0.15s ease",
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-            </svg>
-            예산 설정
-          </button>
-        </div>
+      {/* ─── 예산/비교 컨트롤 (우측 정렬) ─── */}
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10 }}>
+        {hasBudget && (
+          <div style={{
+            display: "flex", background: COLOR.surfacePage,
+            borderRadius: 8, padding: 3, gap: 2, border: `1px solid ${COLOR.borderLight}`,
+          }}>
+            {(["py", "budget"] as const).map(mode => (
+              <button
+                key={mode}
+                onClick={() => setCompareMode(mode)}
+                style={{
+                  padding: "5px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600,
+                  border: "none", cursor: "pointer",
+                  background: compareMode === mode ? COLOR.uiOrange : "transparent",
+                  color: compareMode === mode ? "#fff" : COLOR.textSecondary,
+                  transition: "all 0.15s ease",
+                }}
+              >{mode === "py" ? "전기" : "예산"}</button>
+            ))}
+          </div>
+        )}
+        <button
+          onClick={() => setBudgetModalOpen(true)}
+          style={{
+            display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8,
+            fontSize: 12, fontWeight: 600, cursor: "pointer",
+            border: `1px solid ${hasBudget ? COLOR.uiOrange : COLOR.border}`,
+            background: hasBudget ? COLOR.uiOrange : "#fff",
+            color: hasBudget ? "#fff" : COLOR.textSecondary,
+            transition: "all 0.15s ease",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+          </svg>
+          예산 설정
+        </button>
       </div>
 
-      {/* ═══ HERO KPI (PL 4 + BS 4) ═══ */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-        <div>
-          <div style={{
-            fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const,
-            letterSpacing: 1.5, color: COLOR.chart1, marginBottom: 10, paddingLeft: 4,
-          }}>P&L Performance</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {kpiLoading ? <><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /></> : (<>
-            <KpiCard
-              label="매출액" value={formatKRW(plAgg.revenue)}
-              {...fmtChange(plAgg.revenue, plPriorAgg.revenue)}
-              compareLabel={compareLabel}
-              borderColor={getStatusColor(plAgg.revenue, plPriorAgg.revenue)}
-              onClick={() => openPanel("매출액")}
-            />
-            <KpiCard
-              label="영업이익" value={formatKRW(plAgg.operatingIncome)}
-              {...fmtChange(plAgg.operatingIncome, plPriorAgg.operatingIncome)}
-              compareLabel={compareLabel}
-              borderColor={getStatusColor(plAgg.operatingIncome, plPriorAgg.operatingIncome)}
-              onClick={() => openPanel("영업이익")}
-            />
-            <KpiCard
-              label="영업이익률" value={opm.toFixed(1) + "%"}
-              {...fmtChange(opm, opmPrior, true)}
-              compareLabel={compareLabel}
-              borderColor={opm >= opmPrior ? COLOR.increase : COLOR.decrease}
-              onClick={() => openPanel("영업이익률")}
-            />
-            <KpiCard
-              label="당기순이익" value={formatKRW(plAgg.netIncome)}
-              {...fmtChange(plAgg.netIncome, plPriorAgg.netIncome)}
-              compareLabel={compareLabel}
-              borderColor={getStatusColor(plAgg.netIncome, plPriorAgg.netIncome)}
-              onClick={() => openPanel("당기순이익")}
-            />
-            </>)}
-          </div>
-        </div>
-        <div>
-          <div style={{
-            fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const,
-            letterSpacing: 1.5, color: COLOR.chart2, marginBottom: 10, paddingLeft: 4,
-          }}>Balance Sheet Health</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {kpiLoading ? <><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /></> : (<>
-            <KpiCard
-              label="총자산" value={formatKRW(bsCur.totalAssets ?? 0)}
-              {...fmtChange(bsCur.totalAssets ?? 0, bsOpen.totalAssets)}
-              compareLabel="vs PY"
-              borderColor={getStatusColor(bsCur.totalAssets ?? 0, bsOpen.totalAssets ?? 0)}
-              onClick={() => openPanel("총자산")}
-            />
-            <KpiCard
-              label="현금 포지션"
-              value={formatKRW((bsCur["현금및현금성자산"] ?? 0) + (bsCur["단기금융상품"] ?? 0))}
-              {...fmtChange(
-                (bsCur["현금및현금성자산"] ?? 0) + (bsCur["단기금융상품"] ?? 0),
-                (bsOpen["현금및현금성자산"] ?? 0) + (bsOpen["단기금융상품"] ?? 0),
-              )}
-              compareLabel="vs PY"
-              borderColor={COLOR.chart3}
-            />
-            <KpiCard
-              label="유동비율" value={curRatio.toFixed(2) + "x"}
-              {...fmtChange(curRatio, bsOpen.currentAssets && bsOpen.currentLiabilities ? bsOpen.currentAssets / bsOpen.currentLiabilities : null)}
-              compareLabel="vs PY"
-              borderColor={curRatio >= 1.5 ? COLOR.chart3 : COLOR.increase}
-            />
-            <KpiCard
-              label="부채비율" value={deRatio.toFixed(1) + "%"}
-              {...fmtChange(deRatio, bsOpen.totalLiabilities && bsOpen.totalEquity ? (bsOpen.totalLiabilities / bsOpen.totalEquity) * 100 : null, true)}
-              compareLabel="vs PY"
-              borderColor={deRatio < 100 ? COLOR.chart3 : COLOR.increase}
-            />
-            </>)}
-          </div>
-        </div>
+      {/* ═══ HERO KPI 4+4 ═══ */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+        {kpiLoading ? <><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /><SkeletonKpiCard /></> : (<>
+          <KpiCard
+            label="매출액" value={formatKRW(plAgg.revenue)}
+            {...fmtChange(plAgg.revenue, plPriorAgg.revenue)}
+            compareLabel={compareLabel}
+            borderColor={getStatusColor(plAgg.revenue, plPriorAgg.revenue)}
+            onClick={() => openPanel("매출액")}
+          />
+          <KpiCard
+            label="영업이익" value={formatKRW(plAgg.operatingIncome)}
+            {...fmtChange(plAgg.operatingIncome, plPriorAgg.operatingIncome)}
+            compareLabel={compareLabel}
+            borderColor={getStatusColor(plAgg.operatingIncome, plPriorAgg.operatingIncome)}
+            onClick={() => openPanel("영업이익")}
+          />
+          <KpiCard
+            label="영업이익률" value={opm.toFixed(1) + "%"}
+            {...fmtChange(opm, opmPrior, true)}
+            compareLabel={compareLabel}
+            borderColor={opm >= opmPrior ? COLOR.increase : COLOR.decrease}
+            onClick={() => openPanel("영업이익률")}
+          />
+          <KpiCard
+            label="당기순이익" value={formatKRW(plAgg.netIncome)}
+            {...fmtChange(plAgg.netIncome, plPriorAgg.netIncome)}
+            compareLabel={compareLabel}
+            borderColor={getStatusColor(plAgg.netIncome, plPriorAgg.netIncome)}
+            onClick={() => openPanel("당기순이익")}
+          />
+          <KpiCard
+            label="총자산" value={formatKRW(bsCur.totalAssets ?? 0)}
+            {...fmtChange(bsCur.totalAssets ?? 0, bsOpen.totalAssets)}
+            compareLabel="vs PY"
+            borderColor={getStatusColor(bsCur.totalAssets ?? 0, bsOpen.totalAssets ?? 0)}
+            onClick={() => openPanel("총자산")}
+          />
+          <KpiCard
+            label="현금 포지션"
+            value={formatKRW((bsCur["현금및현금성자산"] ?? 0) + (bsCur["단기금융상품"] ?? 0))}
+            {...fmtChange(
+              (bsCur["현금및현금성자산"] ?? 0) + (bsCur["단기금융상품"] ?? 0),
+              (bsOpen["현금및현금성자산"] ?? 0) + (bsOpen["단기금융상품"] ?? 0),
+            )}
+            compareLabel="vs PY"
+            borderColor={COLOR.chart3}
+          />
+          <KpiCard
+            label="유동비율" value={curRatio.toFixed(2) + "x"}
+            {...fmtChange(curRatio, bsOpen.currentAssets && bsOpen.currentLiabilities ? bsOpen.currentAssets / bsOpen.currentLiabilities : null)}
+            compareLabel="vs PY"
+            borderColor={curRatio >= 1.5 ? COLOR.chart3 : COLOR.increase}
+          />
+          <KpiCard
+            label="부채비율" value={deRatio.toFixed(1) + "%"}
+            {...fmtChange(deRatio, bsOpen.totalLiabilities && bsOpen.totalEquity ? (bsOpen.totalLiabilities / bsOpen.totalEquity) * 100 : null, true)}
+            compareLabel="vs PY"
+            borderColor={deRatio < 100 ? COLOR.chart3 : COLOR.increase}
+          />
+        </>)}
       </div>
 
       {/* ═══ AUX STRIP ═══ */}
