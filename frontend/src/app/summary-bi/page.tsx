@@ -1216,38 +1216,92 @@ export default function SummaryBiPage() {
               >&times;</button>
             </div>
             <div style={{ padding: 24, overflowY: "auto", flex: 1 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                <thead>
-                  <tr style={{ borderBottom: `2px solid ${COLOR.border}` }}>
-                    <th style={{ padding: "10px 12px", textAlign: "left", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>월</th>
-                    <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>당기</th>
-                    <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>전기</th>
-                    <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>증감%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {panelTrendData.map((row, i) => {
-                    const isPercent = panelKpi === "영업이익률";
-                    const fmtVal = (v: number | null) => {
-                      if (v === null || v === undefined) return "\u2014";
-                      return isPercent ? v.toFixed(1) + "%" : formatKRW(v);
-                    };
-                    const chgColor = row["증감%"] !== null
-                      ? ((row["증감%"] as number) >= 0 ? COLOR.increase : COLOR.decrease)
-                      : COLOR.neutral;
-                    return (
-                      <tr key={i} style={{ borderBottom: `1px solid ${COLOR.borderLight}` }}>
-                        <td style={{ padding: "8px 12px", fontWeight: 500, color: COLOR.textPrimary }}>{row.month}</td>
-                        <td style={{ padding: "8px 12px", textAlign: "right", color: COLOR.textPrimary, ...TNUM }}>{fmtVal(row.당기)}</td>
-                        <td style={{ padding: "8px 12px", textAlign: "right", color: COLOR.textSecondary, ...TNUM }}>{fmtVal(row.전기)}</td>
-                        <td style={{ padding: "8px 12px", textAlign: "right", fontWeight: 600, color: chgColor, ...TNUM }}>
-                          {row["증감%"] !== null ? ((row["증감%"] as number) >= 0 ? "+" : "") + (row["증감%"] as number).toFixed(1) + "%" : "\u2014"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              {/* 월별 추이 차트 */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: 1, color: COLOR.textTertiary }}>월별 추이</span>
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <LineChart data={panelTrendData} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: COLOR.textTertiary }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: COLOR.textTertiary }} tickLine={false} axisLine={false} width={60}
+                      tickFormatter={v => panelKpi === "영업이익률" ? v.toFixed(0) + "%" : fmtAx(v)} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} verticalAlign="top" align="right" />
+                    <Line type="monotone" dataKey="당기" stroke={COLOR.chart1} strokeWidth={2} dot={{ r: 3, fill: COLOR.chart1 }} name={`${curYear}년 (당기)`} />
+                    <Line type="monotone" dataKey="전기" stroke={COLOR.greyMedium} strokeWidth={1.5} strokeDasharray="5 3" dot={{ r: 2, fill: COLOR.greyMedium }} name={`${priorYear}년 (전기)`} connectNulls />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* 월별 요약 테이블 */}
+              <div style={{ marginBottom: 24 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: 1, color: COLOR.textTertiary, display: "block", marginBottom: 10 }}>
+                  월별 요약 수치 ({curYear}년 vs {priorYear}년)
+                </span>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ borderBottom: `2px solid ${COLOR.border}` }}>
+                      <th style={{ padding: "10px 12px", textAlign: "left", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>월</th>
+                      <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>당기 ({curYear})</th>
+                      <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>전기 ({priorYear})</th>
+                      <th style={{ padding: "10px 12px", textAlign: "right", fontSize: 11, fontWeight: 600, color: COLOR.textSecondary, background: COLOR.surfacePage }}>증감률</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const isPercent = panelKpi === "영업이익률";
+                      const fmtVal = (v: number | null) => {
+                        if (v === null || v === undefined) return "\u2014";
+                        return isPercent ? v.toFixed(1) + "%" : formatKRW(v);
+                      };
+                      // TOP3 강조
+                      const withChg = panelTrendData.filter(d => d["증감%"] !== null);
+                      const sorted = [...withChg].sort((a, b) => Math.abs(b["증감%"] as number) - Math.abs(a["증감%"] as number));
+                      const top3Months = new Set(sorted.slice(0, 3).map(d => d.month));
+
+                      return panelTrendData.map((row, i) => {
+                        const chg = row["증감%"] as number | null;
+                        const chgColor = chg !== null ? (chg >= 0 ? COLOR.increase : COLOR.decrease) : COLOR.neutral;
+                        const isTop3 = top3Months.has(row.month);
+                        return (
+                          <tr key={i} style={{
+                            borderBottom: `1px solid ${COLOR.borderLight}`,
+                            color: isTop3 ? COLOR.increase : undefined,
+                            fontWeight: isTop3 ? 600 : undefined,
+                          }}>
+                            <td style={{ padding: "8px 12px", fontWeight: 500, color: isTop3 ? COLOR.increase : COLOR.textPrimary }}>{row.month}</td>
+                            <td style={{ padding: "8px 12px", textAlign: "right", ...TNUM }}>{fmtVal(row.당기)}</td>
+                            <td style={{ padding: "8px 12px", textAlign: "right", color: COLOR.textSecondary, ...TNUM }}>{fmtVal(row.전기)}</td>
+                            <td style={{ padding: "8px 12px", textAlign: "right", fontWeight: 600, color: chgColor, ...TNUM }}>
+                              {chg !== null ? (chg >= 0 ? "+" : "") + chg.toFixed(1) + "%" : "\u2014"}
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 하단 고정 버튼 */}
+            <div style={{
+              padding: "14px 20px", borderTop: `1px solid ${COLOR.border}`,
+              background: "#fff", position: "sticky", bottom: 0,
+            }}>
+              <button style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                width: "100%", padding: "11px 16px", border: "none", borderRadius: 8,
+                background: COLOR.chart1, color: "#fff", fontSize: 13, fontWeight: 600,
+                cursor: "pointer", transition: "background 0.15s",
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#C13D00"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = COLOR.chart1}>
+                상세 분석 보기
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
             </div>
           </div>
         </>
