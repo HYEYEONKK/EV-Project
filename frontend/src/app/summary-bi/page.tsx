@@ -752,6 +752,16 @@ export default function SummaryBiPage() {
     });
   }, [panelKpi, pl, plPrior]);
 
+  // ─── Exception Alerts ───
+  const alertsData = [
+    { severity: "critical", month: "2025-06", text: "기타비용(잡손실) 44.88억 발생 — 월평균의 약 50배", amount: "44.88억" },
+    { severity: "warning", month: "2025-03", text: "금융수익 마이너스 전환 (-1.6억) — 비정상", amount: "-1.6억" },
+    { severity: "warning", month: "2025-06", text: "법인세 31.52억 충당 — 반기 결산", amount: "31.52억" },
+    { severity: "warning", month: "2025-06", text: "당기순이익 -26.54억 적자 전환", amount: "-26.54억" },
+    { severity: "info", month: "2025-09", text: "기타수익 9.16억 — 외화환산이익 등 환율 변동", amount: "9.16억" },
+    { severity: "info", month: "2025-05", text: "매출 222.3억 — 당기 최고 매출", amount: "222.3억" },
+  ];
+
   // ─── Date range label for aria ───
   const dateRangeLabel = useMemo(() => {
     const fy = dateFrom.slice(0, 4), fm = parseInt(dateFrom.slice(5, 7));
@@ -1072,6 +1082,50 @@ export default function SummaryBiPage() {
           </ResponsiveContainer>
           )}
         </ChartCard>
+      </div>
+
+      {/* ═══ 이상 항목 (Exception Alerts) ═══ */}
+      <div style={{
+        background: "#fff", borderRadius: 8, border: `1px solid ${COLOR.border}`,
+        boxShadow: SHADOW_SM, padding: "20px 24px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span style={{ fontSize: 14, fontWeight: 600, color: COLOR.textPrimary }}>이상 항목</span>
+          <span style={{ fontSize: 12, color: COLOR.textTertiary }}>
+            (Critical {alertsData.filter(a => a.severity === "critical").length} / Warning {alertsData.filter(a => a.severity === "warning").length})
+          </span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {alertsData.map((alert, i) => {
+            const borderColor = alert.severity === "critical" ? "#B91C1C" : alert.severity === "warning" ? "#B45309" : COLOR.chart1;
+            const bgColor = alert.severity === "critical" ? "#FEE2E2" : alert.severity === "warning" ? "#FEF3C7" : "#FFF5ED";
+            const labelBg = alert.severity === "critical" ? "#B91C1C" : alert.severity === "warning" ? "#B45309" : COLOR.chart2;
+            const labelText = alert.severity.toUpperCase();
+            return (
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "12px 16px", borderRadius: 8,
+                borderLeft: `3px solid ${borderColor}`, background: bgColor,
+              }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: "#fff", background: labelBg,
+                  borderRadius: 4, padding: "2px 8px", whiteSpace: "nowrap", textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}>{labelText}</span>
+                <span style={{ fontSize: 13, color: COLOR.textPrimary, flex: 1 }}>
+                  <strong>{alert.month}</strong> — {alert.text}
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: COLOR.textPrimary, whiteSpace: "nowrap", ...TNUM }}>
+                  {alert.amount}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* ═══ Slide Panel Drilldown ═══ */}
