@@ -187,62 +187,66 @@ export default function TopNav2() {
         </div>
       </nav>
 
-      {/* ── Dropdown panel ── */}
-      {hoveredTab && (
-        <div
-          className="fixed left-0 right-0 z-40"
-          style={{
-            top: 56,
-            background: "#fff",
-            borderBottom: "1px solid #e0e0e0",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
-          }}
-          onMouseEnter={() => handleMouseEnterTab(hoveredTab)}
-          onMouseLeave={handleMouseLeave}
-        >
+      {/* ── Dropdown panel — 호버된 탭 아래에만 표시 ── */}
+      {hoveredTab && (() => {
+        const tab = TABS.find(t => t.id === hoveredTab);
+        if (!tab) return null;
+        return (
           <div
+            className="fixed left-0 right-0 z-40"
             style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: 0,
-              padding: "20px 0",
+              top: 56,
+              background: "#fff",
+              borderBottom: "1px solid #e0e0e0",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
             }}
+            onMouseEnter={() => handleMouseEnterTab(hoveredTab)}
+            onMouseLeave={handleMouseLeave}
           >
-            {TABS.map((tab) => (
-              <div
-                key={tab.id}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "0 44px",
-                  minWidth: 160,
-                }}
-              >
-                {tab.children.map((child) => (
-                  <Link
-                    key={child.label}
-                    href={child.href}
-                    style={{
-                      fontSize: 14,
-                      color: hoveredTab === tab.id ? "#1A1A2E" : "#A1A8B3",
-                      fontWeight: hoveredTab === tab.id ? 500 : 400,
-                      textDecoration: "none",
-                      transition: "color 0.15s",
-                      whiteSpace: "nowrap",
-                    }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#FD5108"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = hoveredTab === tab.id ? "#1A1A2E" : "#A1A8B3"; }}
-                  >
-                    {child.label}
-                  </Link>
-                ))}
-              </div>
-            ))}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                padding: "20px 0",
+              }}
+            >
+              {TABS.map((t) => (
+                <div
+                  key={t.id}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "0 44px",
+                    minWidth: 160,
+                  }}
+                >
+                  {t.children.map((child) => (
+                    <Link
+                      key={child.label}
+                      href={child.href}
+                      style={{
+                        fontSize: 14,
+                        color: t.id === hoveredTab ? "#1A1A2E" : "transparent",
+                        fontWeight: 500,
+                        textDecoration: "none",
+                        transition: "color 0.15s",
+                        whiteSpace: "nowrap",
+                        pointerEvents: t.id === hoveredTab ? "auto" : "none",
+                      }}
+                      onMouseEnter={(e) => { if (t.id === hoveredTab) (e.currentTarget as HTMLElement).style.color = "#FD5108"; }}
+                      onMouseLeave={(e) => { if (t.id === hoveredTab) (e.currentTarget as HTMLElement).style.color = "#1A1A2E"; }}
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </>
   );
 }
