@@ -98,7 +98,11 @@ export default function TopNav2() {
         </Link>
 
         {/* ── Center-Right: Section tabs ── */}
-        <div className="flex items-center h-full" style={{ gap: 0 }}>
+        <div
+          className="flex items-center h-full"
+          style={{ gap: 0 }}
+          onMouseLeave={handleMouseLeave}
+        >
           {TABS.map((tab) => {
             const active = isTabActive(tab, pathname);
             const isHovered = hoveredTab === tab.id;
@@ -107,7 +111,6 @@ export default function TopNav2() {
                 key={tab.id}
                 className="relative h-full"
                 onMouseEnter={() => handleMouseEnterTab(tab.id)}
-                onMouseLeave={handleMouseLeave}
               >
                 <Link
                   href={tab.href}
@@ -191,66 +194,61 @@ export default function TopNav2() {
         </div>
       </nav>
 
-      {/* ── Dropdown panel — 호버된 탭 아래에만 표시 ── */}
-      {hoveredTab && (() => {
-        const tab = TABS.find(t => t.id === hoveredTab);
-        if (!tab) return null;
-        return (
-          <div
-            className="fixed left-0 right-0 z-40"
-            style={{
-              top: 56,
-              background: "#fff",
-              borderBottom: "1px solid #e0e0e0",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
-            }}
-            onMouseEnter={() => handleMouseEnterTab(hoveredTab)}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                padding: "20px 0",
-              }}
-            >
-              {TABS.map((t) => (
-                <div
-                  key={t.id}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "0 44px",
-                    minWidth: 160,
-                  }}
-                >
-                  {t.children.map((child) => (
-                    <Link
-                      key={child.label}
-                      href={child.href}
-                      style={{
-                        fontSize: 14,
-                        color: t.id === hoveredTab ? "#1A1A2E" : "transparent",
-                        fontWeight: 500,
-                        textDecoration: "none",
-                        transition: "color 0.15s",
-                        whiteSpace: "nowrap",
-                        pointerEvents: t.id === hoveredTab ? "auto" : "none",
-                      }}
-                      onMouseEnter={(e) => { if (t.id === hoveredTab) (e.currentTarget as HTMLElement).style.color = "#FD5108"; }}
-                      onMouseLeave={(e) => { if (t.id === hoveredTab) (e.currentTarget as HTMLElement).style.color = "#1A1A2E"; }}
-                    >
-                      {child.label}
-                    </Link>
-                  ))}
-                </div>
-              ))}
+      {/* ── Dropdown panel — PwC 스타일: 모든 섹션 동시 표시, 각 탭 아래 정렬 ── */}
+      {hoveredTab && (
+        <div
+          className="fixed left-0 right-0 z-40"
+          style={{
+            top: 56,
+            background: "#fff",
+            borderBottom: "1px solid #e0e0e0",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+          }}
+          onMouseEnter={() => handleMouseEnterTab(hoveredTab)}
+          onMouseLeave={handleMouseLeave}
+        >
+          {/* 탭과 동일한 flex 구조로 정렬 */}
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <div className="flex" style={{ gap: 0 }}>
+              {TABS.map((t) => {
+                const isActiveColumn = t.id === hoveredTab;
+                return (
+                  <div
+                    key={t.id}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "20px 44px",
+                      minWidth: 160,
+                    }}
+                  >
+                    {t.children.map((child, idx) => (
+                      <Link
+                        key={child.label}
+                        href={child.href}
+                        style={{
+                          fontSize: 14,
+                          color: isActiveColumn && idx === 0 ? "#FD5108" : isActiveColumn ? "#1A1A2E" : "#888",
+                          fontWeight: isActiveColumn ? 500 : 400,
+                          textDecoration: "none",
+                          transition: "color 0.15s",
+                          whiteSpace: "nowrap",
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#FD5108"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = isActiveColumn && idx === 0 ? "#FD5108" : isActiveColumn ? "#1A1A2E" : "#888"; }}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
-        );
-      })()}
+        </div>
+      )}
     </>
   );
 }
