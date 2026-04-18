@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useFilterStore, AnalysisMode, BSBase } from "@/lib/store/filterStore";
 
 const FS = 14; // 공통 폰트 크기
@@ -106,6 +107,9 @@ function ToggleGroup<T extends string>({ options, value, onChange }: { options: 
 /* ── Main export ── */
 export default function SummaryFilterBar() {
   const { summaryBaseYM, summaryMode, summaryBsBase, setSummaryBaseYM, setSummaryMode, setSummaryBsBase } = useFilterStore();
+  const pathname = usePathname();
+  const isBi = pathname === "/summary-bi";
+  const [budgetOpen, setBudgetOpen] = useState(false);
 
   return (
     <div className="flex items-center gap-4">
@@ -123,6 +127,26 @@ export default function SummaryFilterBar() {
         <span style={{ fontSize: FS, fontWeight: 400, letterSpacing: LS, color: "#A1A8B3", whiteSpace: "nowrap" }}>비교대상</span>
         <ToggleGroup<BSBase> options={["연초", "월초"]} value={summaryBsBase} onChange={setSummaryBsBase} />
       </div>
+      {isBi && (
+        <>
+          <div style={{ width: 1, height: 16, backgroundColor: "#DFE3E6", flexShrink: 0 }} />
+          <button
+            onClick={() => {
+              const ev = new CustomEvent("open-budget-modal");
+              window.dispatchEvent(ev);
+            }}
+            className="flex items-center gap-1.5 shrink-0"
+            style={{
+              fontSize: FS, fontWeight: 500, letterSpacing: LS, color: "#4A5056",
+              background: "none", border: "1px solid #DFE3E6", borderRadius: 6,
+              padding: "4px 12px", cursor: "pointer", whiteSpace: "nowrap",
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
+            예산 설정
+          </button>
+        </>
+      )}
     </div>
   );
 }

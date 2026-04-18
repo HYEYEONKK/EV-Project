@@ -505,6 +505,13 @@ export default function SummaryBiPage() {
     if (panelOpen) { document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }
   }, [panelOpen]);
 
+  // Listen for budget modal open event from TopNav filter bar
+  useEffect(() => {
+    const handler = () => setBudgetModalOpen(true);
+    window.addEventListener("open-budget-modal", handler);
+    return () => window.removeEventListener("open-budget-modal", handler);
+  }, []);
+
   const openPanel = useCallback((kpi: string) => { setPanelKpi(kpi); setPanelOpen(true); }, []);
   const budget = useMemo(() => loadBudget(), [budgetModalOpen]);
   const hasBudget = !!budget && Object.keys(budget).length > 0;
@@ -759,46 +766,6 @@ export default function SummaryBiPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       <BudgetModal open={budgetModalOpen} onClose={() => setBudgetModalOpen(false)} />
-
-      {/* ─── 예산/비교 컨트롤 (우측 정렬) ─── */}
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10 }}>
-        {hasBudget && (
-          <div style={{
-            display: "flex", background: COLOR.surfacePage,
-            borderRadius: 8, padding: 3, gap: 2, border: `1px solid ${COLOR.borderLight}`,
-          }}>
-            {(["py", "budget"] as const).map(mode => (
-              <button
-                key={mode}
-                onClick={() => setCompareMode(mode)}
-                style={{
-                  padding: "5px 14px", borderRadius: 6, fontSize: 12, fontWeight: 600,
-                  border: "none", cursor: "pointer",
-                  background: compareMode === mode ? COLOR.uiOrange : "transparent",
-                  color: compareMode === mode ? "#fff" : COLOR.textSecondary,
-                  transition: "all 0.15s ease",
-                }}
-              >{mode === "py" ? "전기" : "예산"}</button>
-            ))}
-          </div>
-        )}
-        <button
-          onClick={() => setBudgetModalOpen(true)}
-          style={{
-            display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8,
-            fontSize: 12, fontWeight: 600, cursor: "pointer",
-            border: `1px solid ${hasBudget ? COLOR.uiOrange : COLOR.border}`,
-            background: hasBudget ? COLOR.uiOrange : "#fff",
-            color: hasBudget ? "#fff" : COLOR.textSecondary,
-            transition: "all 0.15s ease",
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-          </svg>
-          예산 설정
-        </button>
-      </div>
 
       {/* ═══ HERO KPI 4+4 ═══ */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
