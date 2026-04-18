@@ -630,9 +630,14 @@ export default function SummaryBiPage() {
       }));
   }, [bsDelta]);
 
+  // ─── 당기 연도 필터 (차트용) ───
+  const curYear = dateTo.slice(0, 4);
+  const plCurrent = useMemo(() => pl.filter(m => m.month.startsWith(curYear)), [pl, curYear]);
+  const cccCurrent = useMemo(() => ccc.filter(c => c.month.startsWith(curYear)), [ccc, curYear]);
+
   // ─── Revenue chart data ───
   const revenueChartData = useMemo(() => {
-    return pl.map(m => {
+    return plCurrent.map(m => {
       const priorM = plPrior.find(p => p.month.slice(5) === m.month.slice(5));
       return {
         month: fmtM(m.month),
@@ -641,22 +646,22 @@ export default function SummaryBiPage() {
         "OPM%": m.opm,
       };
     });
-  }, [pl, plPrior]);
+  }, [plCurrent, plPrior]);
 
   // ─── CCC chart data ───
   const cccChartData = useMemo(() =>
-    ccc.map(c => ({
+    cccCurrent.map(c => ({
       month: fmtM(c.month),
       DSO: c.dso,
       DIO: c.dio,
       DPO: -c.dpo,
       CCC: c.ccc,
     }))
-  , [ccc]);
+  , [cccCurrent]);
 
   // ─── Profitability chart data ───
   const profitChartData = useMemo(() => {
-    return pl.map(m => {
+    return plCurrent.map(m => {
       const priorM = plPrior.find(p => p.month.slice(5) === m.month.slice(5));
       return {
         month: fmtM(m.month),
@@ -668,7 +673,7 @@ export default function SummaryBiPage() {
         "순이익률(전기)": priorM?.npm ?? null,
       };
     });
-  }, [pl, plPrior]);
+  }, [plCurrent, plPrior]);
 
   // ─── BS Table rows ───
   const bsTableRows = useMemo(() => {
