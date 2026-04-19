@@ -43,7 +43,7 @@ export default function FaqPage() {
             display: "flex", alignItems: "center", gap: 4, padding: "0 14px", height: 44,
             borderRight: "1px solid #d0d0d0", fontSize: 14, color: "#1A1A2E", whiteSpace: "nowrap",
           }}>
-            제목검색 <ChevronDown size={14} color="#6B7280" />
+            제목검색 <ChevronDown size={14} color="#FD5108" />
           </div>
           <input
             type="text" placeholder="검색어를 입력해주세요" value={searchQuery}
@@ -52,7 +52,7 @@ export default function FaqPage() {
           />
         </div>
         <button style={{
-          width: 44, height: 44, background: "#555", color: "#fff", border: "none",
+          width: 44, height: 44, background: "#FD5108", color: "#fff", border: "none",
           display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
         }}>
           <Search size={18} />
