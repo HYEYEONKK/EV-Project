@@ -206,7 +206,7 @@ export default function LibraryPage() {
 
       {/* ── 카드 리스트 (4열 그리드, 스크롤 영역) ── */}
       <div style={{ flex: 1, overflow: "hidden", padding: 4, minHeight: 0 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gridTemplateRows: "repeat(3, 1fr)", gap: 16, height: "100%" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
           {paged.map((item, idx) => (
             <div
               key={item.title}
@@ -215,9 +215,8 @@ export default function LibraryPage() {
                 background: "#fff",
                 border: "1px solid #E5E7EB",
                 borderRadius: 8,
-                padding: "18px 18px 20px",
-                display: "flex", flexDirection: "column", gap: 6,
-                minHeight: 0,
+                padding: "20px",
+                display: "flex", flexDirection: "column", gap: 8,
                 transition: "box-shadow 0.25s ease",
                 cursor: "pointer",
                 boxShadow: selectedIdx === idx ? "0 0 0 2px #FD5108" : "none",
