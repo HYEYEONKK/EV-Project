@@ -188,7 +188,7 @@ export default function LibraryPage() {
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
           >
-            <span style={{ fontSize: 12, color: "#4A90D9", fontWeight: 500 }}>{COUNTRY_FLAGS[item.country] || ""} {item.country}</span>
+            <span style={{ fontSize: 12, color: "#3A3A3A", fontWeight: 500 }}>{COUNTRY_FLAGS[item.country] || ""} {item.country}</span>
             <strong style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.4 }}>{item.title}</strong>
             <span style={{ fontSize: 13, color: "#9CA3AF" }}>{item.description}</span>
             <a href={item.fileUrl} download style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#FD5108", fontSize: 13, fontWeight: 500, textDecoration: "none", marginTop: 4 }}
