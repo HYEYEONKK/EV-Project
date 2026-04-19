@@ -138,48 +138,56 @@ export default function LibraryPage() {
         </button>
       </p>
 
-      {/* ── 검색 바 ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 32 }}>
-        <div style={{ position: "relative" }}>
+      {/* ── 검색 바 (FAQ와 동일한 톤앤매너) ── */}
+      <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", gap: 0, marginBottom: 32, height: 44, position: "relative" }}>
+        <div style={{
+          display: "flex", alignItems: "center", border: "1px solid #d0d0d0", borderRight: "none",
+          overflow: "visible", width: 500,
+        }}>
           <div
             onClick={() => setShowDropdown(!showDropdown)}
             style={{
-              width: 160, height: 44, display: "flex", alignItems: "center",
-              padding: "0 14px", border: "1px solid #1A1A2E", borderRadius: 0,
-              cursor: "pointer", fontSize: 14, fontWeight: 500, color: "#1A1A2E", background: "#fff",
+              display: "flex", alignItems: "center", gap: 4, padding: "0 14px", height: "100%",
+              borderRight: "1px solid #d0d0d0", fontSize: 14, color: "#1A1A2E", whiteSpace: "nowrap",
+              cursor: "pointer", position: "relative",
             }}
           >
-            <span style={{ flex: 1 }}>{category}</span>
-            <ChevronDown size={16} />
+            {category} <ChevronDown size={14} color="#FD5108" />
+            {showDropdown && (
+              <div style={{ position: "absolute", top: 43, left: -1, width: 160, background: "#fff", border: "1px solid #d0d0d0", zIndex: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+                {CATEGORIES.map((cat) => (
+                  <div
+                    key={cat}
+                    onClick={(e) => { e.stopPropagation(); setCategory(cat); setShowDropdown(false); }}
+                    style={{ padding: "10px 14px", fontSize: 14, cursor: "pointer", color: cat === category ? "#fff" : "#1A1A2E", background: cat === category ? "#FD5108" : "transparent" }}
+                    onMouseEnter={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "#F3F4F6"; }}
+                    onMouseLeave={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  >
+                    {cat}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          {showDropdown && (
-            <div style={{ position: "absolute", top: 44, left: 0, width: 160, background: "#fff", border: "1px solid #d0d0d0", zIndex: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
-              {CATEGORIES.map((cat) => (
-                <div
-                  key={cat}
-                  onClick={() => { setCategory(cat); setShowDropdown(false); }}
-                  style={{ padding: "10px 14px", fontSize: 14, cursor: "pointer", color: cat === category ? "#fff" : "#1A1A2E", background: cat === category ? "#4A90D9" : "transparent" }}
-                  onMouseEnter={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "#F3F4F6"; }}
-                  onMouseLeave={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-                >
-                  {cat}
-                </div>
-              ))}
-            </div>
-          )}
+          <input
+            type="text" placeholder="검색어를 입력해주세요" value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ flex: 1, height: "100%", padding: "0 14px", border: "none", fontSize: 14, outline: "none", color: "#1A1A2E" }}
+          />
         </div>
-        <input
-          type="text" placeholder="검색어를 입력하세요" value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ flex: 1, height: 44, padding: "0 14px", border: "1px solid #d0d0d0", borderRadius: 0, fontSize: 14, outline: "none", color: "#1A1A2E" }}
-        />
-        <button
-          style={{ height: 44, padding: "0 24px", background: "#FD5108", color: "#fff", border: "none", borderRadius: 0, fontSize: 14, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
-        >
-          <Search size={16} />
-          검색
+        <button style={{
+          width: 44, height: "100%", background: "#FD5108", color: "#fff", border: "none",
+          display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
+        }}>
+          <Search size={18} />
         </button>
       </div>
+
+      {/* ── 총 건수 + 상단 라인 ── */}
+      <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 8 }}>
+        총 <span style={{ color: "#FD5108", fontWeight: 600 }}>{filtered.length}</span>건
+      </div>
+      <div style={{ borderTop: "2px solid #1A1A2E", marginBottom: 0 }} />
 
       {/* ── 카드 리스트 ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
