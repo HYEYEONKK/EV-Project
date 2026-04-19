@@ -122,7 +122,7 @@ export default function LibraryPage() {
   };
 
   return (
-    <section style={{ padding: "42px 32px 32px", display: "flex", flexDirection: "column", width: "100%", minHeight: "calc(100vh - 56px)" }}>
+    <section style={{ padding: "42px 32px 0", display: "flex", flexDirection: "column", width: "100%", height: "calc(100vh - 56px)", overflow: "hidden" }}>
       {/* ── 제목 + 데이터 문의 버튼 ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1A1A2E", margin: 0 }}>자료실</h1>
@@ -204,8 +204,8 @@ export default function LibraryPage() {
       </div>
       <div style={{ borderTop: "2px solid #1A1A2E", marginBottom: 24, flexShrink: 0 }} />
 
-      {/* ── 카드 리스트 (3열 그리드) ── */}
-      <div style={{ padding: 4 }}>
+      {/* ── 카드 리스트 (4열 그리드, 스크롤 영역) ── */}
+      <div style={{ flex: 1, overflowY: "auto", padding: 4, minHeight: 0 }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
           {paged.map((item, idx) => (
             <div
