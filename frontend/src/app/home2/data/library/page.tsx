@@ -122,11 +122,10 @@ export default function LibraryPage() {
   };
 
   return (
-    <section style={{ padding: "42px 32px", display: "flex", flexDirection: "column", gap: 0, width: "100%" }}>
-      {/* ── 제목 ── */}
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1A1A2E", margin: 0, marginBottom: 12 }}>자료실</h1>
-      <p style={{ fontSize: 15, color: "#6B7280", margin: 0, marginBottom: 32, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span>필요한 데이터가 보이지 않는다면 언제든 문의해 주세요</span>
+    <section style={{ padding: "42px 32px", display: "flex", flexDirection: "column", width: "100%", height: "calc(100vh - 56px)", overflow: "hidden" }}>
+      {/* ── 제목 + 데이터 문의 버튼 ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1A1A2E", margin: 0 }}>자료실</h1>
         <button
           onClick={() => setShowInquiry(true)}
           style={{
@@ -140,6 +139,9 @@ export default function LibraryPage() {
         >
           데이터 문의
         </button>
+      </div>
+      <p style={{ fontSize: 15, color: "#6B7280", margin: 0, marginBottom: 28 }}>
+        필요한 데이터가 보이지 않는다면 언제든 문의해 주세요
       </p>
 
       {/* ── 검색 바 (FAQ와 동일한 톤앤매너) ── */}
@@ -191,10 +193,10 @@ export default function LibraryPage() {
       <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 8 }}>
         총 <span style={{ color: "#FD5108", fontWeight: 600 }}>{filtered.length}</span>건
       </div>
-      <div style={{ borderTop: "2px solid #1A1A2E", marginBottom: 0 }} />
+      <div style={{ borderTop: "2px solid #1A1A2E", marginBottom: 20 }} />
 
       {/* ── 카드 리스트 ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20, flex: 1, overflowY: "auto", paddingBottom: 16 }}>
         {paged.map((item, idx) => (
           <div
             key={idx}
@@ -230,9 +232,9 @@ export default function LibraryPage() {
         <div style={{ textAlign: "center", padding: "60px 0", color: "#9CA3AF", fontSize: 15 }}>검색 결과가 없습니다.</div>
       )}
 
-      {/* ── 페이지네이션 ── */}
+      {/* ── 페이지네이션 (하단 고정) ── */}
       {totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, marginTop: 32 }}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, paddingTop: 20, flexShrink: 0 }}>
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
