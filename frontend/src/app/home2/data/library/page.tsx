@@ -215,7 +215,7 @@ export default function LibraryPage() {
                 background: "#fff",
                 border: "1px solid #E5E7EB",
                 borderRadius: 8,
-                padding: "16px 18px",
+                padding: "18px 18px 20px",
                 display: "flex", flexDirection: "column", gap: 6,
                 minHeight: 0,
                 transition: "box-shadow 0.25s ease",
