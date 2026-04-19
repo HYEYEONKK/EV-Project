@@ -196,8 +196,8 @@ export default function LibraryPage() {
               transition: "box-shadow 0.15s, border 0.15s",
               cursor: "pointer",
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)"; (e.currentTarget as HTMLElement).style.border = "2px solid #FD5108"; (e.currentTarget as HTMLElement).style.padding = "23px 19px"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; if (selectedIdx !== idx) { (e.currentTarget as HTMLElement).style.border = "1px solid #E5E7EB"; (e.currentTarget as HTMLElement).style.padding = "24px 20px"; } }}
           >
             <span style={{ fontSize: 12, color: "#3A3A3A", fontWeight: 500 }}>{COUNTRY_FLAGS[item.country] || ""} {item.country}</span>
             <strong style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.4 }}>{item.title}</strong>
