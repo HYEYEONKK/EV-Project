@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 
-from routers import bi, upload, auth
+from routers import bi, upload, auth, inquiry
 
 BASE_DIR     = Path(__file__).parent          # EV 시스템/backend
 FRONTEND_DIR = BASE_DIR.parent / "frontend"   # EV 시스템/frontend
@@ -37,6 +37,7 @@ app.mount("/Frame",     StaticFiles(directory=str(FRAME_DIR)),                  
 app.include_router(bi.router,     prefix="/api/bi",   tags=["BI Analysis"])
 app.include_router(upload.router, prefix="/api",     tags=["Upload"])
 app.include_router(auth.router,   prefix="/api/auth", tags=["Auth"])
+app.include_router(inquiry.router, prefix="/api/inquiry", tags=["Inquiry"])
 
 # ── HTML Pages ────────────────────────────────────────────────────────────────
 @app.get("/", include_in_schema=False)
