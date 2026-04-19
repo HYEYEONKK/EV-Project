@@ -62,6 +62,7 @@ export default function TopNav2() {
           height: 56,
           background: "#fff",
           borderBottom: "1px solid #e0e0e0",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
           padding: "0 24px",
           display: "flex",
           alignItems: "center",
@@ -90,6 +91,10 @@ export default function TopNav2() {
         {/* ── Center-Right: Section tabs ── */}
         {TABS.map((tab) => {
           const isHovered = hoveredTab === tab.id;
+          const active = tab.id === "data"
+            ? false
+            : pathname === tab.href || pathname.startsWith(tab.href + "/");
+          const highlight = isHovered || active;
           return (
             <div
               key={tab.id}
@@ -106,15 +111,15 @@ export default function TopNav2() {
                   height: "100%",
                   padding: "0 44px",
                   fontSize: 15,
-                  fontWeight: isHovered ? 600 : 400,
-                  color: isHovered ? "#FD5108" : "#6B7280",
+                  fontWeight: 600,
+                  color: highlight ? "#FD5108" : "#1A1A2E",
                   textDecoration: "none",
-                  transition: "color 0.15s, font-weight 0.15s",
+                  transition: "color 0.15s",
                   letterSpacing: "-0.2px",
                 }}
               >
                 <span style={{
-                  borderBottom: isHovered ? "2px solid #FD5108" : "2px solid transparent",
+                  borderBottom: highlight ? "2px solid #FD5108" : "2px solid transparent",
                   paddingBottom: 4,
                   transition: "border-color 0.15s",
                 }}>
