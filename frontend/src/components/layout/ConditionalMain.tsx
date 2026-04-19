@@ -6,10 +6,21 @@ const AUTH_PATHS = ["/login", "/signup", "/input", "/output"];
 export default function ConditionalMain({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAuth = pathname === "/" || AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  const isHome2 = pathname === "/home2" || pathname.startsWith("/home2/");
 
   if (isAuth) {
-    // 인증 페이지: padding 없는 full-screen (페이지가 직접 fixed layout 사용)
     return <>{children}</>;
+  }
+
+  if (isHome2) {
+    return (
+      <main
+        className="min-h-screen"
+        style={{ paddingTop: 56, backgroundColor: "#fff" }}
+      >
+        {children}
+      </main>
+    );
   }
 
   return (
