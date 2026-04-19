@@ -1,7 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Upload, Folder, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Upload, Folder, HelpCircle, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useState } from "react";
 
 const MENU_ITEMS = [
@@ -89,7 +89,7 @@ export default function Sidebar2() {
           onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "#FD5108"; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "#6B7280"; }}
         >
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          {collapsed ? <ChevronsRight size={20} /> : <ChevronsLeft size={20} />}
         </button>
       </div>
     </aside>
