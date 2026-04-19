@@ -13,34 +13,34 @@ interface LibraryItem {
 
 const ITEMS: LibraryItem[] = [
   // 한국
-  { country: "한국", title: "SAP 데이터요청서 v2", description: "ERP 데이터 요청서 (SAP)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View] 데이터요청서(SAP)_v2.pdf", date: "2026.04.19" },
-  { country: "한국", title: "SAP B1 데이터요청서", description: "ERP 데이터 요청서 (SAP Business One)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View] 데이터요청서(SAP_B1).pdf", date: "2026.04.19" },
-  { country: "한국", title: "SAP HANA 데이터요청서 v2", description: "ERP 데이터 요청서 (SAP HANA)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View] 데이터요청서(SAP_HANA)_v2.pdf", date: "2026.04.19" },
-  { country: "한국", title: "UNIERP 데이터요청서", description: "ERP 데이터 요청서 (UNIERP)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View] 데이터요청서(UNIERP).pdf", date: "2026.04.19" },
-  { country: "한국", title: "영림원 데이터요청서", description: "ERP 데이터 요청서 (영림원)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View] 데이터요청서(영림원).pdf", date: "2026.04.19" },
-  { country: "한국", title: "SmartA 데이터 내리기", description: "더존 SmartA 데이터 추출 가이드", fileUrl: "/downloads/erp/한국/SmartA 데이터 내리기.pdf", date: "2026.04.19" },
+  { country: "한국", title: "SAP v2", description: "ERP 다운로드 상세설명(SAP)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View](SAP)_v2.pdf", date: "2026.04.19" },
+  { country: "한국", title: "SAP B1", description: "ERP 다운로드 상세설명(SAP Business One)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View](SAP_B1).pdf", date: "2026.04.19" },
+  { country: "한국", title: "SAP HANA v2", description: "ERP 다운로드 상세설명(SAP HANA)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View](SAP_HANA)_v2.pdf", date: "2026.04.19" },
+  { country: "한국", title: "UNIERP", description: "ERP 다운로드 상세설명(UNIERP)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View](UNIERP).pdf", date: "2026.04.19" },
+  { country: "한국", title: "영림원", description: "ERP 다운로드 상세설명(영림원)", fileUrl: "/downloads/erp/한국/[Worldwide Easy View](영림원).pdf", date: "2026.04.19" },
+  { country: "한국", title: "SmartA", description: "더존 SmartA 데이터 추출 가이드", fileUrl: "/downloads/erp/한국/SmartA 데이터 내리기.pdf", date: "2026.04.19" },
   // 중국
-  { country: "중국", title: "Inspur(浪潮) 데이터요청서", description: "ERP 데이터 요청서 (浪潮 Inspur)", fileUrl: "/downloads/erp/중국/[Worldwide Easy View] 데이터요청서(浪潮 Inspur).pdf", date: "2026.04.19" },
-  { country: "중국", title: "Kingdee(金蝶) 데이터요청서", description: "ERP 데이터 요청서 (金蝶 Kingdee)", fileUrl: "/downloads/erp/중국/[Worldwide Easy View] 데이터요청서(金蝶 Kingdee).pdf", date: "2026.04.19" },
-  { country: "중국", title: "Yongyou(用友) 데이터요청서", description: "ERP 데이터 요청서 (用友 Yongyou) (ENG)", fileUrl: "/downloads/erp/중국/데이터요청서 - 用友 Yongyou) (ENG).pdf", date: "2026.04.19" },
+  { country: "중국", title: "Inspur(浪潮)", description: "ERP 다운로드 상세설명(浪潮 Inspur)", fileUrl: "/downloads/erp/중국/[Worldwide Easy View](浪潮 Inspur).pdf", date: "2026.04.19" },
+  { country: "중국", title: "Kingdee(金蝶)", description: "ERP 다운로드 상세설명(金蝶 Kingdee)", fileUrl: "/downloads/erp/중국/[Worldwide Easy View](金蝶 Kingdee).pdf", date: "2026.04.19" },
+  { country: "중국", title: "Yongyou(用友)", description: "ERP 다운로드 상세설명 (用友 Yongyou) (ENG)", fileUrl: "/downloads/erp/중국/데이터요청서 - 用友 Yongyou) (ENG).pdf", date: "2026.04.19" },
   // 베트남
-  { country: "베트남", title: "Bravo 데이터요청서", description: "ERP 데이터 요청서 (Bravo)", fileUrl: "/downloads/erp/베트남/[Worldwide Easy View] 데이터요청서(Bravo).pdf", date: "2026.04.19" },
-  { country: "베트남", title: "FAO 데이터요청서", description: "ERP 데이터 요청서 (FAO)", fileUrl: "/downloads/erp/베트남/[Worldwide Easy View] 데이터요청서(FAO).pdf", date: "2026.04.19" },
-  { country: "베트남", title: "MISA 데이터요청서", description: "ERP 데이터 요청서 (MISA)", fileUrl: "/downloads/erp/베트남/[Worldwide Easy View] 데이터요청서(MISA).pdf", date: "2026.04.19" },
+  { country: "베트남", title: "Bravo", description: "ERP 다운로드 상세설명(Bravo)", fileUrl: "/downloads/erp/베트남/[Worldwide Easy View](Bravo).pdf", date: "2026.04.19" },
+  { country: "베트남", title: "FAO", description: "ERP 다운로드 상세설명(FAO)", fileUrl: "/downloads/erp/베트남/[Worldwide Easy View](FAO).pdf", date: "2026.04.19" },
+  { country: "베트남", title: "MISA", description: "ERP 다운로드 상세설명(MISA)", fileUrl: "/downloads/erp/베트남/[Worldwide Easy View](MISA).pdf", date: "2026.04.19" },
   // 미국
-  { country: "미국", title: "QuickBooks 데이터요청서", description: "ERP 데이터 요청서 (QuickBooks)", fileUrl: "/downloads/erp/미국/[Worldwide Easy View] 데이터요청서(QuickBooks).pdf", date: "2026.04.19" },
+  { country: "미국", title: "QuickBooks", description: "ERP 다운로드 상세설명(QuickBooks)", fileUrl: "/downloads/erp/미국/[Worldwide Easy View](QuickBooks).pdf", date: "2026.04.19" },
   // 일본
-  { country: "일본", title: "Oracle 데이터요청서", description: "ERP 데이터 요청서 (Oracle)", fileUrl: "/downloads/erp/일본/[Worldwide Easy View] 데이터요청서(Oracle).pdf", date: "2026.04.19" },
-  { country: "일본", title: "Yayoi(弥生会計) 데이터요청서", description: "ERP 데이터 요청서 (弥生会計 Yayoi)", fileUrl: "/downloads/erp/일본/[Worldwide Easy View] 데이터요청서(弥生会計 Yayoi).pdf", date: "2026.04.19" },
+  { country: "일본", title: "Oracle", description: "ERP 다운로드 상세설명(Oracle)", fileUrl: "/downloads/erp/일본/[Worldwide Easy View](Oracle).pdf", date: "2026.04.19" },
+  { country: "일본", title: "Yayoi(弥生会計)", description: "ERP 다운로드 상세설명(弥生会計 Yayoi)", fileUrl: "/downloads/erp/일본/[Worldwide Easy View](弥生会計 Yayoi).pdf", date: "2026.04.19" },
   // 기타
-  { country: "독일", title: "DATEV 데이터요청서", description: "ERP 데이터 요청서 (DATEV)", fileUrl: "/downloads/erp/독일/[Worldwide Easy View] 데이터요청서(DATEV).pdf", date: "2026.04.19" },
-  { country: "러시아", title: "1C 데이터요청서", description: "ERP 데이터 요청서 (1C)", fileUrl: "/downloads/erp/러시아/[Worldwide Easy View] 데이터요청서(1C).pdf", date: "2026.04.19" },
-  { country: "말레이시아", title: "OBM Enterprise 데이터요청서", description: "ERP 데이터 요청서 (OBM Enterprise)", fileUrl: "/downloads/erp/말레이시아/[Worldwide Easy View] 데이터요청서(OBM Enterprise).pdf", date: "2026.04.19" },
-  { country: "멕시코", title: "CONTPAQi 데이터요청서", description: "ERP 데이터 요청서 (CONTPAQi)", fileUrl: "/downloads/erp/멕시코/[Worldwide Easy View] 데이터요청서(CONTPAQi).pdf", date: "2026.04.19" },
-  { country: "멕시코", title: "QAD 데이터요청서", description: "ERP 데이터 요청서 (QAD)", fileUrl: "/downloads/erp/멕시코/[Worldwide Easy View] 데이터요청서(QAD).pdf", date: "2026.04.19" },
-  { country: "유럽", title: "MS Dynamics 365 데이터요청서", description: "ERP 데이터 요청서 (MS Dynamics 365 Business Central)", fileUrl: "/downloads/erp/유럽/[Worldwide Easy View] 데이터요청서(MS Dynamics 365 Business Central).pdf", date: "2026.04.19" },
-  { country: "인도", title: "Tally 데이터요청서", description: "ERP 데이터 요청서 (Tally)", fileUrl: "/downloads/erp/인도/[Worldwide Easy View] 데이터요청서(Tally)_KO.pdf", date: "2026.04.19" },
-  { country: "프랑스", title: "SAGE 데이터요청서", description: "ERP 데이터 요청서 (SAGE)", fileUrl: "/downloads/erp/프랑스/[Worldwide Easy View] 데이터요청서(SAGE).pdf", date: "2026.04.19" },
+  { country: "독일", title: "DATEV", description: "ERP 다운로드 상세설명(DATEV)", fileUrl: "/downloads/erp/독일/[Worldwide Easy View](DATEV).pdf", date: "2026.04.19" },
+  { country: "러시아", title: "1C", description: "ERP 다운로드 상세설명(1C)", fileUrl: "/downloads/erp/러시아/[Worldwide Easy View](1C).pdf", date: "2026.04.19" },
+  { country: "말레이시아", title: "OBM Enterprise", description: "ERP 다운로드 상세설명(OBM Enterprise)", fileUrl: "/downloads/erp/말레이시아/[Worldwide Easy View](OBM Enterprise).pdf", date: "2026.04.19" },
+  { country: "멕시코", title: "CONTPAQi", description: "ERP 다운로드 상세설명(CONTPAQi)", fileUrl: "/downloads/erp/멕시코/[Worldwide Easy View](CONTPAQi).pdf", date: "2026.04.19" },
+  { country: "멕시코", title: "QAD", description: "ERP 다운로드 상세설명(QAD)", fileUrl: "/downloads/erp/멕시코/[Worldwide Easy View](QAD).pdf", date: "2026.04.19" },
+  { country: "유럽", title: "MS Dynamics 365", description: "ERP 다운로드 상세설명(MS Dynamics 365 Business Central)", fileUrl: "/downloads/erp/유럽/[Worldwide Easy View](MS Dynamics 365 Business Central).pdf", date: "2026.04.19" },
+  { country: "인도", title: "Tally", description: "ERP 다운로드 상세설명(Tally)", fileUrl: "/downloads/erp/인도/[Worldwide Easy View](Tally)_KO.pdf", date: "2026.04.19" },
+  { country: "프랑스", title: "SAGE", description: "ERP 다운로드 상세설명(SAGE)", fileUrl: "/downloads/erp/프랑스/[Worldwide Easy View](SAGE).pdf", date: "2026.04.19" },
 ];
 
 const MAIN_COUNTRIES = ["한국", "중국", "베트남", "미국", "일본"];
