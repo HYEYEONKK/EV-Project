@@ -228,7 +228,7 @@ export default function LibraryPage() {
               <span style={{ fontSize: 12, color: "#6B7280", fontWeight: 500 }}>{COUNTRY_FLAGS[item.country] || ""} {item.country}</span>
               <strong style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.4 }}>{item.title}</strong>
               <span style={{ fontSize: 13, color: "#9CA3AF" }}>{item.description}</span>
-              <a href={item.fileUrl} download onClick={(e) => e.stopPropagation()} style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#FD5108", fontSize: 13, fontWeight: 500, textDecoration: "none", marginTop: "auto" }}
+              <a href={item.fileUrl} download onClick={(e) => e.stopPropagation()} style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#FD5108", fontSize: 13, fontWeight: 500, textDecoration: "none", marginTop: 4 }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "underline"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "none"; }}
               >
