@@ -85,6 +85,10 @@ export default function LibraryPage() {
   });
 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const updateForm = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -158,7 +162,7 @@ export default function LibraryPage() {
                 {CATEGORIES.map((cat) => (
                   <div
                     key={cat}
-                    onClick={(e) => { e.stopPropagation(); setCategory(cat); setShowDropdown(false); }}
+                    onClick={(e) => { e.stopPropagation(); setCategory(cat); setShowDropdown(false); setPage(1); }}
                     style={{ padding: "10px 14px", fontSize: 14, cursor: "pointer", color: cat === category ? "#fff" : "#1A1A2E", background: cat === category ? "#FD5108" : "transparent" }}
                     onMouseEnter={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "#F3F4F6"; }}
                     onMouseLeave={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
@@ -171,7 +175,7 @@ export default function LibraryPage() {
           </div>
           <input
             type="text" placeholder="검색어를 입력해주세요" value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
             style={{ flex: 1, height: "100%", padding: "0 14px", border: "none", fontSize: 14, outline: "none", color: "#1A1A2E" }}
           />
         </div>
@@ -191,7 +195,7 @@ export default function LibraryPage() {
 
       {/* ── 카드 리스트 ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
-        {filtered.map((item, idx) => (
+        {paged.map((item, idx) => (
           <div
             key={idx}
             onClick={() => setSelectedIdx(selectedIdx === idx ? null : idx)}
@@ -224,6 +228,40 @@ export default function LibraryPage() {
 
       {filtered.length === 0 && (
         <div style={{ textAlign: "center", padding: "60px 0", color: "#9CA3AF", fontSize: 15 }}>검색 결과가 없습니다.</div>
+      )}
+
+      {/* ── 페이지네이션 ── */}
+      {totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, marginTop: 32 }}>
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            style={{ ...pgBtn, opacity: page === 1 ? 0.3 : 1, cursor: page === 1 ? "not-allowed" : "pointer" }}
+          >
+            &lt;&lt;
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              style={{
+                ...pgBtn,
+                background: p === page ? "#FD5108" : "none",
+                color: p === page ? "#fff" : "#1A1A2E",
+                fontWeight: p === page ? 700 : 400,
+              }}
+            >
+              {p}
+            </button>
+          ))}
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage(page + 1)}
+            style={{ ...pgBtn, opacity: page === totalPages ? 0.3 : 1, cursor: page === totalPages ? "not-allowed" : "pointer" }}
+          >
+            &gt;&gt;
+          </button>
+        </div>
       )}
 
       {/* ── 문의 팝업 ── */}
@@ -299,6 +337,12 @@ function FormField({ label, required, children }: { label: string; required?: bo
 }
 
 /* ── 입력 스타일 ── */
+const pgBtn: React.CSSProperties = {
+  width: 36, height: 36, borderRadius: 6, border: "none",
+  display: "flex", alignItems: "center", justifyContent: "center",
+  fontSize: 14, cursor: "pointer", background: "none", color: "#1A1A2E",
+};
+
 const inputStyle: React.CSSProperties = {
   width: "100%", height: 40, padding: "0 12px",
   border: "1px solid #E5E7EB", borderRadius: 4,
