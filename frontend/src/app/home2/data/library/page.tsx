@@ -46,6 +46,21 @@ const ITEMS: LibraryItem[] = [
 const MAIN_COUNTRIES = ["한국", "중국", "베트남", "미국", "일본"];
 const CATEGORIES = ["전체", ...MAIN_COUNTRIES, "기타"];
 
+const COUNTRY_FLAGS: Record<string, string> = {
+  "한국": "🇰🇷",
+  "중국": "🇨🇳",
+  "베트남": "🇻🇳",
+  "미국": "🇺🇸",
+  "일본": "🇯🇵",
+  "독일": "🇩🇪",
+  "러시아": "🇷🇺",
+  "말레이시아": "🇲🇾",
+  "멕시코": "🇲🇽",
+  "유럽": "🇪🇺",
+  "인도": "🇮🇳",
+  "프랑스": "🇫🇷",
+};
+
 function getFilterCountry(item: LibraryItem): string {
   return MAIN_COUNTRIES.includes(item.country) ? item.country : "기타";
 }
@@ -174,7 +189,7 @@ export default function LibraryPage() {
           >
             {/* 국가 태그 */}
             <span style={{ fontSize: 12, color: "#4A90D9", fontWeight: 500 }}>
-              국가 {item.country}
+              {COUNTRY_FLAGS[item.country] || ""} {item.country}
             </span>
 
             {/* 제목 */}
