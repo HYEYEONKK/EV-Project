@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { api } from "@/lib/api/client";
@@ -37,7 +37,6 @@ function DonutGauge({ value, color, size = 72 }: { value: number; color: string;
   }, []);
 
   const uid = `donut-${color.replace("#", "")}-${size}`;
-  const glowId = `glow-${uid}`;
 
   return (
     <svg
@@ -176,10 +175,9 @@ function KpiChartCell({
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
-                <XAxis dataKey="monthLabel" tick={{ ...AXIS_STYLE, fontSize: 10 }} tickLine={false} axisLine={false}
+                <XAxis dataKey="monthLabel" tickLine={false} axisLine={false}
                   interval={0}
-                  tick={({ x, y, payload, index }: any) => {
-                    // 분기(3, 6, 9, 12월)만 표시
+                  tick={({ x, y, payload }: any) => {
                     const mo = String(payload.value ?? "").split(".")[1];
                     if (!["03","06","09","12"].includes(mo)) return <g />;
                     return <text x={x} y={y + 10} textAnchor="middle" fill="#A1A8B3" fontSize={10}>{payload.value}</text>;
@@ -353,7 +351,7 @@ function PlBridgeChart({ waterfallData }: { waterfallData: any[] }) {
   );
 }
 
-// ─── 손익 Waterfall Bridge 차트 ────────────────────────────
+// ─── 손익 Waterfall Bridge 차트 (월별 비교) ─────────────────
 const WATERFALL_CATEGORIES = [
   { key: "매출액",   sign: +1 },
   { key: "매출원가", sign: -1 },
@@ -365,35 +363,32 @@ const WATERFALL_CATEGORIES = [
 ] as const;
 
 const WF_COLORS = {
-  increase: "#D04A02",  // PwC 오렌지 (증가)
-  decrease: "#295477",  // 파란 (감소)
-  total:    "#EB8C00",  // 골드 (합계)
+  increase: "#D04A02",
+  decrease: "#295477",
+  total:    "#EB8C00",
 };
 
 function formatMonthLabel(month: string) {
+  if (!month || !month.includes("-")) return month ?? "";
   const [y, m] = month.split("-");
   return `${y}년 ${m}월`;
 }
 
 function PlWaterfallBridgeChart({ bridgeData }: { bridgeData: any[] }) {
-  const availableMonths = bridgeData.map((d: any) => d.month).sort();
+  const availableMonths = (bridgeData ?? []).map((d: any) => d.month).filter(Boolean).sort();
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 초기 선택: 마지막 2개월
   useEffect(() => {
     if (selectedMonths.length === 0 && availableMonths.length >= 2) {
       setSelectedMonths(availableMonths.slice(-2));
     }
   }, [availableMonths.length]);
 
-  // 드롭다운 외부 클릭 닫기
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -401,20 +396,14 @@ function PlWaterfallBridgeChart({ bridgeData }: { bridgeData: any[] }) {
 
   const toggleMonth = (month: string) => {
     setSelectedMonths(prev =>
-      prev.includes(month)
-        ? prev.filter(m => m !== month)
-        : [...prev, month].sort()
+      prev.includes(month) ? prev.filter(m => m !== month) : [...prev, month].sort()
     );
   };
 
-  // 워터폴 데이터 생성
-  const monthMap = new Map(bridgeData.map((d: any) => [d.month, d]));
+  const monthMap = new Map((bridgeData ?? []).map((d: any) => [d.month, d]));
   const sorted = [...selectedMonths].sort();
 
-  const chartData: {
-    name: string; base: number; value: number;
-    type: "total" | "increase" | "decrease"; displayValue: number;
-  }[] = [];
+  const chartData: { name: string; base: number; value: number; type: string; displayValue: number }[] = [];
 
   if (sorted.length >= 2) {
     for (let i = 0; i < sorted.length - 1; i++) {
@@ -425,45 +414,28 @@ function PlWaterfallBridgeChart({ bridgeData }: { bridgeData: any[] }) {
       const netA = a.net_income ?? 0;
       const netB = b.net_income ?? 0;
 
-      // 시작 합계 (첫 번째 쌍만)
       if (i === 0) {
-        chartData.push({
-          name: formatMonthLabel(sorted[i]),
-          base: 0, value: netA, type: "total", displayValue: netA,
-        });
+        chartData.push({ name: formatMonthLabel(sorted[i]), base: 0, value: netA, type: "total", displayValue: netA });
       }
 
-      // 각 카테고리 델타
       let running = i === 0 ? netA : (chartData[chartData.length - 1].base + chartData[chartData.length - 1].value);
 
       for (const cat of WATERFALL_CATEGORIES) {
         const valA = a[cat.key] ?? 0;
         const valB = b[cat.key] ?? 0;
-        // sign: +1이면 증가가 긍정적, -1이면 증가가 부정적
         const delta = cat.sign * (valB - valA);
-
-        if (Math.abs(delta) < 1) continue; // 변동 없으면 생략
+        if (Math.abs(delta) < 1) continue;
 
         if (delta >= 0) {
-          chartData.push({
-            name: cat.key, base: running, value: delta,
-            type: "increase", displayValue: delta,
-          });
+          chartData.push({ name: cat.key, base: running, value: delta, type: "increase", displayValue: delta });
           running += delta;
         } else {
           running += delta;
-          chartData.push({
-            name: cat.key, base: running, value: Math.abs(delta),
-            type: "decrease", displayValue: delta,
-          });
+          chartData.push({ name: cat.key, base: running, value: Math.abs(delta), type: "decrease", displayValue: delta });
         }
       }
 
-      // 끝 합계
-      chartData.push({
-        name: formatMonthLabel(sorted[i + 1]),
-        base: 0, value: netB, type: "total", displayValue: netB,
-      });
+      chartData.push({ name: formatMonthLabel(sorted[i + 1]), base: 0, value: netB, type: "total", displayValue: netB });
     }
   }
 
@@ -472,80 +444,39 @@ function PlWaterfallBridgeChart({ bridgeData }: { bridgeData: any[] }) {
   return (
     <div
       className="bg-white rounded-lg border overflow-hidden"
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
         borderColor: hov ? "rgba(253,81,8,0.25)" : "#DFE3E6",
-        boxShadow: hov
-          ? "0 8px 28px rgba(253,81,8,0.11), 0 2px 8px rgba(0,0,0,0.06)"
-          : "var(--shadow-card)",
+        boxShadow: hov ? "0 8px 28px rgba(253,81,8,0.11), 0 2px 8px rgba(0,0,0,0.06)" : "var(--shadow-card)",
         transform: hov ? "translateY(-3px)" : "translateY(0)",
         transition: "box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease",
       }}>
-
-      {/* 헤더 + 드롭다운 */}
-      <div className="px-5 py-3 border-b flex items-center justify-between"
-        style={{ borderColor: "#EEEFF1" }}>
+      <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 16, fontWeight: 600, color: "#D04A02" }}>손익 Waterfall</span>
-          {/* 범례 */}
           <div style={{ display: "flex", gap: 12, fontSize: 13, color: "#A1A8B3" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: WF_COLORS.increase, display: "inline-block" }} />증가
-            </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: WF_COLORS.decrease, display: "inline-block" }} />감소
-            </span>
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: WF_COLORS.total, display: "inline-block" }} />합계
-            </span>
+            {[{ l: "증가", c: WF_COLORS.increase }, { l: "감소", c: WF_COLORS.decrease }, { l: "합계", c: WF_COLORS.total }].map(x => (
+              <span key={x.l} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: x.c, display: "inline-block" }} />{x.l}
+              </span>
+            ))}
           </div>
         </div>
-
-        {/* CTRL 안내 + 드롭다운 */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 12, color: "#A1A8B3" }}>
-            CTRL을 누르고 클릭 시<br />다중 필터 적용이 가능합니다.
-          </span>
+          <span style={{ fontSize: 12, color: "#A1A8B3" }}>CTRL을 누르고 클릭 시<br />다중 필터 적용이 가능합니다.</span>
           <div ref={dropdownRef} style={{ position: "relative" }}>
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              style={{
-                padding: "6px 14px", border: "1px solid #DFE3E6", borderRadius: 6,
-                backgroundColor: "#fff", cursor: "pointer", fontSize: 13, color: "#374151",
-                display: "flex", alignItems: "center", gap: 6, minWidth: 160,
-              }}>
-              <span>
-                {selectedMonths.length === 0
-                  ? "여러 선택 항목"
-                  : `${selectedMonths.length}개월 선택됨`}
-              </span>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}>
-                <path d="M3 5L6 8L9 5" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
+            <button onClick={() => setDropdownOpen(!dropdownOpen)}
+              style={{ padding: "6px 14px", border: "1px solid #DFE3E6", borderRadius: 6, backgroundColor: "#fff", cursor: "pointer", fontSize: 13, color: "#374151", display: "flex", alignItems: "center", gap: 6, minWidth: 160 }}>
+              <span>{selectedMonths.length === 0 ? "여러 선택 항목" : `${selectedMonths.length}개월 선택됨`}</span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5L6 8L9 5" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" /></svg>
             </button>
             {dropdownOpen && (
-              <div style={{
-                position: "absolute", top: "100%", right: 0, marginTop: 4,
-                backgroundColor: "#fff", border: "1px solid #DFE3E6", borderRadius: 8,
-                boxShadow: "0 8px 24px rgba(0,0,0,0.12)", zIndex: 50, minWidth: 180,
-                maxHeight: 280, overflowY: "auto",
-              }}>
+              <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, backgroundColor: "#fff", border: "1px solid #DFE3E6", borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", zIndex: 50, minWidth: 180, maxHeight: 280, overflowY: "auto" }}>
                 {availableMonths.map(month => (
-                  <label key={month} style={{
-                    display: "flex", alignItems: "center", gap: 8, padding: "8px 14px",
-                    cursor: "pointer", fontSize: 13, color: "#374151",
-                    backgroundColor: selectedMonths.includes(month) ? "#FFF5ED" : "transparent",
-                  }}
+                  <label key={month} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", cursor: "pointer", fontSize: 13, color: "#374151", backgroundColor: selectedMonths.includes(month) ? "#FFF5ED" : "transparent" }}
                     onMouseEnter={e => (e.currentTarget.style.backgroundColor = selectedMonths.includes(month) ? "#FFE8D4" : "#F5F7F8")}
-                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = selectedMonths.includes(month) ? "#FFF5ED" : "transparent")}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedMonths.includes(month)}
-                      onChange={() => toggleMonth(month)}
-                      style={{ accentColor: "#D04A02" }}
-                    />
+                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = selectedMonths.includes(month) ? "#FFF5ED" : "transparent")}>
+                    <input type="checkbox" checked={selectedMonths.includes(month)} onChange={() => toggleMonth(month)} style={{ accentColor: "#D04A02" }} />
                     {formatMonthLabel(month)}
                   </label>
                 ))}
@@ -554,63 +485,30 @@ function PlWaterfallBridgeChart({ bridgeData }: { bridgeData: any[] }) {
           </div>
         </div>
       </div>
-
-      {/* 차트 */}
       <div style={{ height: 360, padding: "16px 12px 8px 4px" }}>
         {chartData.length < 2 ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#A1A8B3", fontSize: 14 }}>
-            비교할 월을 2개 이상 선택해주세요.
-          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#A1A8B3", fontSize: 14 }}>비교할 월을 2개 이상 선택해주세요.</div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 20, right: 24, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#EEEFF1" vertical={false} />
-              <XAxis
-                dataKey="name" tickLine={false} axisLine={false}
-                tick={{ fontSize: 11, fill: "#6B7280" }}
-                interval={0}
-                angle={-30} textAnchor="end" height={60}
-              />
-              <YAxis
-                tickFormatter={(v: number) => formatKRW(v)}
-                tick={{ fontSize: 10, fill: "#A1A8B3" }}
-                tickLine={false} axisLine={false} width={72}
-              />
-              <Tooltip
-                cursor={false}
-                content={({ active, payload }) => {
-                  if (!active || !payload?.[1]) return null;
-                  const d = payload[1].payload;
-                  return (
-                    <div style={{
-                      ...TOOLTIP_STYLE,
-                      backgroundColor: "#fff",
-                    }}>
-                      <div style={{ fontWeight: 600, marginBottom: 4 }}>{d.name}</div>
-                      <div style={{ color: d.type === "increase" ? WF_COLORS.increase : d.type === "decrease" ? WF_COLORS.decrease : WF_COLORS.total }}>
-                        {d.type === "total" ? "" : d.displayValue >= 0 ? "+" : ""}
-                        {formatKRW(d.displayValue)}
-                      </div>
-                    </div>
-                  );
-                }}
-              />
+              <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#6B7280" }} interval={0} angle={-30} textAnchor="end" height={60} />
+              <YAxis tickFormatter={(v: number) => formatKRW(v)} tick={{ fontSize: 10, fill: "#A1A8B3" }} tickLine={false} axisLine={false} width={72} />
+              <Tooltip cursor={false} content={({ active, payload }) => {
+                if (!active || !payload?.[1]) return null;
+                const d = payload[1].payload;
+                return (<div style={{ ...TOOLTIP_STYLE, backgroundColor: "#fff" }}>
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>{d.name}</div>
+                  <div style={{ color: d.type === "increase" ? WF_COLORS.increase : d.type === "decrease" ? WF_COLORS.decrease : WF_COLORS.total }}>
+                    {d.type === "total" ? "" : d.displayValue >= 0 ? "+" : ""}{formatKRW(d.displayValue)}
+                  </div>
+                </div>);
+              }} />
               <ReferenceLine y={0} stroke="#DFE3E6" strokeWidth={1.5} />
-              {/* 투명 베이스 바 */}
               <Bar dataKey="base" stackId="waterfall" fill="transparent" isAnimationActive={false} />
-              {/* 실제 값 바 */}
-              <Bar dataKey="value" stackId="waterfall" isAnimationActive={true}
-                animationDuration={800} animationEasing="ease-out"
-                radius={[3, 3, 0, 0]}>
+              <Bar dataKey="value" stackId="waterfall" isAnimationActive={true} animationDuration={800} animationEasing="ease-out" radius={[3, 3, 0, 0]}>
                 {chartData.map((entry, index) => (
-                  <Cell
-                    key={index}
-                    fill={
-                      entry.type === "total"    ? WF_COLORS.total :
-                      entry.type === "increase" ? WF_COLORS.increase :
-                      WF_COLORS.decrease
-                    }
-                  />
+                  <Cell key={index} fill={entry.type === "total" ? WF_COLORS.total : entry.type === "increase" ? WF_COLORS.increase : WF_COLORS.decrease} />
                 ))}
               </Bar>
             </BarChart>
@@ -636,8 +534,8 @@ export default function PlSummaryPage() {
   });
 
   const { data: bridgeRaw, isLoading: bridgeLoading } = useQuery({
-    queryKey: ["pl-waterfall-bridge", dateFrom, dateTo],
-    queryFn: () => api.financialStatements.plWaterfallBridge({ date_from: dateFrom, date_to: dateTo }),
+    queryKey: ["pl-waterfall-bridge-monthly", dateFrom, dateTo],
+    queryFn: () => api.financialStatements.plWaterfallBridgeMonthly({ date_from: dateFrom, date_to: dateTo }),
   });
 
   const summary  = (kpiData as any)?.summary ?? {};

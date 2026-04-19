@@ -100,6 +100,14 @@ def pl_waterfall_bridge(
     return svc.get_pl_waterfall_bridge(_params(date_from, date_to))
 
 
+@router.get("/pl/waterfall-bridge-monthly")
+def pl_waterfall_bridge_monthly(
+    date_from: Optional[str] = Query(None),
+    date_to:   Optional[str] = Query(None),
+):
+    return svc.get_pl_waterfall_bridge_monthly(_params(date_from, date_to))
+
+
 # ─── BS 추이분석 ──────────────────────────────────────────────
 
 @router.get("/bs/monthly")

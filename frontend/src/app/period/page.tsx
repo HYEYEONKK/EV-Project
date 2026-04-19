@@ -103,15 +103,15 @@ function KpiCompareCard({
       {...hover}
     >
       {/* 카드 상단 레이블 */}
-      <div className="px-5 pt-4 pb-3" style={{ borderBottom: "1px solid #EEEFF1" }}>
-        <p style={{ fontSize: 14, fontWeight: 500, color: "#A1A8B3" }}>{label}</p>
+      <div style={{ padding: "14px 48px 10px", borderBottom: "1px solid #EEEFF1" }}>
+        <p style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E" }}>{label}</p>
       </div>
 
       {/* A / B / 증감 — custom dividers in EEEFF1 */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", padding: "0 32px" }}>
         {/* 기간 A */}
         <div className="px-4 py-3" style={{ borderRight: "1px solid #EEEFF1" }}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: colorA, marginBottom: 4 }}>기간 A</p>
+  <p style={{ fontSize: 12, fontWeight: 600, color: colorA, marginBottom: 4 }}>기간 A</p>
           <p style={{ fontSize: 22, fontWeight: 700, color: "#000", letterSpacing: "-0.5px", lineHeight: 1.2, fontVariantNumeric: "tabular-nums" }}>
             {formatKRW(valueA)}
           </p>
@@ -135,15 +135,32 @@ function KpiCompareCard({
         </div>
       </div>
 
-      {/* 비율 게이지 바 */}
-      <div style={{ height: 6, display: "flex", margin: "0 0 0 0" }}>
-        <div style={{ width: `${pctA}%`, backgroundColor: colorA, transition: "width 0.4s ease" }} />
-        <div style={{ flex: 1, backgroundColor: colorB }} />
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 16px 8px", fontSize: 11, color: "#A1A8B3" }}>
-        <span style={{ color: colorA }}>A {pctA.toFixed(0)}%</span>
-        <span style={{ color: colorB }}>B {pctB.toFixed(0)}%</span>
-      </div>
+      {/* 가로막대 비교 */}
+      {(() => {
+        const maxVal = Math.max(Math.abs(valueA), Math.abs(valueB), 1);
+        const barA = (Math.abs(valueA) / maxVal) * 100;
+        const barB = (Math.abs(valueB) / maxVal) * 100;
+        return (
+          <div style={{ padding: "8px 48px 12px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: colorA, width: 14, flexShrink: 0 }}>A</span>
+                <div style={{ flex: 1, height: 14, backgroundColor: "#F5F7F8", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${barA}%`, height: "100%", backgroundColor: colorA, borderRadius: 3, transition: "width 0.4s ease" }} />
+                </div>
+                <span style={{ fontSize: 11, color: colorA, fontWeight: 600, minWidth: 55, textAlign: "right" }}>{formatKRW(valueA)}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: colorB, width: 14, flexShrink: 0 }}>B</span>
+                <div style={{ flex: 1, height: 14, backgroundColor: "#F5F7F8", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${barB}%`, height: "100%", backgroundColor: colorB, borderRadius: 3, transition: "width 0.4s ease" }} />
+                </div>
+                <span style={{ fontSize: 11, color: colorB, fontWeight: 600, minWidth: 55, textAlign: "right" }}>{formatKRW(valueB)}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

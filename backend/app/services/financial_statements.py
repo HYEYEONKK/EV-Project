@@ -712,6 +712,72 @@ def get_pl_waterfall_bridge(params: dict) -> list:
         conn.close()
 
 
+def get_pl_waterfall_bridge_monthly(params: dict) -> list:
+    """월별 손익 Waterfall Bridge — 7개 카테고리 월별 데이터"""
+    conn = get_conn()
+    try:
+        date_from = params.get("date_from")
+        date_to   = params.get("date_to")
+        args, clauses = ["PL"], ["entry_type=?"]
+        if date_from: clauses.append("date >= ?"); args.append(date_from)
+        if date_to:   clauses.append("date <= ?"); args.append(date_to)
+        where = "WHERE " + " AND ".join(clauses)
+
+        rows = conn.execute(f"""
+            SELECT strftime('%Y-%m', date) as month, branch, classification1,
+                   SUM(CASE WHEN debit_credit='C' THEN amount ELSE -amount END) as net_amount
+            FROM journal_entries {where}
+            GROUP BY month, branch, classification1
+            ORDER BY month
+        """, args).fetchall()
+
+        months: dict = {}
+        for r in rows:
+            m = r["month"]
+            if m not in months:
+                months[m] = {"매출액": 0, "매출원가": 0, "판관비": 0,
+                             "금융수익": 0, "금융비용": 0, "기타수익": 0, "기타비용": 0}
+            branch = r["branch"] or ""
+            cls1 = r["classification1"] or "기타"
+            net = r["net_amount"] or 0
+            cat = _classify_7cat(branch, cls1, net)
+
+            if cat == "매출액":
+                months[m]["매출액"] += net
+            elif cat == "매출원가":
+                months[m]["매출원가"] += abs(net)
+            elif cat == "판관비":
+                months[m]["판관비"] += abs(net)
+            elif cat == "금융수익":
+                months[m]["금융수익"] += abs(net)
+            elif cat == "금융비용":
+                months[m]["금융비용"] += abs(net)
+            elif cat == "기타수익":
+                months[m]["기타수익"] += abs(net) if net > 0 else 0
+            elif cat == "기타비용":
+                months[m]["기타비용"] += abs(net)
+
+        result = []
+        for m in sorted(months):
+            d = months[m]
+            net_income = (d["매출액"] + d["금융수익"] + d["기타수익"]
+                          - d["매출원가"] - d["판관비"] - d["금융비용"] - d["기타비용"])
+            result.append({
+                "month": m,
+                "매출액": d["매출액"],
+                "매출원가": d["매출원가"],
+                "판관비": d["판관비"],
+                "금융수익": d["금융수익"],
+                "금융비용": d["금융비용"],
+                "기타수익": d["기타수익"],
+                "기타비용": d["기타비용"],
+                "net_income": net_income,
+            })
+        return result
+    finally:
+        conn.close()
+
+
 # ─── BS 추이분석 ─────────────────────────────────────────────
 
 def get_bs_monthly(params: dict) -> list:

@@ -1,71 +1,406 @@
 "use client";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useFilterStore } from "@/lib/store/filterStore";
 import { api } from "@/lib/api/client";
-import KpiCard from "@/components/ui/KpiCard";
-import ChartCard from "@/components/ui/ChartCard";
-import SalesMonthlyChart from "@/components/charts/SalesMonthlyChart";
-import SalesByCategoryChart from "@/components/charts/SalesByCategoryChart";
-import SalesByRegionChart from "@/components/charts/SalesByRegionChart";
-import SalesByVendorChart from "@/components/charts/SalesByVendorChart";
-import { formatKRW } from "@/lib/utils/formatters";
+import { formatKRW, chartAxisFormatter } from "@/lib/utils/formatters";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Line, ComposedChart, Cell,
+  PieChart, Pie, Legend,
+} from "recharts";
+import { AXIS_STYLE, GRID_STROKE, TOOLTIP_STYLE } from "@/lib/utils/chartColors";
 
+const ACCENT = "#FD5108";
+
+// ─── 비교 모드 ───────────────────────────────────────────────
+type CompareMode = "전년누적" | "전년동월";
+
+function computeSalesRanges(dateFrom: string, dateTo: string, mode: CompareMode) {
+  if (mode === "전년누적") {
+    const yr = (s: string) => `${parseInt(s.slice(0, 4)) - 1}${s.slice(4)}`;
+    return { currFrom: dateFrom, currTo: dateTo, prevFrom: yr(dateFrom), prevTo: yr(dateTo) };
+  }
+  // 전년동월: dateTo 기준 해당월
+  const y = parseInt(dateTo.slice(0, 4));
+  const m = parseInt(dateTo.slice(5, 7));
+  const lastDay = new Date(y, m, 0).getDate();
+  const currFrom = `${y}-${String(m).padStart(2, "0")}-01`;
+  const currTo = `${y}-${String(m).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  const prevLastDay = new Date(y - 1, m, 0).getDate();
+  return {
+    currFrom, currTo,
+    prevFrom: `${y - 1}-${String(m).padStart(2, "0")}-01`,
+    prevTo: `${y - 1}-${String(m).padStart(2, "0")}-${String(prevLastDay).padStart(2, "0")}`,
+  };
+}
+
+// ─── 회계 서식 ───────────────────────────────────────────────
+function fmtDelta(v: number) {
+  if (v === 0) return "—";
+  return v < 0 ? `(${formatKRW(Math.abs(v))})` : formatKRW(v);
+}
+function fmtPct(curr: number, prev: number) {
+  if (!prev) return "—";
+  const p = ((curr - prev) / Math.abs(prev)) * 100;
+  return p < 0 ? `(${Math.abs(p).toFixed(1)}%)` : `▲ ${p.toFixed(1)}%`;
+}
+function pctColor(curr: number, prev: number) {
+  if (!prev) return "#A1A8B3";
+  return curr >= prev ? "#DC2626" : "#2563EB";
+}
+
+// ─── 커스텀 툴팁 ─────────────────────────────────────────────
+function ChartTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: "#fff", border: "1px solid #DFE3E6", borderRadius: 8, padding: "10px 14px", fontSize: 12, boxShadow: "0 4px 16px #0000001A" }}>
+      <div style={{ fontWeight: 600, marginBottom: 6, color: "#1A1A2E" }}>{label}</div>
+      {payload.map((p: any) => (
+        <div key={p.name} style={{ color: p.color ?? p.fill, marginBottom: 2 }}>
+          {p.name}: {formatKRW(Number(p.value))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── 도넛 차트 색상 ──────────────────────────────────────────
+const DONUT_COLORS = ["#D04A02", "#FE7C39", "#FFAA72", "#EB8C00", "#295477", "#688FA8", "#C9A84C", "#7A3B1E", "#4A4A6A", "#A1A8B3"];
+
+// ─── 메인 페이지 ─────────────────────────────────────────────
 export default function SalesPage() {
-  const { dateFrom, dateTo, activeProductCategory, activeVendor, activeRegion, activeMonth } = useFilterStore();
+  const { dateFrom, dateTo } = useFilterStore();
+  const [compareMode, setCompareMode] = useState<CompareMode>("전년누적");
+  const [categoryFilter, setCategoryFilter] = useState("모두");
+  const [vendor1, setVendor1] = useState("");
+  const [vendor2, setVendor2] = useState("");
 
-  const { data: summary, isLoading } = useQuery({
-    queryKey: ["sales-summary", dateFrom, dateTo, activeProductCategory, activeVendor, activeRegion, activeMonth],
-    queryFn: () =>
-      api.sales.summary({
-        date_from: activeMonth ? `${activeMonth}-01` : dateFrom,
-        date_to: activeMonth ? `${activeMonth}-31` : dateTo,
-        product_category: activeProductCategory ?? undefined,
-        vendor: activeVendor ?? undefined,
-        region: activeRegion ?? undefined,
-      }),
+  const ranges = computeSalesRanges(dateFrom, dateTo, compareMode);
+
+  // ── 데이터 fetch ──
+  const { data: currSummary } = useQuery({
+    queryKey: ["sales-summary-curr", ranges.currFrom, ranges.currTo, categoryFilter],
+    queryFn: () => api.sales.summary({ date_from: ranges.currFrom, date_to: ranges.currTo, product_category: categoryFilter === "모두" ? undefined : categoryFilter }),
+  });
+  const { data: prevSummary } = useQuery({
+    queryKey: ["sales-summary-prev", ranges.prevFrom, ranges.prevTo, categoryFilter],
+    queryFn: () => api.sales.summary({ date_from: ranges.prevFrom, date_to: ranges.prevTo, product_category: categoryFilter === "모두" ? undefined : categoryFilter }),
+  });
+  const { data: monthlyData } = useQuery({
+    queryKey: ["sales-monthly", dateFrom, dateTo, categoryFilter],
+    queryFn: () => api.sales.monthlyTrend({ date_from: dateFrom, date_to: dateTo, product_category: categoryFilter === "모두" ? undefined : categoryFilter }),
+  });
+  const { data: priorMonthlyData } = useQuery({
+    queryKey: ["sales-monthly-prior", dateFrom, dateTo, categoryFilter],
+    queryFn: () => {
+      const yr = (s: string) => `${parseInt(s.slice(0, 4)) - 1}${s.slice(4)}`;
+      return api.sales.monthlyTrend({ date_from: yr(dateFrom), date_to: yr(dateTo), product_category: categoryFilter === "모두" ? undefined : categoryFilter });
+    },
+  });
+  const { data: currVendors } = useQuery({
+    queryKey: ["sales-vendors-curr", ranges.currFrom, ranges.currTo, categoryFilter],
+    queryFn: () => api.sales.byVendor({ date_from: ranges.currFrom, date_to: ranges.currTo, top_n: 50, product_category: categoryFilter === "모두" ? undefined : categoryFilter }),
+  });
+  const { data: prevVendors } = useQuery({
+    queryKey: ["sales-vendors-prev", ranges.prevFrom, ranges.prevTo, categoryFilter],
+    queryFn: () => api.sales.byVendor({ date_from: ranges.prevFrom, date_to: ranges.prevTo, top_n: 50, product_category: categoryFilter === "모두" ? undefined : categoryFilter }),
+  });
+  const { data: dimensions } = useQuery({
+    queryKey: ["sales-dimensions"],
+    queryFn: () => api.sales.dimensions(),
   });
 
-  const s = summary as any;
+  // 거래처 비교: 벤더1 월별
+  const { data: vendor1Monthly } = useQuery({
+    queryKey: ["sales-vendor1-monthly", dateFrom, dateTo, vendor1],
+    queryFn: () => api.sales.monthlyTrend({ date_from: dateFrom, date_to: dateTo, vendor: vendor1 }),
+    enabled: !!vendor1,
+  });
+  const { data: vendor2Monthly } = useQuery({
+    queryKey: ["sales-vendor2-monthly", dateFrom, dateTo, vendor2],
+    queryFn: () => api.sales.monthlyTrend({ date_from: dateFrom, date_to: dateTo, vendor: vendor2 }),
+    enabled: !!vendor2,
+  });
+
+  const cs = currSummary as any;
+  const ps = prevSummary as any;
+  const monthly = (monthlyData as any[]) ?? [];
+  const priorMonthly = (priorMonthlyData as any[]) ?? [];
+  const cVendors = (currVendors as any[]) ?? [];
+  const pVendors = (prevVendors as any[]) ?? [];
+  const dims = dimensions as any;
+  const categories = dims?.product_categories ?? [];
+  const vendorList = dims?.vendors ?? [];
+
+  // ── 매출 추이 차트 데이터 ──
+  const trendData = useMemo(() => {
+    const priorMap = new Map((priorMonthly).map((m: any) => {
+      const yr = parseInt(m.month.slice(0, 4)) + 1;
+      return [`${yr}${m.month.slice(4)}`, m.revenue ?? 0];
+    }));
+    return monthly.map((m: any) => ({
+      month: parseInt(m.month.slice(5)),
+      당기: m.revenue ?? 0,
+      전기: priorMap.get(m.month) ?? 0,
+    }));
+  }, [monthly, priorMonthly]);
+
+  // ── 거래처 증감 분석 ──
+  const vendorDelta = useMemo(() => {
+    const prevMap = new Map(pVendors.map((v: any) => [v.vendor, v.revenue ?? 0]));
+    return cVendors.map((v: any) => ({
+      vendor: v.vendor,
+      current: v.revenue ?? 0,
+      prior: prevMap.get(v.vendor) ?? 0,
+      delta: (v.revenue ?? 0) - (prevMap.get(v.vendor) ?? 0),
+    }));
+  }, [cVendors, pVendors]);
+
+  const topIncrease = [...vendorDelta].sort((a, b) => b.delta - a.delta).filter(v => v.delta > 0).slice(0, 10);
+  const topDecrease = [...vendorDelta].sort((a, b) => a.delta - b.delta).filter(v => v.delta < 0).slice(0, 10);
+
+  // ── 도넛 데이터 ──
+  const totalRevenue = cVendors.reduce((s: number, v: any) => s + (v.revenue ?? 0), 0);
+  const top10Vendors = cVendors.slice(0, 10);
+  const top10Total = top10Vendors.reduce((s: number, v: any) => s + (v.revenue ?? 0), 0);
+  const otherTotal = totalRevenue - top10Total;
+  const donutData = [
+    ...top10Vendors.map((v: any) => ({ name: v.vendor, value: v.revenue ?? 0 })),
+    ...(otherTotal > 0 ? [{ name: "기타", value: otherTotal }] : []),
+  ];
+
+  // ── 거래처 비교 차트 데이터 ──
+  const compareData = useMemo(() => {
+    const v1 = (vendor1Monthly as any[]) ?? [];
+    const v2 = (vendor2Monthly as any[]) ?? [];
+    const all = new Map<string, any>();
+    v1.forEach((m: any) => { all.set(m.month, { month: `${m.month.slice(5)}월`, 거래처1: m.revenue ?? 0 }); });
+    v2.forEach((m: any) => {
+      const existing = all.get(m.month) ?? { month: `${m.month.slice(5)}월` };
+      existing.거래처2 = m.revenue ?? 0;
+      all.set(m.month, existing);
+    });
+    return Array.from(all.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
+  }, [vendor1Monthly, vendor2Monthly]);
+
+  // ── 전월대비증감 ──
+  const lastMonthRev = monthly.length > 0 ? monthly[monthly.length - 1]?.revenue ?? 0 : 0;
+  const prevMonthRev = monthly.length > 1 ? monthly[monthly.length - 2]?.revenue ?? 0 : 0;
+  const momDelta = lastMonthRev - prevMonthRev;
+
+  const currRev = cs?.total_revenue ?? 0;
+  const prevRev = ps?.total_revenue ?? 0;
+  const currVendorCount = cVendors.length;
+  const prevVendorCount = pVendors.length;
+  const vendorCountDelta = currVendorCount - prevVendorCount;
+
+  // ── 기준월 표시 ──
+  const baseYM = dateTo.slice(0, 7).replace("-", "년 ") + "월";
 
   return (
-    <div className="space-y-6">
-      {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="총 매출액" value={s?.total_revenue ?? 0} loading={isLoading} accent />
-        <KpiCard label="거래 건수" value={s?.transaction_count ?? 0} format="number" loading={isLoading} />
-        <KpiCard label="평균 거래금액" value={s?.avg_order_value ?? 0} loading={isLoading} />
-        <KpiCard label="총 판매수량" value={s?.total_quantity ?? 0} format="number" loading={isLoading} />
+    <div className="space-y-5">
+
+      {/* ══ 헤더 ══ */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: 16, fontWeight: 600, color: "#D04A02", whiteSpace: "nowrap" }}>매출분석</span>
+        <div style={{ flex: 1, height: 1, backgroundColor: "#C8CDD6" }} />
+        <span style={{ fontSize: 13, color: "#6B7280", fontWeight: 500 }}>{baseYM}</span>
+        <div style={{ display: "flex", border: "1px solid #DFE3E6", borderRadius: 6, overflow: "hidden" }}>
+          {(["전년누적", "전년동월"] as CompareMode[]).map(mode => (
+            <button key={mode} onClick={() => setCompareMode(mode)}
+              style={{
+                padding: "5px 16px", fontSize: 13, border: "none", cursor: "pointer",
+                backgroundColor: compareMode === mode ? "#1A1A2E" : "#fff",
+                color: compareMode === mode ? "#fff" : "#6B7280",
+                fontWeight: compareMode === mode ? 600 : 400,
+              }}>
+              {mode}
+            </button>
+          ))}
+        </div>
+        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
+          style={{ padding: "5px 12px", fontSize: 13, border: "1px solid #DFE3E6", borderRadius: 6, backgroundColor: "#fff", color: "#374151", cursor: "pointer", minWidth: 100 }}>
+          <option value="모두">모두</option>
+          {categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
+        </select>
       </div>
 
-      {/* Monthly Trend */}
-      <ChartCard title="월별 매출 추이" subtitle="클릭하면 해당 월로 필터링됩니다">
-        <SalesMonthlyChart />
-      </ChartCard>
+      {/* ══ KPI + 매출 추이 ══ */}
+      <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", borderBottom: "1px solid #EEEFF1" }}>
 
-      {/* Category + Region */}
-      <div className="grid grid-cols-2 gap-4">
-        <ChartCard title="제품군별 매출" subtitle="클릭하면 제품군으로 필터링됩니다">
-          <SalesByCategoryChart />
-        </ChartCard>
-        <ChartCard title="지역별 매출" subtitle="클릭하면 지역으로 필터링됩니다">
-          <SalesByRegionChart />
-        </ChartCard>
+          {/* 매출액 KPI */}
+          <div style={{ padding: 20, borderRight: "1px solid #EEEFF1" }}>
+            <div style={{ fontSize: 14, fontWeight: 500, color: "#A1A8B3", marginBottom: 4 }}>매출액</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: ACCENT, marginBottom: 12 }}>{formatKRW(currRev)}</div>
+            <table style={{ fontSize: 12, width: "100%", borderCollapse: "collapse" }}>
+              <tbody>
+                <tr><td style={{ padding: "3px 0", color: "#A1A8B3" }}>전기</td><td style={{ textAlign: "right", color: "#374151" }}>{formatKRW(prevRev)}</td></tr>
+                <tr><td style={{ padding: "3px 0", color: "#A1A8B3" }}>증감</td><td style={{ textAlign: "right", color: pctColor(currRev, prevRev), fontWeight: 500 }}>{fmtDelta(currRev - prevRev)}</td></tr>
+                <tr><td style={{ padding: "3px 0", color: "#A1A8B3" }}>△%</td><td style={{ textAlign: "right", color: pctColor(currRev, prevRev), fontWeight: 500 }}>{fmtPct(currRev, prevRev)}</td></tr>
+                <tr><td style={{ padding: "3px 0", color: "#A1A8B3" }}>전월대비증감</td><td style={{ textAlign: "right", color: pctColor(lastMonthRev, prevMonthRev), fontWeight: 500 }}>{fmtDelta(momDelta)}</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* 거래처수 KPI */}
+          <div style={{ padding: 20, borderRight: "1px solid #EEEFF1" }}>
+            <div style={{ fontSize: 14, fontWeight: 500, color: "#A1A8B3", marginBottom: 4 }}>거래처수</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#1A1A2E", marginBottom: 12 }}>{currVendorCount}</div>
+            <table style={{ fontSize: 12, width: "100%", borderCollapse: "collapse" }}>
+              <tbody>
+                <tr><td style={{ padding: "3px 0", color: "#A1A8B3" }}>전기</td><td style={{ textAlign: "right", color: "#374151" }}>{prevVendorCount}</td></tr>
+                <tr><td style={{ padding: "3px 0", color: "#A1A8B3" }}>증감</td><td style={{ textAlign: "right", color: pctColor(currVendorCount, prevVendorCount), fontWeight: 500 }}>{vendorCountDelta}</td></tr>
+                <tr><td style={{ padding: "3px 0", color: "#A1A8B3" }}>△%</td><td style={{ textAlign: "right", color: pctColor(currVendorCount, prevVendorCount), fontWeight: 500 }}>{fmtPct(currVendorCount, prevVendorCount)}</td></tr>
+                <tr><td style={{ padding: "3px 0", color: "#A1A8B3" }}>전월대비증감</td><td style={{ textAlign: "right", color: "#374151" }}>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* 매출액 추이 */}
+          <div style={{ padding: "16px 16px 8px" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A2E", marginBottom: 4 }}>매출액 추이</div>
+            <div style={{ display: "flex", gap: 12, fontSize: 11, color: "#A1A8B3", marginBottom: 8 }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: ACCENT, display: "inline-block" }} />당기
+              </span>
+              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ width: 14, height: 2, borderBottom: "2px dashed #A1A8B3", display: "inline-block" }} />전기
+              </span>
+            </div>
+            <div style={{ height: 180 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={trendData} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
+                  <XAxis dataKey="month" tick={AXIS_STYLE} tickLine={false} axisLine={false} />
+                  <YAxis tickFormatter={chartAxisFormatter} tick={AXIS_STYLE} tickLine={false} axisLine={false} width={50} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Bar dataKey="당기" fill={ACCENT} radius={[2, 2, 0, 0]} barSize={20} name="당기" />
+                  <Line type="monotone" dataKey="전기" stroke="#A1A8B3" strokeWidth={1.5} strokeDasharray="4 3" dot={false} name="전기" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Vendor */}
-      <ChartCard
-        title="거래처별 매출 Top 15"
-        subtitle={activeVendor ? `선택: ${activeVendor}` : "클릭하면 거래처로 필터링됩니다"}
-      >
-        <SalesByVendorChart />
-      </ChartCard>
+      {/* ══ 거래처 분석 (도넛 + 증가 + 감소) ══ */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
 
-      {/* Drill-down vendor detail */}
-      {activeVendor && (
-        <ChartCard title={`${activeVendor} - 제품군별 매출`} subtitle="선택된 거래처의 제품군 분석">
-          <SalesByCategoryChart />
-        </ChartCard>
-      )}
+        {/* 상위 10 당기 비중 — 도넛 */}
+        <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+          <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E" }}>상위 10개 거래처 당기 비중</span>
+          </div>
+          <div style={{ padding: 16, display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ width: 220, height: 220 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={donutData} dataKey="value" nameKey="name" cx="50%" cy="50%"
+                    innerRadius={55} outerRadius={90} paddingAngle={1}
+                    label={({ name, percent }) => `${name?.length > 6 ? name.slice(0, 6) + "…" : name} ${(percent * 100).toFixed(1)}%`}
+                    labelLine={{ stroke: "#A1A8B3", strokeWidth: 0.5 }}
+                    style={{ fontSize: 9 }}>
+                    {donutData.map((_, i) => (
+                      <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E" }}>매출액</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: ACCENT }}>{formatKRW(top10Total)}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginTop: 8 }}>비중</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: ACCENT }}>{totalRevenue ? ((top10Total / totalRevenue) * 100).toFixed(2) : 0}%</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 상위 10 증가 거래처 */}
+        <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+          <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E" }}>상위 10개 매출액 증가 거래처</span>
+          </div>
+          <div style={{ padding: "8px 16px" }}>
+            {topIncrease.length === 0 ? (
+              <div style={{ textAlign: "center", color: "#A1A8B3", padding: 24, fontSize: 13 }}>데이터 없음</div>
+            ) : topIncrease.map((v, i) => {
+              const maxDelta = topIncrease[0]?.delta ?? 1;
+              return (
+                <div key={v.vendor} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0" }}>
+                  <span style={{ fontSize: 11, color: "#6B7280", width: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flexShrink: 0 }} title={v.vendor}>{v.vendor}</span>
+                  <div style={{ flex: 1, height: 14, backgroundColor: "#FFF5ED", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ width: `${(v.delta / maxDelta) * 100}%`, height: "100%", backgroundColor: "#FFAA72", borderRadius: 3 }} />
+                  </div>
+                  <span style={{ fontSize: 11, color: ACCENT, fontWeight: 600, whiteSpace: "nowrap", minWidth: 70, textAlign: "right" }}>{formatKRW(v.delta)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 상위 10 감소 거래처 */}
+        <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+          <div className="px-5 py-3 border-b" style={{ borderColor: "#EEEFF1" }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E" }}>상위 10개 매출액 감소 거래처</span>
+          </div>
+          <div style={{ padding: "8px 16px" }}>
+            {topDecrease.length === 0 ? (
+              <div style={{ textAlign: "center", color: "#A1A8B3", padding: 24, fontSize: 13 }}>데이터 없음</div>
+            ) : topDecrease.map((v) => {
+              const maxDelta = Math.abs(topDecrease[0]?.delta ?? 1);
+              return (
+                <div key={v.vendor} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0" }}>
+                  <span style={{ fontSize: 11, color: "#6B7280", width: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flexShrink: 0 }} title={v.vendor}>{v.vendor}</span>
+                  <div style={{ flex: 1, height: 14, backgroundColor: "#EFF6FF", borderRadius: 3, overflow: "hidden", display: "flex", justifyContent: "flex-end" }}>
+                    <div style={{ width: `${(Math.abs(v.delta) / maxDelta) * 100}%`, height: "100%", backgroundColor: "#93C5FD", borderRadius: 3 }} />
+                  </div>
+                  <span style={{ fontSize: 11, color: "#2563EB", fontWeight: 600, whiteSpace: "nowrap", minWidth: 70, textAlign: "right" }}>({formatKRW(Math.abs(v.delta))})</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ══ 거래처별 비교 ══ */}
+      <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: "#DFE3E6", boxShadow: "var(--shadow-card)" }}>
+        <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: "#EEEFF1" }}>
+          <span style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E" }}>거래처별 비교</span>
+          <div style={{ display: "flex", gap: 8 }}>
+            <select value={vendor1} onChange={e => setVendor1(e.target.value)}
+              style={{ padding: "4px 10px", fontSize: 12, border: "1px solid #DFE3E6", borderRadius: 5, backgroundColor: "#fff", color: "#374151", cursor: "pointer", maxWidth: 180 }}>
+              <option value="">거래처 1 선택</option>
+              {vendorList.map((v: string) => <option key={v} value={v}>{v}</option>)}
+            </select>
+            <select value={vendor2} onChange={e => setVendor2(e.target.value)}
+              style={{ padding: "4px 10px", fontSize: 12, border: "1px solid #DFE3E6", borderRadius: 5, backgroundColor: "#fff", color: "#374151", cursor: "pointer", maxWidth: 180 }}>
+              <option value="">거래처 2 선택</option>
+              {vendorList.map((v: string) => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </div>
+        </div>
+        <div style={{ height: 240, padding: "16px 12px 8px" }}>
+          {(!vendor1 && !vendor2) ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#A1A8B3", fontSize: 13 }}>거래처를 선택하면 월별 매출 비교 차트가 표시됩니다</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={compareData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} vertical={false} />
+                <XAxis dataKey="month" tick={AXIS_STYLE} tickLine={false} axisLine={false} />
+                <YAxis tickFormatter={chartAxisFormatter} tick={AXIS_STYLE} tickLine={false} axisLine={false} width={56} />
+                <Tooltip content={<ChartTooltip />} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                {vendor1 && <Line type="monotone" dataKey="거래처1" stroke={ACCENT} strokeWidth={2} dot={{ r: 3 }} name={vendor1} />}
+                {vendor2 && <Line type="monotone" dataKey="거래처2" stroke="#295477" strokeWidth={2} dot={{ r: 3 }} name={vendor2} />}
+              </ComposedChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }

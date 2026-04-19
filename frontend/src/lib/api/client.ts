@@ -81,6 +81,8 @@ export const api = {
       apiFetch("/financial-statements/pl/waterfall-monthly", p),
     plWaterfallBridge: (p?: Record<string, unknown>) =>
       apiFetch("/financial-statements/pl/waterfall-bridge", p),
+    plWaterfallBridgeMonthly: (p?: Record<string, unknown>) =>
+      apiFetch("/financial-statements/pl/waterfall-bridge-monthly", p),
   },
   journalEntries: {
     monthlyTrend: (p?: Record<string, unknown>) =>
