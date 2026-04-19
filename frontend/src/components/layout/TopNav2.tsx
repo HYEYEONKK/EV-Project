@@ -12,9 +12,9 @@ const TABS = [
     label: "데이터 설명",
     href: "/home2",
     children: [
-      { label: "데이터 업로드", href: "/home2" },
-      { label: "자료실", href: "/home2" },
-      { label: "FAQ", href: "/home2" },
+      { label: "데이터 업로드", href: "/home2/data/upload" },
+      { label: "자료실", href: "/home2/data/library" },
+      { label: "FAQ", href: "/home2/data/faq" },
     ],
   },
   {
@@ -92,7 +92,7 @@ export default function TopNav2() {
         {TABS.map((tab) => {
           const isHovered = hoveredTab === tab.id;
           const active = tab.id === "data"
-            ? false
+            ? pathname.startsWith("/home2/data/")
             : pathname === tab.href || pathname.startsWith(tab.href + "/");
           const highlight = isHovered || active;
           return (
