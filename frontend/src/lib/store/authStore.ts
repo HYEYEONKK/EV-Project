@@ -10,6 +10,18 @@ export interface User {
   name: string;
 }
 
+export type UserRole = "samil_admin" | "company_user";
+
+export function deriveRole(email: string): UserRole {
+  return email.endsWith("@pwc.com") ? "samil_admin" : "company_user";
+}
+
+export function useUserRole(): UserRole | null {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return null;
+  return deriveRole(user.email);
+}
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
