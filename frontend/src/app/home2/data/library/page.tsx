@@ -244,7 +244,7 @@ export default function LibraryPage() {
       )}
 
       {/* ── 페이지네이션 (하단 고정) ── */}
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, paddingTop: 16, flexShrink: 0, height: 52 }}>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, paddingTop: 16, paddingBottom: 24, flexShrink: 0 }}>
         {totalPages > 1 ? (
           <>
             <button
