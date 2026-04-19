@@ -74,7 +74,7 @@ export default function LibraryPage() {
 
   /* 문의 팝업 */
   const [showInquiry, setShowInquiry] = useState(false);
-  const [form, setForm] = useState({ company: "", name: "", email: "", phone: "", erp: "", country: "", timeline: "", note: "" });
+  const [form, setForm] = useState({ company: "", name: "", email: "", phone: "", erp: "", country: "", note: "" });
   const [submitting, setSubmitting] = useState(false);
   const erpRef = useRef<HTMLInputElement>(null);
 
@@ -88,7 +88,7 @@ export default function LibraryPage() {
 
   const handleSubmit = async () => {
     // 필수값 체크
-    if (!form.company || !form.name || !form.email || !form.phone || !form.erp || !form.country || !form.timeline) {
+    if (!form.company || !form.name || !form.email || !form.phone || !form.erp || !form.country) {
       alert("필수 항목을 모두 입력해주세요.");
       return;
     }
@@ -112,7 +112,7 @@ export default function LibraryPage() {
 
     alert("제출 되었습니다.");
     setShowInquiry(false);
-    setForm({ company: "", name: "", email: "", phone: "", erp: "", country: "", timeline: "", note: "" });
+    setForm({ company: "", name: "", email: "", phone: "", erp: "", country: "", note: "" });
   };
 
   return (
@@ -184,7 +184,7 @@ export default function LibraryPage() {
         {filtered.map((item, idx) => (
           <div
             key={idx}
-            style={{ background: "#fff", border: "1px solid #E5E7EB", borderRadius: 0, padding: "24px 20px", display: "flex", flexDirection: "column", gap: 10, transition: "box-shadow 0.15s" }}
+            style={{ background: "#fff", border: "1px solid #E5E7EB", borderRadius: 10, padding: "24px 20px", display: "flex", flexDirection: "column", gap: 10, transition: "box-shadow 0.15s" }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
           >
@@ -240,9 +240,6 @@ export default function LibraryPage() {
               </FormField>
               <FormField label="국가" required>
                 <input type="text" value={form.country} onChange={(e) => updateForm("country", e.target.value)} placeholder="국가를 입력하세요" style={inputStyle} />
-              </FormField>
-              <FormField label="희망 일정" required>
-                <input type="text" value={form.timeline} onChange={(e) => updateForm("timeline", e.target.value)} placeholder="데이터가 필요한 시기를 입력하세요" style={inputStyle} />
               </FormField>
               <FormField label="추가 요청사항">
                 <textarea value={form.note} onChange={(e) => updateForm("note", e.target.value)} placeholder="추가 요청사항이 있다면 입력하세요" rows={3} style={{ ...inputStyle, resize: "vertical", minHeight: 80 }} />
