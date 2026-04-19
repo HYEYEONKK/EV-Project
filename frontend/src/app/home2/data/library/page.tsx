@@ -64,8 +64,8 @@ export default function LibraryPage() {
   return (
     <section style={{ padding: "42px 32px", display: "flex", flexDirection: "column", gap: 0, width: "100%" }}>
       {/* ── 제목 ── */}
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: "#1A1A2E", margin: 0, marginBottom: 12 }}>
-        데이터 요청서
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1A1A2E", margin: 0, marginBottom: 12 }}>
+        자료실
       </h1>
       <p style={{ fontSize: 15, color: "#6B7280", margin: 0, marginBottom: 32, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span>필요한 데이터가 보이지 않는다면 언제든 문의해 주세요</span>
@@ -73,7 +73,7 @@ export default function LibraryPage() {
           href="mailto:support@pwc.com"
           style={{
             display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "8px 20px", background: "#1A1A2E", color: "#fff",
+            padding: "8px 20px", background: "#FD5108", color: "#fff",
             borderRadius: 4, fontSize: 14, fontWeight: 500, textDecoration: "none",
             transition: "opacity 0.15s",
           }}
@@ -140,7 +140,7 @@ export default function LibraryPage() {
         <button
           onClick={() => {}}
           style={{
-            height: 44, padding: "0 24px", background: "#1A1A2E", color: "#fff",
+            height: 44, padding: "0 24px", background: "#FD5108", color: "#fff",
             border: "none", borderRadius: 0, fontSize: 14, fontWeight: 500,
             cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
           }}
