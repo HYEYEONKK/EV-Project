@@ -34,13 +34,13 @@ export default function FaqPage() {
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1A1A2E", margin: 0, marginBottom: 32 }}>FAQ</h1>
 
       {/* ── 검색 바 ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 32 }}>
+      <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", gap: 0, marginBottom: 32, height: 44 }}>
         <div style={{
-          display: "flex", alignItems: "center", border: "1px solid #d0d0d0", borderRadius: 0,
+          display: "flex", alignItems: "center", border: "1px solid #d0d0d0", borderRight: "none",
           overflow: "hidden", width: 500,
         }}>
           <div style={{
-            display: "flex", alignItems: "center", gap: 4, padding: "0 14px", height: 44,
+            display: "flex", alignItems: "center", gap: 4, padding: "0 14px", height: "100%",
             borderRight: "1px solid #d0d0d0", fontSize: 14, color: "#1A1A2E", whiteSpace: "nowrap",
           }}>
             제목검색 <ChevronDown size={14} color="#FD5108" />
@@ -48,12 +48,12 @@ export default function FaqPage() {
           <input
             type="text" placeholder="검색어를 입력해주세요" value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ flex: 1, height: 44, padding: "0 14px", border: "none", fontSize: 14, outline: "none", color: "#1A1A2E" }}
+            style={{ flex: 1, height: "100%", padding: "0 14px", border: "none", fontSize: 14, outline: "none", color: "#1A1A2E" }}
           />
         </div>
         <button style={{
-          width: 44, height: 44, background: "#FD5108", color: "#fff", border: "none",
-          display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+          width: 44, height: "100%", background: "#FD5108", color: "#fff", border: "none",
+          display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
         }}>
           <Search size={18} />
         </button>
