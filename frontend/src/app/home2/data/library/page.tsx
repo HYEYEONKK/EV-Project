@@ -86,7 +86,7 @@ export default function LibraryPage() {
 
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 15;
+  const PAGE_SIZE = 12;
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
