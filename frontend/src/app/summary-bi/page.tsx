@@ -524,6 +524,7 @@ export default function SummaryBiPage() {
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelKpi, setPanelKpi] = useState<string>("");
+  const [panelChartMode, setPanelChartMode] = useState<"all" | "compare">("all");
   const [highlightMonth, setHighlightMonth] = useState<string | null>(null);
 
   // Close slide panel on Escape
@@ -539,7 +540,7 @@ export default function SummaryBiPage() {
     return () => window.removeEventListener("open-budget-modal", handler);
   }, []);
 
-  const openPanel = useCallback((kpi: string) => { setPanelKpi(kpi); setPanelOpen(true); }, []);
+  const openPanel = useCallback((kpi: string) => { setPanelKpi(kpi); setPanelChartMode("all"); setPanelOpen(true); }, []);
   const budget = useMemo(() => loadBudget(), [budgetModalOpen]);
   const hasBudget = !!budget && Object.keys(budget).length > 0;
 
@@ -571,6 +572,14 @@ export default function SummaryBiPage() {
   const { data: bsMonthlyRaw = [] } = useQuery({
     queryKey: ["summary-bi-bs-monthly", dateFrom, dateTo],
     queryFn: () => api.bsTrend.monthly(params),
+  });
+  const { data: bsRatiosRaw = [] } = useQuery({
+    queryKey: ["summary-bi-bs-ratios", dateFrom, dateTo],
+    queryFn: () => api.bsSummary.ratiosMonthly(params),
+  });
+  const { data: bsActivityRaw } = useQuery({
+    queryKey: ["summary-bi-bs-activity", dateFrom, dateTo],
+    queryFn: () => api.bsSummary.activityMonthly(params),
   });
   const { data: plWaterfall = [] } = useQuery({
     queryKey: ["summary-bi-waterfall", dateFrom, dateTo],
@@ -811,7 +820,7 @@ export default function SummaryBiPage() {
   const sparkOpm = useMemo(() => pl.map(m => m.opm), [pl]);
   const sparkNi = useMemo(() => pl.map(m => m.netIncome), [pl]);
 
-  // BS sparkline: 월별 총자산/유동비율/부채비율 등
+  // BS sparkline: 월별 총자산/유동비율/부채비율
   const bsMonthly = bsMonthlyRaw as any[];
   const bsSparkData = useMemo(() => {
     const monthSet = [...new Set(bsMonthly.map((r: any) => r.month))].sort();
@@ -822,19 +831,39 @@ export default function SummaryBiPage() {
       const rows = bsMonthly.filter((r: any) => r.month === m);
       let ca = 0, nca = 0, cl = 0, ncl = 0;
       rows.forEach((r: any) => {
-        const bal = Math.abs(r.balance);
-        const div = r.division || "";
-        const br = r.branch || "";
-        if (br.includes("자산") || div.includes("자산")) {
-          if (div.includes("비유동")) nca += bal; else ca += bal;
-        }
-        if (br.includes("부채") || div.includes("부채")) {
-          if (div.includes("비유동")) ncl += bal; else cl += bal;
+        const bal = r.balance;
+        const div = (r.division || "").normalize("NFC");
+        // entry_type 기반: BS 데이터에서 balance 양수=자산, 음수=부채 가능
+        // division 문자열에서 유동/비유동 판별 (인코딩 깨짐 대비 다중 패턴)
+        const isNonCurrent = div.includes("비유동") || div.includes("비유");
+        const absB = Math.abs(bal);
+        // 잔액 부호로 자산/부채 구분: 양수=자산, 음수=부채 (일반적)
+        // 하지만 API는 branch로 구분하므로 branch 길이로 판별
+        const brLen = (r.branch || "").length;
+        // 자산 branch = 2글자(자산), 부채 branch = 2글자(부채), 자본 = 2글자(자본)
+        // balance 양수 + division에 "자산" or balance > 0이면 자산으로 취급
+        if (bal > 0) {
+          if (isNonCurrent) nca += absB; else ca += absB;
+        } else if (bal < 0) {
+          // 음수 잔액은 부채로 취급
+          if (isNonCurrent) ncl += absB; else cl += absB;
         }
       });
+      // 보정: 부채가 0이면 branch별 합산 시도
+      if (cl === 0 && ncl === 0) {
+        // 전체 잔액 중 음수인 것들을 부채로
+        rows.forEach((r: any) => {
+          if (r.balance < 0) {
+            const div = (r.division || "").normalize("NFC");
+            if (div.includes("비유")) ncl += Math.abs(r.balance);
+            else cl += Math.abs(r.balance);
+          }
+        });
+      }
       totalAssets.push(ca + nca);
       curRatios.push(cl > 0 ? ca / cl : 0);
-      deRatios.push((ca + nca - cl - ncl) > 0 ? ((cl + ncl) / (ca + nca - cl - ncl)) * 100 : 0);
+      const equity = (ca + nca) - (cl + ncl);
+      deRatios.push(equity > 0 ? ((cl + ncl) / equity) * 100 : 0);
     });
     return { totalAssets, curRatios, deRatios };
   }, [bsMonthly]);
@@ -1253,10 +1282,27 @@ export default function SummaryBiPage() {
               >&times;</button>
             </div>
             <div style={{ padding: 24, overflowY: "auto", flex: 1 }}>
-              {/* 월별 추이 차트 */}
+              {/* 월별 추이 차트 — 당기/전기 비교 토글 */}
               <div style={{ marginBottom: 24 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: 1, color: COLOR.textTertiary }}>월별 추이</span>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {(["all", "compare"] as const).map(mode => (
+                      <button
+                        key={mode}
+                        onClick={() => setPanelChartMode(mode)}
+                        style={{
+                          padding: "3px 10px", borderRadius: 4, fontSize: 11, fontWeight: panelChartMode === mode ? 600 : 500,
+                          cursor: "pointer", transition: "all 0.15s",
+                          border: `1px solid ${panelChartMode === mode ? COLOR.chart1 : COLOR.border}`,
+                          background: panelChartMode === mode ? COLOR.chart1 : "#fff",
+                          color: panelChartMode === mode ? "#fff" : COLOR.textSecondary,
+                        }}
+                      >
+                        {mode === "all" ? "당기" : "전기 비교"}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <ResponsiveContainer width="100%" height={180}>
                   <LineChart data={panelTrendData} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
@@ -1267,7 +1313,9 @@ export default function SummaryBiPage() {
                     <Tooltip contentStyle={tooltipStyle} />
                     <Legend wrapperStyle={{ fontSize: 11 }} verticalAlign="top" align="right" />
                     <Line type="monotone" dataKey="당기" stroke={COLOR.chart1} strokeWidth={2} dot={{ r: 3, fill: COLOR.chart1 }} name={`${curYear}년 (당기)`} />
-                    <Line type="monotone" dataKey="전기" stroke={COLOR.greyMedium} strokeWidth={1.5} strokeDasharray="5 3" dot={{ r: 2, fill: COLOR.greyMedium }} name={`${priorYear}년 (전기)`} connectNulls />
+                    {panelChartMode === "compare" && (
+                      <Line type="monotone" dataKey="전기" stroke={COLOR.greyMedium} strokeWidth={1.5} strokeDasharray="5 3" dot={{ r: 2, fill: COLOR.greyMedium }} name={`${priorYear}년 (전기)`} connectNulls />
+                    )}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
