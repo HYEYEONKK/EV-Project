@@ -84,6 +84,8 @@ export default function LibraryPage() {
     return matchCategory && matchSearch;
   });
 
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
   const updateForm = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleSubmit = async () => {
@@ -184,7 +186,16 @@ export default function LibraryPage() {
         {filtered.map((item, idx) => (
           <div
             key={idx}
-            style={{ background: "#fff", border: "1px solid #E5E7EB", borderRadius: 10, padding: "24px 20px", display: "flex", flexDirection: "column", gap: 10, transition: "box-shadow 0.15s" }}
+            onClick={() => setSelectedIdx(selectedIdx === idx ? null : idx)}
+            style={{
+              background: "#fff",
+              border: selectedIdx === idx ? "2px solid #FD5108" : "1px solid #E5E7EB",
+              borderRadius: 10,
+              padding: selectedIdx === idx ? "23px 19px" : "24px 20px",
+              display: "flex", flexDirection: "column", gap: 10,
+              transition: "box-shadow 0.15s, border 0.15s",
+              cursor: "pointer",
+            }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
           >
