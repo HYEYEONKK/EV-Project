@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 
 /* ── FAQ 데이터 ── */
 interface FaqItem {
@@ -37,7 +37,7 @@ export default function FaqPage() {
       <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", gap: 0, marginBottom: 32, height: 44 }}>
         <div style={{
           display: "flex", alignItems: "center", border: "1px solid #d0d0d0", borderRight: "none",
-          overflow: "hidden", width: 500,
+          borderRadius: "4px 0 0 4px", overflow: "hidden", width: 500,
         }}>
           <div style={{
             display: "flex", alignItems: "center", gap: 4, padding: "0 14px", height: "100%",
@@ -50,9 +50,18 @@ export default function FaqPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ flex: 1, height: "100%", padding: "0 14px", border: "none", fontSize: 14, outline: "none", color: "#1A1A2E" }}
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", display: "flex", alignItems: "center", padding: "0 8px" }}
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
         <button style={{
           width: 44, height: "100%", background: "#FD5108", color: "#fff", border: "none",
+          borderRadius: "0 4px 4px 0",
           display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
         }}>
           <Search size={18} />
@@ -60,12 +69,12 @@ export default function FaqPage() {
       </div>
 
       {/* ── 총 건수 ── */}
-      <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 8 }}>
+      <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 20 }}>
         총 <span style={{ color: "#FD5108", fontWeight: 600 }}>{filtered.length}</span>건
       </div>
 
       {/* ── 리스트 ── */}
-      <div style={{ borderTop: "2px solid #1A1A2E" }}>
+      <div style={{ borderTop: "2px solid #1A1A2E", marginTop: 0, paddingTop: 0 }}>
         {filtered.map((item) => {
           const isSelected = selectedId === item.id;
           return (

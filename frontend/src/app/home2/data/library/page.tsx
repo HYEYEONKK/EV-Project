@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import { Download, ChevronDown, Search, X } from "lucide-react";
+import { Download, ChevronDown, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 /* ── 자료실에 이미 있는 ERP 목록 (중복 체크용) ── */
 const EXISTING_ERPS = [
@@ -144,11 +144,11 @@ export default function LibraryPage() {
         필요한 데이터가 보이지 않는다면 언제든 문의해 주세요
       </p>
 
-      {/* ── 검색 바 (FAQ와 동일한 톤앤매너) ── */}
-      <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", gap: 0, marginBottom: 32, height: 44, position: "relative" }}>
+      {/* ── 검색 바 ── */}
+      <div style={{ display: "flex", alignItems: "stretch", justifyContent: "center", gap: 0, marginBottom: 28, height: 44, position: "relative" }}>
         <div style={{
           display: "flex", alignItems: "center", border: "1px solid #d0d0d0", borderRight: "none",
-          overflow: "visible", width: 500,
+          borderRadius: "4px 0 0 4px", overflow: "visible", width: 500,
         }}>
           <div
             onClick={() => setShowDropdown(!showDropdown)}
@@ -160,7 +160,7 @@ export default function LibraryPage() {
           >
             {category} <ChevronDown size={14} color="#FD5108" />
             {showDropdown && (
-              <div style={{ position: "absolute", top: 43, left: -1, width: 160, background: "#fff", border: "1px solid #d0d0d0", zIndex: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
+              <div style={{ position: "absolute", top: 43, left: -1, width: 160, background: "#fff", border: "1px solid #d0d0d0", borderRadius: 4, zIndex: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}>
                 {CATEGORIES.map((cat) => (
                   <div
                     key={cat}
@@ -180,9 +180,18 @@ export default function LibraryPage() {
             onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
             style={{ flex: 1, height: "100%", padding: "0 14px", border: "none", fontSize: 14, outline: "none", color: "#1A1A2E" }}
           />
+          {searchQuery && (
+            <button
+              onClick={() => { setSearchQuery(""); setPage(1); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", display: "flex", alignItems: "center", padding: "0 8px" }}
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
         <button style={{
           width: 44, height: "100%", background: "#FD5108", color: "#fff", border: "none",
+          borderRadius: "0 4px 4px 0",
           display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
         }}>
           <Search size={18} />
@@ -190,42 +199,44 @@ export default function LibraryPage() {
       </div>
 
       {/* ── 총 건수 + 상단 라인 ── */}
-      <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 8 }}>
+      <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 8, flexShrink: 0 }}>
         총 <span style={{ color: "#FD5108", fontWeight: 600 }}>{filtered.length}</span>건
       </div>
-      <div style={{ borderTop: "2px solid #1A1A2E", marginBottom: 20 }} />
+      <div style={{ borderTop: "2px solid #1A1A2E", marginBottom: 24, flexShrink: 0 }} />
 
-      {/* ── 카드 리스트 ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20, flex: 1, overflowY: "auto", paddingBottom: 16 }}>
-        {paged.map((item, idx) => (
-          <div
-            key={idx}
-            onClick={() => setSelectedIdx(selectedIdx === idx ? null : idx)}
-            style={{
-              background: "#fff",
-              border: "1px solid #E5E7EB",
-              borderRadius: 10,
-              padding: "24px 20px",
-              display: "flex", flexDirection: "column", gap: 10,
-              transition: "box-shadow 0.25s ease",
-              cursor: "pointer",
-              boxShadow: selectedIdx === idx ? "0 0 0 2px #FD5108" : "none",
-            }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0 2px #FD5108, 0 4px 16px rgba(0,0,0,0.08)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = selectedIdx === idx ? "0 0 0 2px #FD5108" : "none"; }}
-          >
-            <span style={{ fontSize: 12, color: "#3A3A3A", fontWeight: 500 }}>{COUNTRY_FLAGS[item.country] || ""} {item.country}</span>
-            <strong style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.4 }}>{item.title}</strong>
-            <span style={{ fontSize: 13, color: "#9CA3AF" }}>{item.description}</span>
-            <a href={item.fileUrl} download style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#FD5108", fontSize: 13, fontWeight: 500, textDecoration: "none", marginTop: 4 }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "underline"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "none"; }}
+      {/* ── 카드 리스트 (3x5 고정 그리드, 원래 카드 디자인 유지) ── */}
+      <div style={{ flex: 1, overflow: "hidden", padding: 4 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, height: "100%" }}>
+          {paged.map((item, idx) => (
+            <div
+              key={item.title}
+              onClick={() => setSelectedIdx(selectedIdx === idx ? null : idx)}
+              style={{
+                background: "#fff",
+                border: "1px solid #E5E7EB",
+                borderRadius: 8,
+                padding: "24px 20px",
+                display: "flex", flexDirection: "column", gap: 10,
+                transition: "box-shadow 0.25s ease",
+                cursor: "pointer",
+                boxShadow: selectedIdx === idx ? "0 0 0 2px #FD5108" : "none",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0 2px #FD5108, 0 4px 16px rgba(0,0,0,0.08)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = selectedIdx === idx ? "0 0 0 2px #FD5108" : "none"; }}
             >
-              <Download size={16} />다운로드
-            </a>
-            <span style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>{item.date}</span>
-          </div>
-        ))}
+              <span style={{ fontSize: 12, color: "#6B7280", fontWeight: 500 }}>{COUNTRY_FLAGS[item.country] || ""} {item.country}</span>
+              <strong style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.4 }}>{item.title}</strong>
+              <span style={{ fontSize: 13, color: "#9CA3AF" }}>{item.description}</span>
+              <a href={item.fileUrl} download onClick={(e) => e.stopPropagation()} style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#FD5108", fontSize: 13, fontWeight: 500, textDecoration: "none", marginTop: 4 }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "underline"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.textDecoration = "none"; }}
+              >
+                <Download size={16} />다운로드
+              </a>
+              <span style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>{item.date}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {filtered.length === 0 && (
@@ -233,38 +244,40 @@ export default function LibraryPage() {
       )}
 
       {/* ── 페이지네이션 (하단 고정) ── */}
-      {totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, paddingTop: 20, flexShrink: 0 }}>
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-            style={{ ...pgBtn, opacity: page === 1 ? 0.3 : 1, cursor: page === 1 ? "not-allowed" : "pointer" }}
-          >
-            &lt;&lt;
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4, paddingTop: 16, flexShrink: 0, height: 52 }}>
+        {totalPages > 1 ? (
+          <>
             <button
-              key={p}
-              onClick={() => setPage(p)}
-              style={{
-                ...pgBtn,
-                background: p === page ? "#FD5108" : "none",
-                color: p === page ? "#fff" : "#1A1A2E",
-                fontWeight: p === page ? 700 : 400,
-              }}
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+              style={{ ...pgBtn, opacity: page === 1 ? 0.3 : 1, cursor: page === 1 ? "not-allowed" : "pointer" }}
             >
-              {p}
+              <ChevronLeft size={18} />
             </button>
-          ))}
-          <button
-            disabled={page === totalPages}
-            onClick={() => setPage(page + 1)}
-            style={{ ...pgBtn, opacity: page === totalPages ? 0.3 : 1, cursor: page === totalPages ? "not-allowed" : "pointer" }}
-          >
-            &gt;&gt;
-          </button>
-        </div>
-      )}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                style={{
+                  ...pgBtn,
+                  background: p === page ? "#FD5108" : "none",
+                  color: p === page ? "#fff" : "#1A1A2E",
+                  fontWeight: p === page ? 700 : 400,
+                }}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage(page + 1)}
+              style={{ ...pgBtn, opacity: page === totalPages ? 0.3 : 1, cursor: page === totalPages ? "not-allowed" : "pointer" }}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </>
+        ) : <span style={{ color: "#9CA3AF", fontSize: 13 }}>1</span>}
+      </div>
 
       {/* ── 문의 팝업 ── */}
       {showInquiry && (
