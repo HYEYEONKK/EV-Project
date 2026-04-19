@@ -206,7 +206,7 @@ export default function LibraryPage() {
 
       {/* ── 카드 리스트 (3열 그리드) ── */}
       <div style={{ padding: 4 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
           {paged.map((item, idx) => (
             <div
               key={item.title}
