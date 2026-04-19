@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import { useAuthStore, useUserRole } from "@/lib/store/authStore";
-import { HelpCircle, PencilLine, Trash2, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { useUserRole } from "@/lib/store/authStore";
+import { HelpCircle, PencilLine, Trash2, Download, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 
 /* ── Mock data ── */
 interface LibraryPost {
@@ -46,19 +46,16 @@ export default function LibraryPage() {
     });
   };
   const toggleAll = () => {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filtered.map((p) => p.id)));
-    }
+    if (allSelected) setSelectedIds(new Set());
+    else setSelectedIds(new Set(filtered.map((p) => p.id)));
   };
 
   return (
-    <section style={{ padding: "42px 32px", display: "flex", flexDirection: "column", gap: 32, height: "calc(100vh - 56px)", minHeight: 500 }}>
+    <section style={{ padding: "42px 32px", display: "flex", flexDirection: "column", gap: 32, width: "100%", height: "calc(100vh - 56px)", minHeight: 500 }}>
       {/* ── 제목 ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1A1A2E", margin: 0 }}>자료실</h1>
-        <button style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", display: "flex", padding: 0 }}>
+        <button style={{ background: "none", border: "none", cursor: "pointer", color: "#9CA3AF", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
           <HelpCircle size={20} />
         </button>
       </div>
@@ -66,54 +63,61 @@ export default function LibraryPage() {
       {/* ── 필터 + 액션 바 ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         {/* 카테고리 드롭다운 */}
-        <div style={{ position: "relative" }}>
-          <div
-            onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-            style={{
-              width: 250, height: 40, display: "flex", alignItems: "center",
-              padding: "0 12px", border: "1px solid #E5E7EB", borderRadius: 4,
-              cursor: "pointer", fontSize: 14, color: category === "전체" ? "#9CA3AF" : "#1A1A2E",
-            }}
-          >
-            <span style={{ color: "#FD5108", marginRight: 4 }}>*</span>
-            <span style={{ flex: 1 }}>{category === "전체" ? "카테고리를 선택해주세요." : category}</span>
-            <ChevronLeft size={16} color="#6B7280" style={{ transform: showCategoryDropdown ? "rotate(90deg)" : "rotate(-90deg)", transition: "transform 0.2s" }} />
-          </div>
-          {showCategoryDropdown && (
-            <div style={{
-              position: "absolute", top: 44, left: 0, width: 250, background: "#fff",
-              border: "1px solid #E5E7EB", borderRadius: 4, boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              zIndex: 10,
-            }}>
-              {CATEGORIES.map((cat) => (
-                <div
-                  key={cat}
-                  onClick={() => { setCategory(cat); setShowCategoryDropdown(false); }}
-                  style={{
-                    padding: "10px 12px", fontSize: 14, cursor: "pointer",
-                    color: cat === category ? "#FD5108" : "#1A1A2E",
-                    background: cat === category ? "#FFF8F5" : "transparent",
-                  }}
-                  onMouseEnter={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "#F9FAFB"; }}
-                  onMouseLeave={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-                >
-                  {cat}
-                </div>
-              ))}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ position: "relative" }}>
+            <div
+              onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+              style={{
+                width: 250, height: 40, display: "flex", alignItems: "center",
+                padding: "0 12px", border: "1px solid #E5E7EB", borderRadius: 4,
+                cursor: "pointer", fontSize: 14,
+              }}
+            >
+              <span style={{ color: "#FD5108", marginRight: 4, display: "flex", alignItems: "center" }}>*</span>
+              <div style={{ flex: 1, minWidth: 0, color: category === "전체" ? "#9CA3AF" : "#1A1A2E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {category === "전체" ? "카테고리를 선택해주세요." : category}
+              </div>
+              <div style={{ marginLeft: 8, flexShrink: 0 }}>
+                <ChevronDown size={16} color="#6B7280" />
+              </div>
             </div>
-          )}
+            {showCategoryDropdown && (
+              <div style={{
+                position: "absolute", top: 44, left: 0, width: 250, background: "#fff",
+                border: "1px solid #E5E7EB", borderRadius: 4, boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                zIndex: 10,
+              }}>
+                {CATEGORIES.map((cat) => (
+                  <div
+                    key={cat}
+                    onClick={() => { setCategory(cat); setShowCategoryDropdown(false); }}
+                    style={{
+                      padding: "10px 12px", fontSize: 14, cursor: "pointer",
+                      color: cat === category ? "#FD5108" : "#1A1A2E",
+                      background: cat === category ? "#FFF8F5" : "transparent",
+                    }}
+                    onMouseEnter={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "#F9FAFB"; }}
+                    onMouseLeave={(e) => { if (cat !== category) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                  >
+                    {cat}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 액션 버튼 */}
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
           {isSamilAdmin ? (
             <>
               <button
                 onClick={() => alert("준비 중입니다.")}
                 style={{
-                  display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
-                  background: "#FD5108", color: "#fff", border: "none", borderRadius: 4,
-                  fontSize: 14, fontWeight: 500, cursor: "pointer", transition: "opacity 0.15s",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  padding: "8px 16px", background: "#FD5108", color: "#fff",
+                  border: "none", borderRadius: 4, fontSize: 14, fontWeight: 500,
+                  cursor: "pointer", whiteSpace: "nowrap",
                 }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.85"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
@@ -125,96 +129,105 @@ export default function LibraryPage() {
                 disabled={selectedIds.size === 0}
                 onClick={() => alert("삭제 기능 준비 중입니다.")}
                 style={{
-                  display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
-                  background: selectedIds.size === 0 ? "#9CA3AF" : "#6B7280", color: "#fff",
-                  border: "none", borderRadius: 4, fontSize: 14, fontWeight: 500,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  padding: "8px 16px", background: selectedIds.size === 0 ? "#6B7280" : "#6B7280",
+                  color: "#fff", border: "none", borderRadius: 4, fontSize: 14, fontWeight: 500,
                   cursor: selectedIds.size === 0 ? "not-allowed" : "pointer",
-                  opacity: selectedIds.size === 0 ? 0.3 : 1,
+                  opacity: selectedIds.size === 0 ? 0.3 : 1, whiteSpace: "nowrap",
                 }}
               >
                 <Trash2 size={18} />
                 삭제
               </button>
             </>
-          ) : null}
+          ) : (
+            <button
+              disabled={selectedIds.size === 0}
+              onClick={() => alert("다운로드 기능 준비 중입니다.")}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                padding: "8px 16px", background: "#FD5108", color: "#fff",
+                border: "none", borderRadius: 4, fontSize: 14, fontWeight: 500,
+                cursor: "pointer", whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.85"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
+            >
+              <Download size={18} />
+              다운로드
+            </button>
+          )}
         </div>
       </div>
 
       {/* ── 테이블 ── */}
-      <div style={{ flex: 1, minHeight: 0, border: "1px solid #E5E7EB", borderRadius: 10, overflow: "hidden" }}>
-        <div style={{ overflowX: "hidden", overflowY: "auto", height: "100%" }}>
-          <table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
-            <colgroup>
-              {isSamilAdmin && <col style={{ width: 40 }} />}
-              <col style={{ width: 80 }} />
-              <col style={{ width: 100 }} />
-              <col />
-              <col style={{ width: 100 }} />
-              <col style={{ width: 80 }} />
-              <col style={{ width: 110 }} />
-              {!isSamilAdmin && <col style={{ width: 80 }} />}
-            </colgroup>
-            <thead>
-              <tr>
-                {isSamilAdmin && (
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <div style={{ border: "1px solid #E5E7EB", borderRadius: 10, overflow: "hidden", height: "100%" }}>
+          <div style={{ position: "relative", overflowX: "hidden", overflowY: "auto", borderRadius: 8, height: "100%" }}>
+            <table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
+              <colgroup>
+                <col style={{ width: 40 }} />
+                <col style={{ width: 100 }} />
+                <col style={{ width: 150 }} />
+                <col style={{ width: "auto" }} />
+                <col style={{ width: 80 }} />
+                <col style={{ width: 80 }} />
+                <col style={{ width: 100 }} />
+              </colgroup>
+              <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 1 }}>
+                <tr>
                   <th style={thStyle}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", paddingLeft: 10 }}>
                       <Checkbox checked={allSelected} onChange={toggleAll} />
                     </div>
                   </th>
-                )}
-                <th style={thStyle}>번호</th>
-                <th style={thStyle}>구분</th>
-                <th style={{ ...thStyle, textAlign: "left", paddingLeft: 16 }}>제목</th>
-                <th style={thStyle}>작성자</th>
-                <th style={thStyle}>조회수</th>
-                <th style={thStyle}>작성일자</th>
-                {!isSamilAdmin && <th style={thStyle}>다운로드</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((post, idx) => (
-                <tr
-                  key={post.id}
-                  style={{ cursor: "pointer", transition: "background 0.1s" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#F9FAFB"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-                >
-                  {isSamilAdmin && (
-                    <td style={tdStyle}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <Checkbox checked={selectedIds.has(post.id)} onChange={() => toggleSelect(post.id)} />
-                      </div>
-                    </td>
-                  )}
-                  <td style={{ ...tdStyle, textAlign: "center" }}>{post.id}</td>
-                  <td style={{ ...tdStyle, textAlign: "center" }}>{post.category}</td>
-                  <td style={{ ...tdStyle, textAlign: "left", paddingLeft: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{post.title}</td>
-                  <td style={{ ...tdStyle, textAlign: "center" }}>{post.author}</td>
-                  <td style={{ ...tdStyle, textAlign: "center" }}>{post.views}</td>
-                  <td style={{ ...tdStyle, textAlign: "center", borderRight: isSamilAdmin ? "none" : undefined }}>{post.createdAt}</td>
-                  {!isSamilAdmin && (
-                    <td style={{ ...tdStyle, textAlign: "center", borderRight: "none" }}>
-                      {post.fileUrl ? (
-                        <a
-                          href={post.fileUrl}
-                          download
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ color: "#FD5108", display: "inline-flex", padding: 4 }}
-                        >
-                          <Download size={18} />
-                        </a>
-                      ) : (
-                        <span style={{ color: "#D1D5DB" }}>
-                          <Download size={18} />
-                        </span>
-                      )}
-                    </td>
-                  )}
+                  <th style={thStyle}><p style={{ margin: 0, textAlign: "center" }}>번호</p></th>
+                  <th style={thStyle}><p style={{ margin: 0, textAlign: "center" }}>구분</p></th>
+                  <th style={thStyle}><p style={{ margin: 0, textAlign: "center" }}>제목</p></th>
+                  <th style={thStyle}><p style={{ margin: 0, textAlign: "center" }}>작성자</p></th>
+                  <th style={thStyle}><p style={{ margin: 0, textAlign: "center" }}>조회수</p></th>
+                  <th style={{ ...thStyle, borderRight: "none" }}><p style={{ margin: 0, textAlign: "center" }}>작성일자</p></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((post, idx) => {
+                  const isLast = idx === filtered.length - 1;
+                  return (
+                    <tr
+                      key={post.id}
+                      style={{ cursor: "pointer" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(249,250,251,0.5)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                    >
+                      <td style={{ ...tdStyle, borderBottom: isLast ? "none" : tdStyle.borderBottom }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", paddingLeft: 10 }}>
+                          <Checkbox checked={selectedIds.has(post.id)} onChange={() => toggleSelect(post.id)} />
+                        </div>
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "center", borderBottom: isLast ? "none" : tdStyle.borderBottom }}>
+                        <div style={{ minWidth: 0, width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 60 }}>{post.id}</div>
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "center", borderBottom: isLast ? "none" : tdStyle.borderBottom }}>
+                        <div style={{ minWidth: 0, width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 150 }}>{post.category}</div>
+                      </td>
+                      <td style={{ ...tdStyle, borderBottom: isLast ? "none" : tdStyle.borderBottom }}>
+                        <div style={{ minWidth: 0, width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 400 }} title={post.title}>{post.title}</div>
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "center", borderBottom: isLast ? "none" : tdStyle.borderBottom }}>
+                        <div style={{ minWidth: 0, width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 130 }}>{post.author}</div>
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "center", borderBottom: isLast ? "none" : tdStyle.borderBottom }}>
+                        <div style={{ minWidth: 0, width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 50 }}>{post.views}</div>
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "center", borderBottom: isLast ? "none" : tdStyle.borderBottom, borderRight: "none" }}>
+                        <div style={{ minWidth: 0, width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 100 }}>{post.createdAt}</div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -224,7 +237,7 @@ export default function LibraryPage() {
           <button disabled style={{ ...pageBtn, opacity: 0.3, cursor: "not-allowed" }}>
             <ChevronLeft size={18} />
           </button>
-          <button style={{ ...pageBtn, background: "#FD5108", color: "#fff", fontWeight: 600 }}>1</button>
+          <button style={{ width: 40, height: 40, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", background: "#FD5108", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600, fontSize: 14 }}>1</button>
           <button disabled style={{ ...pageBtn, opacity: 0.3, cursor: "not-allowed" }}>
             <ChevronRight size={18} />
           </button>
@@ -258,27 +271,26 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: () => voi
 
 /* ── 스타일 상수 ── */
 const thStyle: React.CSSProperties = {
-  background: "#F9FAFB",
+  background: "#F3F4F6",
   borderBottom: "1px solid #E5E7EB",
-  padding: "12px 8px",
-  fontSize: 13,
-  fontWeight: 600,
+  padding: "0 8px",
+  height: 48,
+  fontSize: 14,
+  fontWeight: 500,
   color: "#6B7280",
-  textAlign: "center",
-  position: "sticky",
-  top: 0,
+  textAlign: "left",
 };
 
 const tdStyle: React.CSSProperties = {
-  borderBottom: "1px solid #F3F4F6",
-  padding: "10px 8px",
+  borderBottom: "1px solid #E5E7EB",
+  padding: "0 8px",
+  height: 45,
   fontSize: 14,
   color: "#1A1A2E",
+  verticalAlign: "middle",
 };
 
 const pageBtn: React.CSSProperties = {
-  width: 36, height: 36, borderRadius: 6,
   display: "flex", alignItems: "center", justifyContent: "center",
   background: "none", border: "none", cursor: "pointer",
-  fontSize: 14,
 };
