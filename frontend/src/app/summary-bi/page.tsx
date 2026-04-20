@@ -1271,7 +1271,7 @@ export default function SummaryBiPage() {
               display: "flex", justifyContent: "space-between", alignItems: "center",
             }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: COLOR.textPrimary, margin: 0 }}>
-                {panelKpi} 월별 추이
+                {panelKpi} 요약
               </h3>
               <button
                 onClick={() => setPanelOpen(false)}
@@ -1294,9 +1294,9 @@ export default function SummaryBiPage() {
                         style={{
                           padding: "3px 10px", borderRadius: 4, fontSize: 11, fontWeight: panelChartMode === mode ? 600 : 500,
                           cursor: "pointer", transition: "all 0.15s",
-                          border: `1px solid ${panelChartMode === mode ? COLOR.chart1 : COLOR.border}`,
-                          background: panelChartMode === mode ? COLOR.chart1 : "#fff",
-                          color: panelChartMode === mode ? "#fff" : COLOR.textSecondary,
+                          border: `1px solid ${panelChartMode === mode ? COLOR.uiOrange : COLOR.border}`,
+                          background: panelChartMode === mode ? COLOR.uiOrange : "#fff",
+                          color: panelChartMode === mode ? COLOR.textPrimary : COLOR.textSecondary,
                         }}
                       >
                         {mode === "all" ? "당기" : "전기 비교"}
